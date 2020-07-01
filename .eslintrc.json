@@ -21,6 +21,8 @@
         "no-underscore-dangle": "warn",
         "no-await-in-loop": "warn",
         "max-classes-per-file": "warn",
-        "no-else-return": "off"
+        "no-else-return": "off",
+        "quote-props": "off",
+        "camelcase": "off"
     }
 }
