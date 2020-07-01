@@ -1,11 +1,13 @@
 const { amazonQuery } = require('./index')
+const { Namecache } = require('../../namecache/index')
 
 describe('amazon resolver', () => {
   describe('known names', () => {
     test('given lambda arn, returns it', async () => {
       const input = 'arn:aws:lambda:us-east-2:735406098573:function:myinc'
+      const namecache = new Namecache()
 
-      const toBeTested = () => amazonQuery(input)
+      const toBeTested = () => amazonQuery(input, namecache)
 
       const res = await toBeTested()
 
@@ -14,8 +16,9 @@ describe('amazon resolver', () => {
 
     test('given existing lambda name, returns arn', async () => {
       const input = 'myinc'
+      const namecache = new Namecache()
 
-      const toBeTested = () => amazonQuery(input)
+      const toBeTested = () => amazonQuery(input, namecache)
 
       const res = await toBeTested()
 
@@ -44,8 +47,9 @@ describe('amazon resolver', () => {
 
     test('given unknown lambda name, returns null', async () => {
       const input = 'my-nonexisting-lambda'
+      const namecache = new Namecache()
 
-      const toBeTested = () => amazonQuery(input)
+      const toBeTested = () => amazonQuery(input, namecache)
 
       let err 
       let res 
