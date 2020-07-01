@@ -1,12 +1,10 @@
 const arg = require('arg')
 const path = require('path')
-const { EOL } = require('os')
 const { readparsevalidate } = require('./parsers/index')
 const { enrich } = require('./enrichers/index')
 const { sharedStash } = require('./stashes')
 const { build } = require('./nodebuilders/index')
 const { initProject } = require('./initer/index')
-const { spinnies } = require('./printers/index')
 
 /**
  * 
