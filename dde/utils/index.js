@@ -19,7 +19,6 @@ function parseCliArgs() {
 
   return {
     mode: mode,
-    // keepUploadable: args['--keep-uploadable'],
     root: root,
   }
 }

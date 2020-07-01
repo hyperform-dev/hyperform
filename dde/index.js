@@ -43,12 +43,11 @@ async function processTask(args, task, provider = 'amazon') {
   const fnFolderAbsolutePaths = await getCandidatePaths(task, args)
   const fnFolderNames = fnFolderAbsolutePaths.map((p) => path.basename(p))
   const uploadablePaths = fnFolderAbsolutePaths.map((p) => path.join(p, task.upload))
+  // check if uploadable is there before "do" step
+  // if yes, user might want to keep it. 
+  // If no, "do" step is likely to (cheaply) generate it and it can be deleted every time
   // array of booleans, for each folder
   const shouldKeepUploadables = uploadablePaths.map((p) => {
-    if (args['--keep-uploadable'] === true) return true 
-    // check if uploadable is there before "do" step
-    // if yes, user might want to keep it. 
-    // If no, "do" step is likely to (cheaply) generate it and it can be deleted every time
     const exists = fs.existsSync(p)
     return exists
   })
