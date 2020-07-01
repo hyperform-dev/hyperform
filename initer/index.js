@@ -2,7 +2,7 @@ const fs = require('fs')
 const path = require('path')
 const os = require('os')
 const { EOL } = require('os')
-const { log } = require('../printers/index')
+const { log, logdev } = require('../printers/index')
 /**
  * @description Extracts the [default] section of an AWS .aws/config or .aws/credentials file
  * @param {string} filecontents File contents of an .aws/credentials or .aws/config file
@@ -156,9 +156,9 @@ function init(absdir) {
     const parsedCredentials = parseAwsCredentialsOrConfigFile(credentialsFileContents)
     hyperformJsonContents.amazon.aws_access_key_id = parsedCredentials.default.aws_access_key_id
     hyperformJsonContents.amazon.aws_secret_access_key = parsedCredentials.default.aws_secret_access_key
-    log(`Inferred AWS credentials from ${possibleCredentialsPath}`)
+    logdev(`Inferred AWS credentials from ${possibleCredentialsPath}`)
   } else {
-    log(`Could not guess AWS credentials. No AWS credentials file found in ${possibleCredentialsPath}`)
+    logdev(`Could not guess AWS credentials. No AWS credentials file found in ${possibleCredentialsPath}`)
   }
 
   /// /////////////////
@@ -172,9 +172,9 @@ function init(absdir) {
 
     const parsedConfig = parseAwsCredentialsOrConfigFile(configFileContents)
     hyperformJsonContents.amazon.aws_default_region = parsedConfig.default.region
-    log(`Inferred AWS region from ${possibleConfigPath}`)
+    logdev(`Inferred AWS region from ${possibleConfigPath}`)
   } else {
-    log(`Could not guess AWS region. No AWS config file found in ${possibleConfigPath}`) // TODO region will not be a single region, but smartly multiple ones (or?)
+    logdev(`Could not guess AWS region. No AWS config file found in ${possibleConfigPath}`) // TODO region will not be a single region, but smartly multiple ones (or?)
   }
 
   // Then, do (1), possibly overriding values
@@ -182,17 +182,17 @@ function init(absdir) {
 
   if (typeof process.env.AWS_ACCESS_KEY_ID === 'string' && process.env.AWS_ACCESS_KEY_ID.trim().length > 0) {
     hyperformJsonContents.amazon.aws_access_key_id = process.env.AWS_ACCESS_KEY_ID.trim()
-    log('Environment variable AWS_ACCESS_KEY_ID set, overriding value from credentials file')
+    logdev('Environment variable AWS_ACCESS_KEY_ID set, overriding value from credentials file')
   }
 
   if (typeof process.env.AWS_SECRET_ACCESS_KEY === 'string' && process.env.AWS_SECRET_ACCESS_KEY.trim().length > 0) {
     hyperformJsonContents.amazon.aws_secret_access_key = process.env.AWS_SECRET_ACCESS_KEY.trim()
-    log('Environment variable AWS_SECRET_ACCESS_KEY set, overriding value from credentials file')
+    logdev('Environment variable AWS_SECRET_ACCESS_KEY set, overriding value from credentials file')
   }
 
   if (typeof process.env.AWS_REGION === 'string' && process.env.AWS_REGION.trim().length > 0) {
     hyperformJsonContents.amazon.aws_default_region = process.env.AWS_REGION.trim()
-    log('Environment variable AWS_REGION set, overriding value from config file')
+    logdev('Environment variable AWS_REGION set, overriding value from config file')
   }
 
   // append 'hyperform.json' to .gitignore 
