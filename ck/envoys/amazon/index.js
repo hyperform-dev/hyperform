@@ -37,6 +37,8 @@ const amazonEnvoy = {
     )
   },
   envoy: function (arn, input) {
+    const uid = `${Math.ceil(Math.random() * 10000)}`
+    console.time(`amazonEnvoy ${arn} ${uid}`)
     const jsonInput = JSON.stringify(input)
     return (
       lambda.invoke({
@@ -50,15 +52,16 @@ const amazonEnvoy = {
           if (p && p.FunctionError) {
             throw new Error(`Function ${arn} failed: ${p.Payload}`)
           }
+          console.timeEnd(`amazonEnvoy ${arn} ${uid}`)
           return p
         })
         // 2) If yes, log Lambda's stdout in local terminal
-        .then((res) => {
-          // remove arn:... part
-          const prettyname = `${arn.split(':').slice(-1)[0]} (Amazon)`
-          amazonLog(res, prettyname)
-          return res
-        })
+        // .then((res) => {
+        //   // // remove arn:... part
+        //   // const prettyname = `${arn.split(':').slice(-1)[0]} (Amazon)`
+        //   // amazonLog(res, prettyname)
+        //   // return res
+        // })
         // TODO do multiple parses if it was stringified multiple times lol
         // TODO or check that its an object after 1 go, otherwise throw / complain to user
         // 3) Parse its return value

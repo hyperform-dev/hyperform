@@ -1,0 +1,25 @@
+{
+  "name": "hyperform",
+  "version": "0.0.1",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "jest",
+    "lint": "eslint",
+    "lintfix": "eslint --fix"
+  },
+  "engines": {
+    "node": ">=10.9.0"
+  },
+  "author": "DPS Group, University of Innsbruck <jakob.wallnoefer@student.uibk.ac.at>",
+  "license": "ISC",
+  "dependencies": {
+    "aws-sdk": "^2.780.0",
+    "chalk": "^4.1.0",
+    "spinnies": "^0.5.1",
+    "uuid": "^8.3.1"
+  },
+  "devDependencies": {
+    "jest": "^26.6.3"
+  }
+}
