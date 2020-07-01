@@ -1,9 +1,6 @@
 /* eslint-disable global-require, import/no-dynamic-require */
 
-const path = require('path')
-const fsp = require('fs').promises
-const os = require('os')
-const { bundle, createZip } = require('./bundler/index')
+const { bundle } = require('./bundler/index')
 const { getJsFilePaths, getNamedExports } = require('./discoverer/index')
 const { deployAmazon } = require('./deployer/amazon/index')
 const { transpile } = require('./transpiler/index')
@@ -46,7 +43,6 @@ async function main(root) {
           })
         }),
       )
-      // TODO don't nest em too much
       return done
     }),
   )
@@ -55,8 +51,8 @@ async function main(root) {
   zippedInfos = zippedInfos.reduce((acc, curr) => [...acc, ...curr], [])
  
   console.log(zippedInfos)
+  
   // deplopy each zip
-
   await Promise.all(
     zippedInfos.map((zinfo) => {
       const fnname = `${zinfo.namedexp}-fn` // Lambda name
@@ -67,4 +63,6 @@ async function main(root) {
   console.log('deployed all fns')
 }
 
-main('/home/qng/cloudkernel/recruiter/tm')
+module.exports = {
+  main,
+}
