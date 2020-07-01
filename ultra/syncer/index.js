@@ -24,9 +24,13 @@ const { downloadFileS3 } = require('./amazon/index')
  * Uploads (mirrors) file on s3, with same path etc
  * @param {} filepath Eg '/home/qng/lambdas/index.js'
  */
-async function syncAmazon(filepath) {
+async function syncAmazon(filepath, bucket) {
   // Exactly mirror file on S3, with same path as on local OS
-  return uploadFileS3(filepath, filepath)
+  return uploadFileS3({
+    filepath: filepath,
+    key: filepath,
+    bucket: bucket,
+  })
 }
 
 module.exports = {

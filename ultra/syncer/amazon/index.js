@@ -3,11 +3,15 @@ const fsp = require('fs').promises
 
 const s3 = new aws.S3();
 
-async function uploadFileS3(filepath, key) {
-  const filecontents = await fsp.readFile(filepath, { encoding: 'utf8' })
+/**
+ * 
+ * @param {{filepath: string, key: string, bucket: string}} options 
+ */
+async function uploadFileS3(options) {
+  const filecontents = await fsp.readFile(options.filepath, { encoding: 'utf8' })
   const params = {
-    Bucket: 'jak-bridge-typical',
-    Key: key,
+    Bucket: options.bucket,
+    Key: options.key,
     Body: filecontents,
   }
 
