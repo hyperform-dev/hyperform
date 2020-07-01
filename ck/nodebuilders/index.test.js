@@ -1,4 +1,4 @@
-const { detectnodetype } = require('./index')
+const detectnodetype = require('./index')._onlyfortesting_detectnodetype
 
 describe('detectnodetype', () => {
   describe('detects valid ones correctly', () => {
