@@ -8,8 +8,11 @@
 const os = require('os')
 const path = require('path')
 const fsp = require('fs').promises
-const util = require('util')
 const fetch = require('node-fetch')
+const dotenv = require('dotenv')
+
+// read .env file into process.env (used below)
+dotenv.config()
 
 // allow 2 minutes
 const TIMEOUT = 2 * 60 * 1000
@@ -26,24 +29,36 @@ describe('System tests (takes 1-2 minutes)', () => {
         os.tmpdir(),
         `${Math.ceil(Math.random() * 100000000000)}`,
       )
-      const tmppath = path.join(tmpdir, 'index.js')
-
+      
       await fsp.mkdir(tmpdir)
       const code = `
-          function irrelevant() {
-            return 100
-          }
+      function irrelevant() {
+        return 100
+      }
+      
+      function endpoint_systemtest_testhello() {
+        return { z: 0 }
+      }
+      
+      module.exports = {
+        endpoint_systemtest_testhello
+      }
+      `
+      
+      const tmpcodepath = path.join(tmpdir, 'index.js')
+      await fsp.writeFile(tmpcodepath, code, { encoding: 'utf-8' })
 
-          function endpoint_testhello() {
-            return { z: 0 }
-          }
+      // TODO ahem
+      const json = JSON.stringify({
+        amazon: {
+          aws_access_key_id: process.env.AWS_ACCESS_KEY_ID,
+          aws_secret_access_key: process.env.AWS_SECRET_ACCESS_KEY, 
+          region: process.env.AWS_REGION, 
+        },
+      }, null, 2)
 
-          module.exports = {
-            endpoint_testhello
-          }
-        `
-
-      await fsp.writeFile(tmppath, code, { encoding: 'utf-8' })
+      const tmpjsonpath = path.join(tmpdir, 'hyperform.json')
+      await fsp.writeFile(tmpjsonpath, json, { encoding: 'utf-8' })
 
       /// ////////////////////////////////////////////
       // Run
@@ -59,7 +74,7 @@ describe('System tests (takes 1-2 minutes)', () => {
         err = e
       }
 
-      // Expect it did not throw
+      // Expect main did not throw
       expect(err).not.toBeDefined()
 
       /// ////////////////////////////////////////////////
