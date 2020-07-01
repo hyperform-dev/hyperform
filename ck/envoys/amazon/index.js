@@ -1,5 +1,5 @@
 const aws = require('aws-sdk')
-const { amazonQuery } = require('../../namecache/amazon/index')
+const { amazonQuery } = require('../../resolvers/amazon/index')
 const { amazonLog } = require('../../loggers/amazon/index')
 
 // aws.config.logger = console
@@ -10,11 +10,11 @@ const lambda = new aws.Lambda({
 
 // Envoys should resolve to output obj if successful, or throw an error if not
 const amazonEnvoy = {
+  // TODO not call it locally here, use namecache
   canEnvoy: function (name) {
     return (
       amazonQuery(name)
-        .then(() => true)
-        .catch(() => false)
+        .then((res) => !!res) // amazonQuery returned something
     )
   },
   envoy: function (name, input) {
