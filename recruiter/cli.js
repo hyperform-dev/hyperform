@@ -4,5 +4,4 @@ const { recruiter } = require('./index')
 
 const root = process.cwd()
 const lang = 'js'
-const whitelist = ['notthatobv']
-recruiter(root, lang, whitelist)
+recruiter(root, lang)
