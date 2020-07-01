@@ -25,10 +25,11 @@ const spinnies = new Spinnies({ color: 'white', succeedColor: 'white', spinner: 
 
 // In testing, be silent
 if (isInTesting() === true) {
-  spinnies.justPrintSuccess = () => {}
-  spinnies.justPrintFail = () => {}
-  spinnies.add = () => {}
-  spinnies.update = () => {}
+  spinnies.add = () => { }
+  spinnies.update = () => { }
+  spinnies.remove = () => { }
+  spinnies.succeed = (_, { text }) => console.log(text)
+  spinnies.fail = (_, { text }) => console.log(text)
   spinnies.updateSpinnerState = () => {}
 }
 
