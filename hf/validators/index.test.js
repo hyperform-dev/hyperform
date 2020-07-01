@@ -1,13 +1,13 @@
 /* eslint-disable global-require */
 describe('validators', () => {
-  describe('validateInput', () => {
-    const { validateInput } = require('./index')
+  describe('validateInputOne', () => {
+    const { validateInputOne } = require('./index')
     describe('accepts valid', () => {
       test('obj', () => {
         const input = { 
           a: 1,
         }
-        const toBeTested = () => validateInput(input)
+        const toBeTested = () => validateInputOne(input)
         expect(toBeTested).not.toThrow()
       })
 
@@ -18,7 +18,7 @@ describe('validators', () => {
             c: 1,
           },
         }
-        const toBeTested = () => validateInput(input)
+        const toBeTested = () => validateInputOne(input)
         expect(toBeTested).not.toThrow()
       })
 
@@ -28,57 +28,57 @@ describe('validators', () => {
           b: new Date(100),
           c: new String('ayaa'),
         }
-        const toBeTested = () => validateInput(input)
+        const toBeTested = () => validateInputOne(input)
         expect(toBeTested).not.toThrow()
       })
 
       test('empty obj', () => {
         const input = {}
-        const toBeTested = () => validateInput(input)
+        const toBeTested = () => validateInputOne(input)
         expect(toBeTested).not.toThrow()
       })
     })
     describe('throws on invalid', () => {
       test('null', () => {
         const input = null 
-        const toBeTested = () => validateInput(input)
+        const toBeTested = () => validateInputOne(input)
         expect(toBeTested).toThrow()
       })
 
       test('undefined', () => {
         const input = undefined 
-        const toBeTested = () => validateInput(input)
+        const toBeTested = () => validateInputOne(input)
         expect(toBeTested).toThrow()
       })
 
       test('array', () => {
         const input = [1, 2, 3] 
-        const toBeTested = () => validateInput(input)
+        const toBeTested = () => validateInputOne(input)
         expect(toBeTested).toThrow()
       })
 
       test('function', () => {
         const input = () => { }
-        const toBeTested = () => validateInput(input)
+        const toBeTested = () => validateInputOne(input)
         expect(toBeTested).toThrow()
       })
 
       describe('primitives', () => {
         test('number', () => {
           const input = 1
-          const toBeTested = () => validateInput(input)
+          const toBeTested = () => validateInputOne(input)
           expect(toBeTested).toThrow()
         })
        
         test('string', () => {
           const input = 'input'
-          const toBeTested = () => validateInput(input)
+          const toBeTested = () => validateInputOne(input)
           expect(toBeTested).toThrow()
         })
 
         test('boolean', () => {
           const input = 1
-          const toBeTested = () => validateInput(input)
+          const toBeTested = () => validateInputOne(input)
           expect(toBeTested).toThrow()
         })
       })
@@ -88,7 +88,7 @@ describe('validators', () => {
 
       // test('date (technically object)', () => {
       //   const input = new Date(100) 
-      //   const toBeTested = () => validateInput(input)
+      //   const toBeTested = () => validateInputOne(input)
       //   expect(toBeTested).toThrow()
       // })
 
@@ -96,7 +96,7 @@ describe('validators', () => {
         const input = {
           a: () => { },
         }
-        const toBeTested = () => validateInput(input)
+        const toBeTested = () => validateInputOne(input)
         expect(toBeTested).toThrow()
       })
 
@@ -110,7 +110,7 @@ describe('validators', () => {
             },
           },
         }
-        const toBeTested = () => validateInput(input)
+        const toBeTested = () => validateInputOne(input)
         expect(toBeTested).toThrow()
       })
     })

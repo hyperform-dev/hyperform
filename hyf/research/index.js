@@ -24,21 +24,30 @@
 //////////////////////////////////////////////////////
 
 function fn_() {
-  console.log("fn_")
+  console.log("fn_1")
 }
 
+function a() {
+  console.log("a")
+  b()
+}
+
+
 function b() {
-  // TODO
+  console.log("b")
   fn_()
 }
 
 module.exports = {
+  a,
   b,
   fn_
 }
 
 
+
 function teach(func, names, vals) {
+
   // Wrap function in IFFE arrow function (that does nothing)
   // Necessary because eval only works well with arrow functions
 
@@ -54,18 +63,50 @@ function teach(func, names, vals) {
   return taughtfunc
 }
 
+module.exports = (() => {
 
-; module.exports = (() => {
-  const newexp = { ...module.exports }
-  const b = newexp.b
-  const bnew = teach(
-    b,
-    ["dummy", "fn_"],
-    [() => { }, () => console.log("fn_ intercepted")]
-  )
+  const neww = {...module.exports}
+  const aKeys = Object.keys(neww).filter(k => /^fn_/.test(k) === false )
+  const fnKeys = Object.keys(neww).filter(k => /^fn_/.test(k) === true )
 
-  return { ...newexp, b: bnew }
+  // Array of all fn_ being envoys
+  // KEEP ORDER VISAVI FNKEYS
+  const setFn_s = fnKeys.map(fnKey => ( () => console.log("fn intercepted") ) )
+
+
+  // Teach each the setFn_s
+  let taughtAs = []
+  for(let i = 0; i < aKeys.length; i += 1) {
+    const aKey = aKeys[i]
+    const aVal = neww[aKey]
+
+    // teach aVal all fn_
+    const taughtAVal = teach(
+      aVal,
+      fnKeys,
+      setFn_s
+    )
+
+   
+    taughtAs.push(taughtAVal)
+  }
+
+  // set in neww
+  // fn_'s
+  for(let i = 0; i < fnKeys.length; i++) {
+    const fnKey  = fnKeys[i]
+    const setFn = setFn_s[i]
+    neww[fnKey] = setFn
+  }
+
+  // a's
+  for(let i = 0; i < aKeys.length; i+=1) {
+    const aKey = aKeys[i]
+    const taughtA = taughtAs[i]
+    neww[aKey] = taughtA
+  }
+
+  return neww
+
 })();
 
-
-module.exports.b()

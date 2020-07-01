@@ -1,6 +1,6 @@
 require('util').inspect.defaultOptions.depth = null
 const { amazonEnvoy: { envoy } } = require('./envoys/amazon/index')
-const { validateStep, validateInput } = require('./validators/index')
+const { validateStep, validateInputOne, validateInputMany } = require('./validators/index')
 const { isFunction, isObject } = require('./utils/index')
 const { logdev } = require('./utils/index')
 // TODO make envoy more powerful
@@ -64,7 +64,7 @@ class Hyperform {
    * @param {*} input 
    */
   async r(input) {
-    validateInput(input)
+    validateInputOne(input)
     // freeze steps
     this.stepslocked = true
     let curr = input
@@ -78,7 +78,56 @@ class Hyperform {
   }
 }
 
+const createHyperform = (flow) => {
+  const hf = new Hyperform()
+  flow.forEach((fl) => hf.b(fl))
+  return (input) => hf.r(input)
+}
 module.exports = {
   Hyperform,
   envoy,
+  createHyperform,
 }
+
+// const c = createHyperform([
+//   { 
+//     num: (prev) => prev.num + 1,
+//   },
+//   {
+//     a: (prev) => prev.num,
+//   },
+// ])
+
+// c({ 
+//   num: 1,
+// })
+//   .then(console.log)
+
+// const hf = new Hyperform()
+
+// hf.b({
+//   a: {
+//     b: {
+//       c: 1,
+//     },
+//   },
+// })
+
+// hf.b({
+//   a: {
+//     b: {
+//       c: ({ a: { b: { c } } }) => c + 1,
+//     },
+//   },
+// })
+
+// /// ///////////////////////////
+// /// ///////////////////////////
+
+// hf.b({
+//   a: {
+//     b: {
+//       c: ({ c }) => c + 1,
+//     },
+//   },
+// })

@@ -1,7 +1,7 @@
 const { flattenObject, isFunction } = require('../utils/index')
 const { logdev } = require('../utils/index')
 
-function validateInput(input) {
+function validateInputOne(input) {
   logdev('validating input: ', input)
   if (input == null) {
     throw new Error(`HF input must be object, but is undefined: ${input}`)
@@ -27,6 +27,21 @@ function validateInput(input) {
   })
 }
 
+function validateInputMany(inputarr) {
+  logdev('validating input: ', inputarr)
+  if (inputarr == null) {
+    throw new Error(`HF input must be object, but is undefined: ${inputarr}`)
+  }
+  
+  inputarr.forEach((input, idx) => {
+    try {
+      validateInputOne(input)
+    } catch (e) {
+      throw new Error(`Element ${idx} in input array is invalid: ${e}`)
+    }
+  })
+}
+
 function validateStep(step) {
   if (step == null) {
     throw new Error(`HF step must be object, but is undefined: ${step}`)
@@ -44,6 +59,7 @@ function validateStep(step) {
 }
 
 module.exports = {
-  validateInput,
+  validateInputOne,
+  validateInputMany,
   validateStep,
 }

@@ -46,10 +46,8 @@ function internalRewire(parentModulePath, targetPath) {
     console.log(targetPath)
     // Create testModule as it would be created by require()
 
-    // SPÄTESTENS DA IS PARENTMODULE UNNÖTIG
-    parentModulePath = null
-    targetModule = requireFromString(fs.readFileSync(targetPath, 'utf-8'), targetPath)
-   //  targetModule = new Module(targetPath, parentModulePath);
+   // targetModule = requireFromString(fs.readFileSync(targetPath, 'utf-8'), targetPath)
+     targetModule = new Module(targetPath, parentModulePath);
     console.log("XXXX", targetModule, "XXXX")
     
     // TODO ja whatever 
@@ -58,7 +56,7 @@ function internalRewire(parentModulePath, targetPath) {
     //TODO do that weiter oben als parentmodulepath, incorporate somehow
     // const nodemodulepaths = Module._nodeModulePaths(path.dirname(targetPath));
     // console.log(nodemodulepaths)
-    process.exit()
+  //  process.exit()
     // We prepend a list of all globals declared with var so they can be overridden (without changing original globals)
     prelude = getImportGlobalsSrc();
     // Wrap module src inside IIFE so that function declarations do not clash with global variables
@@ -79,16 +77,33 @@ function internalRewire(parentModulePath, targetPath) {
 
 
     src = fs.readFileSync(targetPath, "utf8");
-
+    
+    src = src.split("#" + "#")[0] // HAHAHAHAHA
+    
     if (detectStrictMode(src) === true) {
         prelude = ' "use strict"; ' + prelude;
     }
-
+   
+    console.log(targetModule.id)
     moduleEnv.inject(prelude, appendix);
     moduleEnv.load(targetModule);
 
     return targetModule.exports;
 }
 
+module.exports = {
+    a
+}
+
+// Splitter:     ## 
+
+// LOOPS
+internalRewire(null, './rewire')
+
+
+
+
 // TODO
-module.exports = internalRewire;
+//module.exports = internalRewire;
+
+
