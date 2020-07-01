@@ -43,13 +43,14 @@ module.exports = function change(moduleexp, exp = {}) {
         const res = await userfunc(event, context) // todo add context.fail
         context.succeed(res)
       }
+      wrappedfunc.hyperform_wrapped = true
       newmoduleexports[expkey] = wrappedfunc
     }
 
     return newmoduleexports
   }
 
-  // for --cloud
+  // for --cloud, swap fn_ exports with cloud call thereof
   function convExports(moduleexports) {
     const newmoduleexports = { ...moduleexports };
     const fn_expkeys = Object.keys(moduleexports).filter((k) => (/fn_/.test(k) === true))
@@ -60,6 +61,7 @@ module.exports = function change(moduleexp, exp = {}) {
       const fn_expkey = fn_expkeys[i]
       console.log('changing ', fn_expkey)
       newmoduleexports[fn_expkey] = (...args) => envoy(fn_expkey, ...args)
+      newmoduleexports[fn_expkey].hyperform_converted = true
     }
 
     return newmoduleexports;
