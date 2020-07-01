@@ -34,7 +34,7 @@ async function envoy(name, input) {
   try {
     // ENVOY
     response = await selectedenvoy.envoy(name, input)
-    spinnies.succeed(uid, { text: name })
+    spinnies.remove(uid, { text: name })
   } catch (e) {
     spinnies.fail(uid, { text: name })
     throw e

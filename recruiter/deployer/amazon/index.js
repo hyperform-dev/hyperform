@@ -62,9 +62,8 @@ async function deployAmazon(pathToZip, name) {
     console.time(`deploy-${name}`)
     // TODO sanitize
     await exec(uploadCmd)
-    console.log(`Deployed ${pathToZip} to ${name}`)
   } catch (e) {
-    console.log(`Errored amazon upload: ${e}`)
+    console.log(`Errored amazon deploy: ${e}`)
     // spinnies.fail(options.path, { text: `Deploy Error for ${options.name}: ` })
     throw e
   }

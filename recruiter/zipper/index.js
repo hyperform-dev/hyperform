@@ -5,7 +5,8 @@ const path = require('path')
 const { Readable } = require('stream')
 
 /**
- * @returns {string} path to the zip
+ * Zips given code as 'index.js' to deploypackage.zip
+ * @returns {string} path to the created zip
  * @param {string} code index.js code
  */
 async function zip(code) {

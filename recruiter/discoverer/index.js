@@ -20,10 +20,8 @@ const filepathgetters = {
       });
     
       finder.on('file', (file, stat) => {
-        console.log(file)
         // only return .js files
         if (/.js$/.test(file) === true) {
-          console.log(`will use ${file}`)
           fnames.push(file)
         }
       });

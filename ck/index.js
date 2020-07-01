@@ -11,6 +11,7 @@ const { getAllFunctionNames } = require('./utils/index')
 const { resolveName } = require('./resolvers/index')
 const { log } = require('./utils/index')
 const { recruiter } = require('../recruiter/index')
+const { spinnies } = require('./printers/index')
 // TODO enforce ck is run in project root
 // TODO (prob already done, since it checks for flow)
 
@@ -91,7 +92,9 @@ async function main() {
 
     // get WF output from shash
     const result = sharedStash.get(lastKey)
+    spinnies.stopAll()
     log(result)
+    //
   } catch (e) {
     log(e)
     process.exit(1)
