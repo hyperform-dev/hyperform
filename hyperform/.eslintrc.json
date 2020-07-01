@@ -2,7 +2,8 @@
     "env": {
         "commonjs": true,
         "es2021": true,
-        "node": true
+        "node": true,
+        "jest": true
     },
     "extends": [
         "airbnb-base"
@@ -11,5 +12,16 @@
         "ecmaVersion": 12
     },
     "rules": {
+        "no-console": "off",
+        "no-trailing-spaces": "off",
+        "semi": "off",
+        "object-shorthand": "off",
+        "no-unused-vars": "warn",
+        "no-useless-catch": "warn",
+        "no-underscore-dangle": "off",
+        "no-await-in-loop": "warn",
+        "no-else-return": "off",
+        "camelcase": "off",
+        "no-restricted-syntax": "warn"
     }
 }
