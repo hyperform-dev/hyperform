@@ -1,13 +1,13 @@
 const arg = require('arg')
 
-const invert = (p) => new Promise((res, rej) => p.then(rej, res));
+// const invert = (p) => new Promise((res, rej) => p.then(rej, res));
 
-/** This will return the value of the first fulfilled promise, 
- * ... or if all reject, an array of rejection reasons.
- * 
- * @param {[Promise<*>]} ps 
- */
-const firstOf = (ps) => invert(Promise.all(ps.map(invert)));
+// /** This will return the value of the first fulfilled promise, 
+//  * ... or if all reject, an array of rejection reasons.
+//  * 
+//  * @param {[Promise<*>]} ps 
+//  */
+// const firstOf = (ps) => invert(Promise.all(ps.map(invert)));
 
 /**
  * Checks some things about what the fn returned. Throws if not successful.
@@ -66,7 +66,6 @@ if (args['--verbose'] === true) {
 }
 
 module.exports = {
-  firstOf,
   validateOutput,
   getAllFunctionNames,
   log, 

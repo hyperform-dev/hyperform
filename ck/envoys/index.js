@@ -3,10 +3,54 @@ const { amazonEnvoy } = require('./amazon/index')
 const { spinnies } = require('../printers/index')
 const { validateOutput } = require('../utils/index')
 const { resolveName } = require('../resolvers/index')
+const { log } = require('../utils/index')
 
 const envoys = [
   amazonEnvoy,
 ]
+
+// adds or increases spinnie
+function addEnvoySpinnie(name) {
+  try {
+    const reusableSpinnie = spinnies.pick(name)
+    // no spinnie reusable
+    // => "arn:aws:myfunc"
+    if (reusableSpinnie == null) {
+      spinnies.add(name, { text: name })
+    } else {
+      // spinnie reusable
+      // "arn:aws:myfunc => 2x arn:aws:myfunc"
+      const currN = +reusableSpinnie.text.match(/^[0-9]*/)[0] || 0
+      const newN = currN + 1 
+      const newText = `${newN}× ${name}`
+      spinnies.update(name, { text: newText })
+    }
+  } catch (e) {
+    log(`Failed to increase spinner for ${name}, someone probably removed it in the meantime`)
+  }
+}
+
+// decreases or removes spinnie
+function removeEnvoySpinnie(name) {
+  try {
+    const reusableSpinnie = spinnies.pick(name)
+    if (reusableSpinnie == null) {
+      return // was already removed
+    }
+    const currN = +reusableSpinnie.text.match(/^[0-9]*/)[0] || 0
+     
+    if (currN <= 1) {
+      spinnies.remove(name)
+    } else {
+      // decrease 
+      const newN = currN - 1
+      const newText = `${newN}× ${name}`
+      spinnies.update(name, { text: newText })
+    }
+  } catch (e) {
+    log(`Failed to remove spinner for ${name}, someone probably removed it in the meantime`)
+  }
+}
 
 /**
  * @param {*} name 
@@ -29,15 +73,16 @@ async function envoy(name, input) {
   const uid = uuidv4()
   console.time(`envoy-${uid}`)
   
-  spinnies.add(uid, { text: uri })
+  // reuse spinner if it exists for fn (just add a +1)
+  addEnvoySpinnie(name)
 
   let response 
   try {
     // ENVOY
     response = await selectedenvoy.envoy(uri, input)
-    spinnies.remove(uid, { text: uri })
+    removeEnvoySpinnie(name)
   } catch (e) {
-    spinnies.fail(uid, { text: uri })
+    spinnies.fail(uri, { text: uri })
     throw e
   }
   console.timeEnd(`envoy-${uid}`)
