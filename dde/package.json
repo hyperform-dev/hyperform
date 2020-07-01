@@ -1,10 +1,10 @@
 {
-  "name": "dde",
+  "name": "deply",
   "version": "0.0.1",
   "description": "",
   "main": "index.js",
   "bin": {
-    "dde": "./cli.js"
+    "deply": "./cli.js"
   },
   "scripts": {
     "test": "jest",
@@ -13,10 +13,10 @@
   },
   "engineStrict": true,
   "engines": {
-    "node": "12.19.0"
+    "node": ">=12.19.0"
   },
-  "author": "DPS Group, University of Innsbruck <jakob.wallnoefer@student.uibk.ac.at>",
-  "license": "ISC",
+  "author": "qngapparat <jakob.wallnoefer@student.uibk.ac.at>",
+  "license": "MIT",
   "dependencies": {
     "arg": "^4.1.3",
     "dree": "^2.5.0",

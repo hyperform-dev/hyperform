@@ -39,8 +39,9 @@ function generateDeployCommand(options) {
 }
 
 function generateUpdateCommand(options) {
-  const cmd = `aws lambda update-function-code --function-name ${options.name} --zip-file fileb://${options.pathOfUploadable}`
-
+  let cmd = `aws lambda update-function-code --function-name ${options.name} --zip-file fileb://${options.pathOfUploadable}`
+  if (options.task.config.amazon.region) cmd += ` --region ${options.task.config.amazon.region}`
+  
   return cmd
 }
 
