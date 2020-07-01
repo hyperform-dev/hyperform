@@ -56,19 +56,23 @@ const validators = {
   },
 }
 
+/**
+ * 
+ * @param {{presetName: string, path: string}} options 
+ */
 async function readparsevalidate(options) {
   // Force us to implement all three for every config we parse
-  if (!readers[options.id]) throw new Error(`UNIMPLEMENTED: reader for ${options.id}`)
-  if (!parsers[options.id]) throw new Error(`UNIMPLEMENTED: parser for ${options.id}`)
-  if (!validators[options.id]) throw new Error(`UNIMPLEMENTED: validator for ${options.id}`)
+  if (!readers[options.presetName]) throw new Error(`UNIMPLEMENTED: reader for ${options.presetName} preset`)
+  if (!parsers[options.presetName]) throw new Error(`UNIMPLEMENTED: parser for ${options.presetName} preset`)
+  if (!validators[options.presetName]) throw new Error(`UNIMPLEMENTED: validator for ${options.presetName} preset`)
 
-  if (!options.id || !options.path) {
-    throw new Error('DEV: readparsevalidate: specify id and path')
+  if (!options.presetName || !options.path) {
+    throw new Error('DEV: readparsevalidate: specify presetName and path')
   }
 
-  const read = await readers[options.id](options.path)
-  const parsed = await parsers[options.id](read)
-  const validated = await validators[options.id](parsed)
+  const read = await readers[options.presetName](options.path)
+  const parsed = await parsers[options.presetName](read)
+  const validated = await validators[options.presetName](parsed)
 
   return parsed
 }

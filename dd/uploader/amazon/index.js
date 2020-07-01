@@ -12,7 +12,6 @@ const HANDLER = 'index.handler'
 
 async function isExistsAmazon(functionName) {
   // TODO cancel after 5ish seconds 
-  console.log(`exists ${functionName} ...`)
   try {
     await exec(`aws lambda wait function-exists --function-name ${functionName}`)
     return true
@@ -42,7 +41,6 @@ function generateUpdateCommand(task, name, pathOfUploadable) {
  * @param {string} pathOfUploadable Where the zip ... lies
  */
 async function runUploadAmazon(task, name, pathOfUploadable) {
-  console.log(`RUNUPLOADAMAZON ${task}, ${name}, ${pathOfUploadable}`)
   // check if lambda already exists
   const exists = await isExistsAmazon(name)
   // piece together terminal command to deploy
@@ -50,10 +48,8 @@ async function runUploadAmazon(task, name, pathOfUploadable) {
     ? generateUpdateCommand(task, name, pathOfUploadable)
     : generateDeployCommand(task, name, pathOfUploadable)
 
-  console.log(` $§ ${uploadCmd}`)
   // deploy/upload
   await exec(uploadCmd)
-  console.log(uploadCmd)
 }
 
 module.exports = { runUploadAmazon }

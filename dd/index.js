@@ -59,7 +59,7 @@ async function processTask(args, task, provider = 'amazon') {
     .map((p, idx) => { 
       const uploadablePath = path.join(p, task.upload)
       return (
-        runDo(p, task.do)
+        runDo(p, task.do, fnFolderNames[idx])
           .then(() => runUploadAmazon(task, fnFolderNames[idx], uploadablePath))
       )
     })
@@ -72,13 +72,15 @@ async function main() {
   const args = parseCliArgs()
   // parse deploy.json
   const parsedJson = await readparsevalidate({
-    id: 'deploy.json',
+    presetName: 'deploy.json',
     path: path.join(args.root, 'deploy.json'),
   })
  
+  // For each element in deploy.json (a task), "do" and "upload"
   const proms = parsedJson
     .map((task) => processTask(args, task, 'amazon'))
 
+  // wait for all to complete
   await Promise.all(proms)
 }
 
