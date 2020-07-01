@@ -11,18 +11,14 @@ describe('topology', () => {
 
   describe('getCost', () => {
     test('same region is cost 0', () => {
-      const regionsToIdx = require('./index').__only_for_testing_regionsToIdx
       const { getCost } = require('./index')
 
-      const regions = Object.keys(regionsToIdx)
+      const fn1 = 'arn:aws:lambda:us-east-2:735406098573:function:myinc'
+      const fn2 = 'arn:aws:lambda:us-east-2:735406098573:function:myincinc'
 
-      const toBeTested = (region) => getCost(region, region)
-
-      for (let i = 0; i < regions.length; i += 1) {
-        const fromto = regions[i]
-        const cost = toBeTested(fromto)
-        expect(cost).toBe(0)
-      }
+      const toBeTested = () => getCost(fn1, fn2)
+      const res = toBeTested()
+      expect(res).toBe(0)
     })
   })
 
