@@ -19,8 +19,6 @@ aws.config.update({
     timeout: 15.1 * 60 * 1000,
   },
 });
-const { extractRegion } = require('../../topology/helpers/index')
-const { regions } = require('../../topology/index')
 
 // Creating lambda is insanely fast
 // lambda: 0.385ms
@@ -36,8 +34,9 @@ const amazonEnvoy = {
     )
   },
   envoy: async function (arn, input) {
-    const region = extractRegion(arn)
-    const lambda = new aws.Lambda({ region })
+    const lambda = new aws.Lambda({ 
+      region: 'us-east-2', // TODO get current
+    })
     const jsonInput = JSON.stringify(input)
     const uid = `${Math.ceil(Math.random() * 1000)}`
     console.time(`envoy ${uid}`)
