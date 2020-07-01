@@ -1,3 +1,4 @@
+/* eslint-disable global-require */
 describe('authorizer-gen', () => {
   describe('utils', () => {
     describe('generateRandomBearerToken', () => {

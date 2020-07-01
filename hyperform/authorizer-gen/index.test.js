@@ -1,3 +1,5 @@
+/* eslint-disable global-require */
+
 const util = require('util');
 const exec = util.promisify(require('child_process').exec);
 
@@ -171,7 +173,7 @@ describe('authorizer-gen', () => {
         const detachCmd = `aws apigatewayv2 update-route --api-id ${apiId} --route-id ${routeId} --authorization-type NONE`
         try {
           await exec(detachCmd, { encoding: 'utf-8' })
-          //   console.log(`setAuthorizer test: Completed Setup: Successfully detached existing authorizer from API ${apiId}`)
+          // detached authorizer from $default route
         } catch (e) {
           // API probably does not have authorizer
         }

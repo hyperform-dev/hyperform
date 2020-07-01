@@ -4,26 +4,12 @@
 // Roughly equivalent to
 // (1) $ hyperform /some/path
 // (2) $ curl ENDPOINTS
-// (3) Compare output with expected
+// (3) Compare output with expected (TODO)
 const os = require('os')
 const path = require('path')
 const fsp = require('fs').promises
 const util = require('util')
 const fetch = require('node-fetch')
-// function hook_stdout(callback) {
-//     var old_write = process.stdout.write
-
-//     process.stdout.write = (function(write) {
-//         return function(string, encoding, fd) {
-//             write.apply(process.stdout, arguments)
-//             callback(string, encoding, fd)
-//         }
-//     })(process.stdout.write)
-
-//     return function() {
-//         process.stdout.write = old_write
-//     }
-// }
 
 // allow 2 minutes
 const TIMEOUT = 2 * 60 * 1000
@@ -99,7 +85,6 @@ describe('System tests (takes 1-2 minutes)', () => {
       }
 
       /// ////////////////////////////////////////////////
-      
       // Expect endpoints return  403 when invalid Authorization header 
 
       for (let i = 0; i < urls.length; i += 1) {
