@@ -11,6 +11,10 @@
     "lint": "eslint",
     "lintfix": "eslint --fix"
   },
+  "engines":  {
+    "node": ">=10.10.0"
+  },
+  "engineStrict": true,
   "author": "",
   "license": "ISC",
   "dependencies": {
