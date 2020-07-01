@@ -1,20 +1,21 @@
 const joi = require('joi')
 const fs = require('fs')
 const fsp = require('fs').promises
-
+const { spinnies } = require('../printer')
 // TODO make slimmer
 // 1)
 const readers = {
   'deploy.json': (path) => {
     // check if deploy.json present
     if (fs.existsSync(path) === false) {
+      spinnies.justPrintFail('No deploy.json found in this directory')
       throw new Error('No deploy.json found in this directory')
     }
 
     // try to read file content
     return fsp.readFile(path, { encoding: 'utf8' })
       .catch((e) => {
-        console.log('Could not read deploy.json')
+        spinnies.justPrintFail('Could not read deploy.json')
         throw e
       })
   },
@@ -28,7 +29,7 @@ const parsers = {
       parsedJson = JSON.parse(contents)
       return parsedJson
     } catch (e) {
-      console.log('deploy.json contains invalid JSON')
+      spinnies.justPrintFail('deploy.json contains invalid JSON')
       throw e
     }
   },

@@ -5,7 +5,7 @@ const fs = require('fs')
 const { readparsevalidate } = require('./parser')
 const { runDo } = require('./doer')
 const { runUploadAmazon } = require('./uploader/amazon')
-
+const { spinnies } = require('./printer')
 /**
  * @returns { mode: 'init'|'deploy', root: String}
  */
@@ -60,7 +60,7 @@ async function processTask(args, task, provider = 'amazon') {
       const uploadablePath = path.join(p, task.upload)
       return (
         runDo(p, task.do, fnFolderNames[idx])
-          .then(() => runUploadAmazon(task, fnFolderNames[idx], uploadablePath))
+          .then(() => runUploadAmazon(task, fnFolderNames[idx], uploadablePath, p))
       )
     })
 }

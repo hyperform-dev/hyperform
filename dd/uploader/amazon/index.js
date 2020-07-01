@@ -1,9 +1,7 @@
 const util = require('util');
 const exec = util.promisify(require('child_process').exec);
 const lstat = util.promisify(require('fs').lstat);
-
-const fs = require('fs');
-const { exist } = require('joi');
+const { spinnies } = require('../../printer')
 
 // TODO intelligently infer runtime from uploadable or handler, if not specified in config
 
@@ -40,7 +38,8 @@ function generateUpdateCommand(task, name, pathOfUploadable) {
  * @param {string} name Alphanueric name of the lambda function
  * @param {string} pathOfUploadable Where the zip ... lies
  */
-async function runUploadAmazon(task, name, pathOfUploadable) {
+async function runUploadAmazon(task, name, pathOfUploadable, path) {
+  spinnies.add(path, { text: `Uploading ${name} ...` })
   // check if lambda already exists
   const exists = await isExistsAmazon(name)
   // piece together terminal command to deploy
@@ -49,7 +48,13 @@ async function runUploadAmazon(task, name, pathOfUploadable) {
     : generateDeployCommand(task, name, pathOfUploadable)
 
   // deploy/upload
-  await exec(uploadCmd)
+  try {
+    await exec(uploadCmd)
+    spinnies.succeed(path, { text: `Uploaded ${name}` })
+  } catch (e) {
+    spinnies.fail(path, { text: `Upload Error for ${name}: ` })
+    throw e
+  }
 }
 
 module.exports = { runUploadAmazon }
