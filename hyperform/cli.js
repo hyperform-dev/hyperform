@@ -7,15 +7,19 @@ const { getParsedHyperformJson } = require('./parser/index')
 // Ingest CLI arguments
 // DEV NOTE: Keep it brief and synchronious
 
-let mode 
+const args = process.argv.slice(2)
 
-if (process.argv.length !== 3 || /init|deploy/.test(process.argv[2]) === false) {
+if ((/init|deploy/.test(args[0]) === false) || (args.length > 1 && /--allow-unauthenticated/.test(args[1]) === false)) {
   console.log(`Usage: 
- $ hyperform init|deploy`)
+ $ hyperform init
+ $ hyperform deploy [--allow-unauthenticated]
+`)
   process.exit(1)
 }
 
-mode = process.argv[2]
+const mode = args[0]
+const allowUnauthenticated = (/--allow-unauthenticated/.test(args[1]) === true)
+
 // $ hyperform should always be invoked in the desired directory
 const absdir = process.cwd()
 
@@ -47,7 +51,7 @@ const fnregex = /endpoint_/
 // Top-level error boundary
 try {
   // Main
-  main(absdir, fnregex, parsedHyperformJson)
+  main(absdir, fnregex, parsedHyperformJson, allowUnauthenticated)
 } catch (e) {
   console.log(e)
   process.exit(1)

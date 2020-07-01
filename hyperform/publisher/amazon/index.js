@@ -6,17 +6,16 @@ const { deployAuthorizerLambda, setDefaultRouteAuthorizer } = require('../../aut
  * @description Creates a public HTTP endpoint that forwards request to a given Lambda.
  * If allowUnauthenticated is false, the resulting 
  * HTTP endpoint will return 403 or 401,
- * unless the HTTP headers contain 'Authorization: Bearer "bearerToken"'
+ * unless the HTTP headers contain 'Authorization: Bearer "expectedBearer"'
  * @param {string} lambdaArn 
- * @param {{ region: string, allowUnauthenticated: boolean, bearerToken?: string }} options 
+ * @param {{ region: string, allowUnauthenticated: boolean, expectedBearer?: string }} options 
  * @returns {Promise<string>} HTTP endpoint URL of the Lambda
  */
-async function publishAmazon(lambdaArn, { allowUnauthenticated, bearerToken, region }) {
+async function publishAmazon(lambdaArn, { allowUnauthenticated, expectedBearer, region }) {
   // TODO do we need to publish 1 or N times for every lambda deploy?
   if (typeof allowUnauthenticated !== 'boolean') throw new Error(`PublishAmazon: allowUnauthenticated must be true|false but is ${allowUnauthenticated}`) // TODO HF programmer errors, do not check for
-  if (allowUnauthenticated === false && bearerToken == null) throw new Error(`PublishAmazon: allowUnauthenticated is false but bearerToken is not specified: ${bearerToken}`)
-  if (typeof bearerToken !== 'string') throw new Error(`bearerToken must be string but is: ${bearerToken}`)
-
+  if (allowUnauthenticated === false && typeof expectedBearer !== 'string') throw new Error(`PublishAmazon: allowUnauthenticated is false but expectedBearer isn't a string: ${expectedBearer}`)
+ 
   const lambdaName = lambdaArn.split(':').slice(-1)[0]
   const apiName = `hf-${lambdaName}`
 
@@ -56,7 +55,7 @@ async function publishAmazon(lambdaArn, { allowUnauthenticated, bearerToken, reg
     const authorizerOptions = { 
       region: region,
     }
-    const authorizerArn = await deployAuthorizerLambda(authorizerName, bearerToken, authorizerOptions)
+    const authorizerArn = await deployAuthorizerLambda(authorizerName, expectedBearer, authorizerOptions)
     // set authorizer
     await setDefaultRouteAuthorizer(apiId, authorizerArn, region)
   
