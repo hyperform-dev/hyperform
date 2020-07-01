@@ -6,7 +6,7 @@ const resolvers = [
   amazonQuery,
 ]
 
-async function resolve(name) {
+async function resolveName(name) {
   // they will each first look if it's trivial for them (ARN), 
   // then look at the cache
   // and then consult with Amazon, ...
@@ -23,5 +23,5 @@ async function resolve(name) {
 }
 
 module.exports = {
-  resolve,
+  resolveName,
 }
