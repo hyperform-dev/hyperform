@@ -75,8 +75,7 @@ async function createLambdaRole(roleName) {
   } catch (e) {
     if (e.code === 'EntityAlreadyExists') {
       // Role with that name already exists
-      // TODO GETROLE or SOMETHING SIMILAR 
-      // Use that role , proceed normally to attach poilicy
+      // Use that role , proceed normally to attach policy
       const getParams = {
         RoleName: roleName,
       }
@@ -89,12 +88,7 @@ async function createLambdaRole(roleName) {
     }
   }
 
-  // for more helpful errors
-  if (roleArn == null) {
-    throw new Error(`Could not create or get role with name ${roleArn}, Arn is ${roleArn}`)
-  }
-
-  // Attach a basic Lambda policy to the role (allows write to cloudwatch logs etc)
+  // Attach a basic Lambda policy to the role (allows writing to cloudwatch logs etc)
   // Equivalent to in Lambda console, choosing 'Create new role with basic permissions'
   const policyParams = {
     PolicyArn: 'arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole',
@@ -208,7 +202,8 @@ async function deployAmazon(pathToZip, options) {
       break // we're done
     } catch (e) {
       // TODO write test that enters here, reliably
-      if (e.code === 'InvalidParameterValueException') {
+      // if (e.code === 'InvalidParameterValueException') {
+      if (typeof e.stderr === 'string' && /InvalidParameterValueException/.test(e.stderr)) {
         console.log('amazon deploy threw InvalidParameterValueException (role not ready yet). Retrying in 3 seconds...')
         await sleep(3000) // wait 3 seconds
         continue
