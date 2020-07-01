@@ -11,12 +11,12 @@ async function endpoint_collectSurveyResponse(event) {
   const filename = `${new Date().toDateString()}:${uuidv4()}.json`
 
   if (event == null || Object.keys(event).length === 0) {
-    return 
+    return
   }
   const putParams = {
     Bucket: 'hyperform-survey-responses',
     Key: `cli-responses/${filename}`,
-    Body: JSON.stringify(event, null, 2), 
+    Body: JSON.stringify(event, null, 2),
   }
   await s3.putObject(putParams).promise()
 }
