@@ -1,5 +1,6 @@
 const findit = require('findit')
 const path = require('path')
+const { EOL } = require('os')
 const { log } = require('../printers/index')
 
 const BLACKLIST = [
@@ -62,7 +63,7 @@ function getNamedExportKeys(filepath) {
   } catch (e) {
     // if js file isn't parseable, top level code throws, etc
     // ignore it
-    log(`Could not determine named exports of ${filepath}. Ignoring it. ${e}`)
+    log(`Could not determine named exports of ${filepath}, ignoring it. ${EOL} Error: ${e}`)
     return []
   }
 }
