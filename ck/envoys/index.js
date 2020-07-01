@@ -40,7 +40,7 @@ async function envoy(name, input, namecache) {
     response = await selectedenvoy.envoy(uri, input)
     removeEnvoySpinnie(name)
   } catch (e) {
-    spinnies.fail(uri, { text: uri })
+    spinnies.fail(name, { text: `${name} threw an Error:` })
     throw e
   }
   console.timeEnd(`envoy-${uid}`)
