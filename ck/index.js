@@ -47,9 +47,8 @@ async function main() {
     const wf = await build(enrichedFlowJson)
     console.log(JSON.stringify(wf))
     await wf()
-    process.exit()
 
-    console.log(sharedStash.get(lastid))
+    console.log('WF output:', sharedStash.get(lastid))
   } catch (e) {
     console.log(e)
     process.exit(1)

@@ -4,7 +4,10 @@ const func = joi.array().items(
   // atomic
   joi.object({
     run: joi.string().required(),
-    in: joi.string().required(),
+    in: joi.alternatives().try(
+      joi.string(),
+      joi.array(),
+    ).required(),
   //  id: joi.string().required(),
   }),
   // sequence
@@ -19,7 +22,10 @@ const workflow = func
 
 const flat_atomic = joi.object({
   run: joi.string().required(),
-  in: joi.string().required(),
+  in: joi.alternatives().try(
+    joi.string(),
+    joi.array(),
+  ).required(),
 //  id: joi.string().required(),
 })
 
