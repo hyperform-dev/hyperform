@@ -1,9 +1,12 @@
-/* eslint-disable arrow-body-style */
+/* eslint-disable arrow-body-style, no-use-before-define */
 const joi = require('joi')
 
 const { secondschemas } = require('../schemas')
 const { envoy } = require('../envoys/index')
 const { sharedStash } = require('../stashes')
+// This file is about building an internal representation,
+// not to be confused with "building & deploying"
+
 // takes an object such as 
 // { run: "function1", in: "function0" }
 // and creates a asyncronius function that when run, will run that fn in the cloud 
@@ -14,7 +17,7 @@ const nodebuilders = {
   // Name of the AFCL construct
   atomic: {
     canBuild: (obj) => {
-      const schema = secondschemas.atomic 
+      const schema = secondschemas.atomic
       const { error } = schema.validate(obj)
       if (error) {
         return false
@@ -22,37 +25,46 @@ const nodebuilders = {
         return true
       }
     },
-    build: (obj) => {
-      return function (input) {
-        return envoy(obj.run, input)
-      }
+    build: (obj) => function (input) {
+      return envoy(obj.run, input)
     },
   },
 
   sequence: {
     canBuild: (obj) => {
-      const schema = secondschemas.sequence 
+      const schema = secondschemas.sequence
       const { error } = schema.validate(obj)
       if (error) {
         return false
       } else {
         return true
-      } 
+      }
     },
-    build: (obj) => {
-      return async function (input) {
+    build: async (obj) => {
+      // Build each member in the sequence
+      const builtMembers = obj.map((o) => build(o))
+      await Promise.all(builtMembers)
+
+      // return a function that runs these member functions one after the other
+      return async function () {
         if (!obj.length) {
-          return Promise.resolve()
+          return undefined
         }
-        
-        // run one after the other
-        // thanks to await we don't block the program
-        // TODO cases where it's 
-        for (let i = 0; i < obj.length; i += 1) {
-          let inp 
-          if (i === 0) inp = input
-          await envoy()
+        // TODO retrieve also first input from stash (?) 
+        let inp
+        let outp
+        for (let i = 0; i < builtMembers.length; i += 1) {
+          inp = sharedStash.get(obj[i].in)
+          // run fn
+          outp = await builtMembers[i](inp)
+          // set output for next fn
+          sharedStash.put(obj[i].id, outp)
         }
+
+        // return last-in-chain-fn's output
+        // TODO don't return anything too, do everything with stash (we have the in's anyway)
+        // (but it's convenient for trying out...)
+        return outp
       }
     },
   },
@@ -100,7 +112,7 @@ const nodebuilders = {
   // },
 }
 
-function detectnodetype(obj) { // uses the nodebuilders object defined above
+function detectnodetype(obj) {
   for (const [nodetype, v] of Object.entries(nodebuilders)) {
     if (v.canBuild(obj) === true) {
       return nodetype
@@ -127,24 +139,28 @@ function build(obj) {
 
 /// /////////////////////////////////////////////////////
 
-// sharedStash.put('innn', { num: 2 })
+// const arr = [
+//   {
+//     run: 'arn:aws:lambda:us-east-2:735406098573:function:myinc',
+//     id: 'arn:aws:lambda:us-east-2:735406098573:function:myinc',
+//     in: 'innn',
+//   },
+//   {
+//     run: 'arn:aws:lambda:us-east-2:735406098573:function:myincinc',
+//     id: 'arn:aws:lambda:us-east-2:735406098573:function:myincinc',
+//     in: 'arn:aws:lambda:us-east-2:735406098573:function:myinc',
+//   },
+// ]
 
-// const obje = {
-//   'run': 'arn:aws:lambda:us-east-2:735406098573:function:myinc',
-//   'id': 'arn:aws:lambda:us-east-2:735406098573:function:myinc',
-//   'in': 'innn',
+// async function main() {
+//   sharedStash.put('innn', { num: 1 })
+
+//   const fn = await build(arr)
+//   const res = await fn()
+//   // console.log(sharedStash.get('arn:aws:lambda:us-east-2:735406098573:function:myincinc'))
 // }
 
-// const inp = { num: 99 }
-
-// if (nodebuilders.atomic.canBuild(obje)) {
-//   const fnRunner = nodebuilders.atomic.build(obje)
-
-//   fnRunner(inp)
-//     .then((res) => console.log(res))
-// } else {
-//   console.log('cannot build')
-// }
+// main()
 
 module.exports = {
   detectnodetype,
