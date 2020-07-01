@@ -1,5 +1,3 @@
-exports.handler = (event, context) => {
-  context.succeed({
-    a: 99,
-  })
-}
+exports.myfunc = (event) => ({
+  a: 98,
+})

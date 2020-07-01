@@ -6,6 +6,7 @@ const os = require('os')
 const { bundle, createZip } = require('./bundler/index')
 const { getJsFilePaths, getNamedExports } = require('./discoverer/index')
 const { deployAmazon } = require('./deployer/amazon/index')
+const { transpileToAmazon } = require('./transpiler/amazon/index')
 
 async function main(root) {
   // paths to relevant js files
@@ -71,6 +72,16 @@ async function main(root) {
         jspath,
         thisbundlepath,
       )
+
+      // read bundle contents (annoying af)
+      let bundlestr = await fsp.readFile(thisbundlepath, { encoding: 'utf8' })
+
+      console.log(`picking ${namedexpkeys[0]} of ${namedexpkeys} llol`)
+      // transpile bundle
+      bundlestr = transpileToAmazon(bundlestr, namedexpkeys[0])
+
+      // overwrite back to file 
+      await fsp.writeFile(thisbundlepath, bundlestr) 
 
       // remember that these named exports are in this bundle
       return {
