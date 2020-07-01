@@ -18,7 +18,7 @@ async function publishAmazon(lambdaArn, { allowUnauthenticated, bearerToken, reg
   if (typeof bearerToken !== 'string') throw new Error(`bearerToken must be string but is: ${bearerToken}`)
 
   const lambdaName = lambdaArn.split(':').slice(-1)[0]
-  const apiName = `hyperform-${lambdaName}`
+  const apiName = `hf-${lambdaName}`
 
   let apiId 
   let apiUrl

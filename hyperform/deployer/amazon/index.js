@@ -34,7 +34,7 @@ async function deployAmazon(pathToZip, options) {
 
   console.log(`isexists ${options.name} : ${exists}`)
   // if not, create new role 
-  const roleName = `hyperform-r2-${options.name}`
+  const roleName = `hf-${options.name}`
   const roleArn = await createLambdaRole(roleName)
 
   /* eslint-disable key-spacing */

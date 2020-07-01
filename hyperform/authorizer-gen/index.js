@@ -1,11 +1,12 @@
 const util = require('util');
 const exec = util.promisify(require('child_process').exec);
-const AWS = require('aws-sdk')
-const { deployAmazon } = require('../deployer/amazon')
+const { deployAmazon } = require('../deployer/amazon/index')
+const { allowApiGatewayToInvokeLambda } = require('../publisher/amazon/utils')
 const { zip } = require('../zipper/index')
 
 /**
- * @description Deploys Authorizer lambda that greenlights requests with given expectedBearer token
+ * @description Creates or updates Authorizer lambda that will
+ * greenlight requests with given expectedBearer token
  * @param {string} authorizerName For example 'myfn-authorizer'
  * @param {string} expectedBearer The 'Authorization': 'Bearer ...' token the Authorizer will accept
  * @param {{region: string}} options 
@@ -46,44 +47,12 @@ async function deployAuthorizer(authorizerName, expectedBearer, options) {
     handler: 'index.handler',
     region: options.region,  
   }
+
+  // create or update Authorizer Lambda
   const authorizerArn = await deployAmazon(zipPath, deployOptions)
 
-  const lambda = new AWS.Lambda({
-    region: options.region,
-    apiVersion: '2015-03-31', 
-  })
-
-  const addPermissionParams = {
-    Action: 'lambda:InvokeFunction',
-    FunctionName: authorizerName,
-    Principal: 'apigateway.amazonaws.com',
-    // TODO SourceArn https://docs.aws.amazon.com/AWSJavaScriptSDK/latest/AWS/Lambda.html#addPermission-property
-    StatementId: `hyperform-statement-${authorizerName}`,
-  }
-
-  try {
-    await lambda.addPermission(addPermissionParams).promise()
-  } catch (e) {
-    if (e.code === 'ResourceConflictException') {
-      // API Gateway can already access that lambda (happens on all subsequent deploys), cool
-    } else {
-      throw e
-    }
-  }
-
-  // // Allow apigateway to access authorizer
-  // const cmd2 = `aws lambda add-permission --function-name ${authorizerName} --action  --statement-id hyperform-statement-${authorizerName} --principal apigateway.amazonaws.com`
-
-  // try {
-  //   await exec(cmd2)
-  //   //   console.log(`allowed Lambda ${authorizerName} to be accessed by API gateway`)
-  // //  console.log(`Authorized Gateway to access ${lambdaName}`)
-  // } catch (e) {
-  //   // means statement exists already - means API gateway is already auth to access that lambda
-  //   // console.log(`Probably already authorized to access ${lambdaName}`)
-  //   // surpress throw e
-  //   //   console.log(`Lambda ${authorizerName} probably can already be accessed by API gateway`)
-  // }
+  await allowApiGatewayToInvokeLambda(authorizerName, options.region)
+  
   return authorizerArn
 }
 
