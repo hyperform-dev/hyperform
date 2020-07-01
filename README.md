@@ -1,3 +1,5 @@
+![Hyperform Banner](https://github.com/qngapparat/hyperform/blob/master/hyperform-banner.png)
+
 Requires Node >= 12.19.0
 
 ```
