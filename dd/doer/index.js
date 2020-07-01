@@ -19,7 +19,8 @@ async function runDo(path, command, hint) {
 
   try {
     const { stdout } = await exec(command, { cwd: path })
-    spinnies.succeed(path, { text: `Built ${hint}` })
+  // We don't need to notify about building success since we deploy right after
+  //  spinnies.succeed(path, { text: `Built ${hint}` })
   } catch (e) {
     // TODO somehow get stdout up until the error & print it
     spinnies.fail(path, { text: `Building Error: "do" script run in '${path}' returned a non-zero exit code: ${EOL} ${e}` })
