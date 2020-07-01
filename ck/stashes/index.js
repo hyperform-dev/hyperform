@@ -1,20 +1,41 @@
+const { string } = require('joi')
+
 class Stash {
   constructor() {
     this.stash = {}
   }
 
+  /**
+   * 
+   * @param {string} key 
+   * @param {*} value 
+   */
   put(key, value) {
     console.log('Put ', key, value)
 
     this.stash[key] = value
   }
 
+  /**
+   * 
+   * @param {string | string[]} key Key or arbitrarily nested array of keys
+   */
   get(key) {
-    console.log('Get ', key)
-    if (this.stash[key] === undefined) {
-      throw new Error(`stash: get: key ${key} was never set`)
+    if (typeof key !== 'string' && key.length == null) {
+      throw new Error(`stash: get key must be stirng or array, but is ${key}`)
     }
-    return this.stash[key]
+
+    // key is string
+    if (typeof key === 'string') {
+      if (this.stash[key] === undefined) {
+        throw new Error(`stash: get: key ${key} was never set`)
+      }
+      return this.stash[key]
+    } else {
+      // key is array or nested array
+      // recursion boii
+      return key.map((el) => this.get(el))
+    }
   }
 
   getall() {
