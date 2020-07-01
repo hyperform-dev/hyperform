@@ -25,7 +25,7 @@ async function publishAmazon(lambdaArn, { allowUnauthenticated, bearerToken, reg
   
   // Check if API with that name exists
   // Follows Hyperform convention: same name implies identical
-  const apiDetails = await getApiDetails(apiName)
+  const apiDetails = await getApiDetails(apiName, region)
 
   // exists
   // use it
@@ -58,7 +58,7 @@ async function publishAmazon(lambdaArn, { allowUnauthenticated, bearerToken, reg
     }
     const authorizerArn = await deployAuthorizerLambda(authorizerName, bearerToken, authorizerOptions)
     // set authorizer
-    await setDefaultRouteAuthorizer(apiId, authorizerArn)
+    await setDefaultRouteAuthorizer(apiId, authorizerArn, region)
   
     return apiUrl
   }
