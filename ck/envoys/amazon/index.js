@@ -1,4 +1,23 @@
 const aws = require('aws-sdk')
+// reuse TCP HTTPS connection to amazon
+const https = require('https');
+
+const agent = new https.Agent({
+  keepAlive: true, 
+  // Infinitity is read as 50 sockets
+  maxSockets: Infinity,
+  
+});
+
+aws.config.update({
+  maxRetries: 2,
+  httpOptions: {
+    agent: agent,
+    // set timeout to 15.1 minutes (6s above lambda max)
+    timeout: 15.1 * 60 * 1000,
+  },
+});
+
 const { amazonQuery } = require('../../resolvers/amazon/index')
 const { amazonLog } = require('../../loggers/amazon/index')
 

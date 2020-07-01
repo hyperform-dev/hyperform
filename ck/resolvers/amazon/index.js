@@ -1,4 +1,19 @@
 const aws = require('aws-sdk')
+// reuse TCP HTTPS connection to amazon
+const https = require('https');
+
+const agent = new https.Agent({
+  keepAlive: true, 
+  // Infinitity is read as 50 sockets
+  maxSockets: Infinity,
+});
+
+aws.config.update({
+  httpOptions: {
+    agent: agent,
+  },
+});
+
 const { sharedNamecache } = require('../../namecache/index')
 const { logdev } = require('../../utils/index')
 
