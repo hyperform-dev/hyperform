@@ -157,7 +157,7 @@ async function amazonMain(info, bundledCode, bearerToken, parsedHyperformJson) {
 
       const amazonDeployOptions = {
         name: name,
-        region: parsedHyperformJson.amazon.region,
+        region: parsedHyperformJson.amazon.aws_default_region,
       }
       // deploy function
       const amazonArn = await deployAmazon(zipPath, amazonDeployOptions)
@@ -169,7 +169,7 @@ async function amazonMain(info, bundledCode, bearerToken, parsedHyperformJson) {
       const amazonPublishOptions = {
         allowUnauthenticated: false, 
         bearerToken: bearerToken,
-        region: parsedHyperformJson.amazon.region,
+        region: parsedHyperformJson.amazon.aws_default_region,
       }
 
       // TODO split methods so no coincidental mixup of public and private (?)
