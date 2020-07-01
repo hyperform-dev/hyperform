@@ -37,14 +37,17 @@ async function main() {
 
     const [enrichedFlowJson, outputkey] = await enrich(parsedFlowJson, { in: '__workflow_in' })
   
+    console.log(JSON.stringify(enrichedFlowJson, null, 2))
     sharedStash.put('__workflow_in', { num: 1 })
-
+    
     // TODO overhaul lol
     
     // build top-level function
     const lastid = outputkey
-    const wf = await build(parsedFlowJson)
+    const wf = await build(enrichedFlowJson)
+    console.log(JSON.stringify(wf))
     await wf()
+    process.exit()
 
     console.log(sharedStash.get(lastid))
   } catch (e) {

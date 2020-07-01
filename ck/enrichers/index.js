@@ -65,18 +65,22 @@ const flowJsonEnrichers = {
 
       const newobj = { ...obj }
       let outputKey 
-      // cannot be written shorter
-      [newobj.doParallel, outputKey] = enrich(newobj.doParallel, { in: env.in })
-      return [newobj, outputKey]
+      //  they all receive the same input
+      const _res = newobj.doParallel.map((sec) => enrich(sec, { in: env.in }))
+      const enrichedSections = _res.map((r) => r[0])
+      const outputKeys = _res.map((r) => r[1])
+
+      newobj.doParallel = enrichedSections
+      // TODO support nested outputkeys (here it's necessary,
+      //  it's parallel so we want each section's output)
+      return [newobj, outputKeys]
     },
   },
 }
 
 function detectnodetype(obj) {
-  console.log('CHECKING', obj)
   for (const [nodetype, v] of Object.entries(flowJsonEnrichers)) {
     if (v.canEnrich(obj) === true) {
-      console.log('TYPE', nodetype)
       return nodetype
     }
   }
