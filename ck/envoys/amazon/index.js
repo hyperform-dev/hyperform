@@ -26,19 +26,21 @@ const amazonEnvoy = {
         LogType: 'Tail',
       })
         .promise()
-        .then((res) => {
-          // Log Lambda's stdout in local terminal
-          amazonLog(res)
-          return res
-        })
-        .then((p) => p.Payload)
-        .then((p) => JSON.parse(p))
+        // 1) Check if function succeeded
         .then((p) => {
-          if (p && p.errorType && p.errorType === 'Error') {
-            throw new Error(p.errorMessage)
+          if (p && p.FunctionError) {
+            throw new Error(`Function ${name} failed: ${p.Payload}`)
           }
           return p
         })
+        // 2) If yes, log Lambda's stdout in local terminal
+        .then((res) => {
+          amazonLog(res)
+          return res
+        })
+        // 3) Parse its return value
+        .then((p) => p.Payload)
+        .then((p) => JSON.parse(p))
     )
   },
 }
