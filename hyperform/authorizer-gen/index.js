@@ -1,5 +1,6 @@
 const util = require('util');
 const exec = util.promisify(require('child_process').exec);
+const AWS = require('aws-sdk')
 const { deployAmazon } = require('../deployer/amazon')
 const { zip } = require('../zipper/index')
 
@@ -47,19 +48,42 @@ async function deployAuthorizer(authorizerName, expectedBearer, options) {
   }
   const authorizerArn = await deployAmazon(zipPath, deployOptions)
 
-  // Allow apigateway to access authorizer
-  const cmd2 = `aws lambda add-permission --function-name ${authorizerName} --action lambda:InvokeFunction --statement-id hyperform-statement-${authorizerName} --principal apigateway.amazonaws.com`
+  const lambda = new AWS.Lambda({
+    region: options.region,
+    apiVersion: '2015-03-31', 
+  })
+
+  const addPermissionParams = {
+    Action: 'lambda:InvokeFunction',
+    FunctionName: authorizerName,
+    Principal: 'apigateway.amazonaws.com',
+    // TODO SourceArn https://docs.aws.amazon.com/AWSJavaScriptSDK/latest/AWS/Lambda.html#addPermission-property
+    StatementId: `hyperform-statement-${authorizerName}`,
+  }
 
   try {
-    await exec(cmd2)
-    //   console.log(`allowed Lambda ${authorizerName} to be accessed by API gateway`)
-  //  console.log(`Authorized Gateway to access ${lambdaName}`)
+    await lambda.addPermission(addPermissionParams).promise()
   } catch (e) {
-    // means statement exists already - means API gateway is already auth to access that lambda
-    // console.log(`Probably already authorized to access ${lambdaName}`)
-    // surpress throw e
-    //   console.log(`Lambda ${authorizerName} probably can already be accessed by API gateway`)
+    if (e.code === 'ResourceConflictException') {
+      // API Gateway can already access that lambda (happens on all subsequent deploys), cool
+    } else {
+      throw e
+    }
   }
+
+  // // Allow apigateway to access authorizer
+  // const cmd2 = `aws lambda add-permission --function-name ${authorizerName} --action  --statement-id hyperform-statement-${authorizerName} --principal apigateway.amazonaws.com`
+
+  // try {
+  //   await exec(cmd2)
+  //   //   console.log(`allowed Lambda ${authorizerName} to be accessed by API gateway`)
+  // //  console.log(`Authorized Gateway to access ${lambdaName}`)
+  // } catch (e) {
+  //   // means statement exists already - means API gateway is already auth to access that lambda
+  //   // console.log(`Probably already authorized to access ${lambdaName}`)
+  //   // surpress throw e
+  //   //   console.log(`Lambda ${authorizerName} probably can already be accessed by API gateway`)
+  // }
   return authorizerArn
 }
 
