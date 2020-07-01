@@ -32,12 +32,18 @@ module.exports = () => {
         wrappedfunc = async function handler(input, context) {
           let event = null // that way, no event is included in a simple echo (when undefined, the field simply does not appear marshalled)
           //https://docs.aws.amazon.com/apigateway/latest/developerguide/http-api-develop-integrations-lambda.html
+          
+          // TODO support plain inputs
+          // try to parse as json, otherwise just pass 
+          // 1 => "1", "abc" => "abc", '{"a":1}' => { a: 1}
           if(input.body) {
             event = (input.isBase64Encoded === true)
               ? JSON.parse( Buffer.from(input.body, 'base64').toString('utf-8') )
               : JSON.parse(input.body) // TODO throw invalid input code if could not decode
               // TODO generally a way to throw HTTP status codes
               
+          } else {
+            console.log("No 'body' field found in input.") //TODO remove
           }
           const res = await userfunc(event, context) // todo add context.fail // todo don't pass context otherwise usercode might become amz flavored
           context.succeed(res)
@@ -49,10 +55,9 @@ module.exports = () => {
             // unauthorized, exit
             return resp.sendStatus(403)
           }
-          // authorized
-          const event = JSON.parse(req.body)
-          const res = await userfunc(event) // TODO add fail 500
-          resp.json(res)
+          const input = JSON.parse(JSON.stringify(req.body)) // get rid of prototype methods of req.body
+          const output = await userfunc(input) // TODO add fail 500
+          resp.json(output)
         }
       }
 
