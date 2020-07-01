@@ -7,6 +7,8 @@ const { enrich } = require('./enrichers/index')
 const { sharedStash } = require('./stashes')
 const { build } = require('./nodebuilders/index')
 const { initProject } = require('./initer/index')
+const { getAllFunctionNames } = require('./utils/index')
+const { resolve } = require('./resolvers/index')
 
 // TODO enforce ck is run in project root
 // TODO (prob already done, since it checks for flow)
@@ -65,6 +67,16 @@ async function main() {
       presetName: 'flow.json',
       path: path.join(args.root, 'flow.json'),
     })
+
+    // "heat up" namecache
+    // in the background, resolve ambiguous function names to exact URI's (arns...)
+    // writes to the namecache
+    getAllFunctionNames(parsedFlowJson)
+      .forEach((fname) => {
+        // don't await, we don't care about the result
+        // just kick it off and let it run in the background
+        resolve(fname)
+      })
 
     const [enrichedFlowJson, outputkey] = await enrich(
       parsedFlowJson, 

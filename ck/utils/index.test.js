@@ -1,4 +1,5 @@
 const { validateOutput } = require('./index')
+const { getAllFunctionNames } = require('./index')
 
 // TODO see if current ck can handle arrays
 // TODO only allow arrays, objects in validateoutput
@@ -62,6 +63,26 @@ describe('utils', () => {
         expect(toBeTested)
           .toThrow()
       })
+    })
+  })
+
+  describe('getAllFunctionNames', () => {
+    test('case A', () => {
+      const expected = ['myinc', 'myinc1', 'myinc.1']
+
+      const input = [
+        { run: 'myinc' },
+        {
+          doParallel: [
+            { run: 'myinc1' },
+          ],
+        },
+        { run: 'myinc.1' },
+      ]
+
+      const toBeTested = () => getAllFunctionNames(input)
+
+      expect(toBeTested()).toEqual(expected)
     })
   })
 })

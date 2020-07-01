@@ -30,7 +30,23 @@ function validateOutput(response, name) {
   throw new Error(`Function ${name} must return null, or object, or array, but returned type: ${typeof response}`)
 }
 
+/**
+ * Extracts all names ("run" fields) from workflow
+ * @param {*} parsedFlowJson 
+ * @returns {Array}
+ */
+function getAllFunctionNames(parsedFlowJson) {
+  const strJson = JSON.stringify(parsedFlowJson)
+  const globalmatches = strJson.match(/"run":"[^"]*"/g)
+  const fnames = globalmatches
+    .map((m) => m.replace(/"/g, ''))
+    .map((m) => m.replace('run:', ''))
+
+  return fnames
+}
+
 module.exports = {
   firstOf,
   validateOutput,
+  getAllFunctionNames,
 }
