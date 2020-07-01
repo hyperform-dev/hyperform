@@ -54,7 +54,7 @@ describe('System tests (takes 1-2 minutes)', () => {
         // Run
         
         const dir = tmpdir
-        const fnregex = /endpoint_/
+        const fnregex = /endpoint/
         const parsedHyperformJson = {
           amazon: {
             aws_access_key_id: process.env.AWS_ACCESS_KEY_ID,

@@ -48,7 +48,7 @@ process.env.AWS_SECRET_ACCESS_KEY = parsedHyperformJson.amazon.aws_secret_access
 process.env.AWS_REGION = parsedHyperformJson.amazon.aws_default_region 
 
 // The regex that determines whether a function will be uploaded as serverless function
-const fnregex = /endpoint_/
+const fnregex = /endpoint/
 
 // Top-level error boundary
 try {
