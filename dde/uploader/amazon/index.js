@@ -15,9 +15,12 @@ const DEFAULTHANDLERS = {
   py: 'lambda_function.lambda_handler',
 }
 
-async function isExistsAmazon(functionName) {
+async function isExistsAmazon(options) {
+  let cmd = `aws lambda get-function --function-name ${options.name}`
+  if (options.task.config.amazon.region) cmd += ` --region ${options.task.config.amazon.region}`
+
   try { // TODO sanitize
-    await exec(`aws lambda get-function --function-name ${functionName}`)
+    await exec(cmd)
     return true
   } catch (e) {
     return false
@@ -49,7 +52,7 @@ function generateUpdateCommand(options) {
 async function runUploadAmazon(options) {
   spinnies.add(options.path, { text: `Deploying ${options.name} in ${options.language}` })
   // check if lambda has been deployed before
-  const exists = await isExistsAmazon(options.name)
+  const exists = await isExistsAmazon(options)
   // piece together terminal command to deploy
   const uploadCmd = (exists === true) 
     ? generateUpdateCommand(options)
