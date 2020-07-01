@@ -29,8 +29,7 @@ const bucket = 'my-todo-s3-bucket'
 exports.endpoint_addTodo = async ({ id, text }) => {
   const todo = {
     id: id,
-    text: text,
-    completed: false,
+    text: text
   }
 
   await s3.putObject({
@@ -98,6 +97,10 @@ $ curl https://a82n8xkixj.execute-api.us-east-2.amazonaws.com?id=1&text=Pick%20u
 $ curl https://gmlpjhieh9.execute-api.us-east-2.amazonaws.com?id=1 # getTodo
 > {"id":1,"text":"Pick up tomatoes","completed":false}
 ```
+
+## Opening Issues
+
+If you encounter any bugs with Hyperform, you can open an Issue. Please include the stack trace of the error, if possible.
 
 ## Contributing
 
