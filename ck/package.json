@@ -6,7 +6,8 @@
   "scripts": {
     "test": "jest",
     "lint": "eslint",
-    "lintfix": "eslint --fix"
+    "lintfix": "eslint --fix",
+    "bundle": "echo \"Bundling ck (production)...\"; webpack-cli"
   },
   "engines": {
     "node": ">=10.9.0"
