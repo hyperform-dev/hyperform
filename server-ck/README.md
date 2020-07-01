@@ -1,6 +1,8 @@
 # Benchmark
 
 
+
+
 ### Baseline (Resolves to JSON after 1 second)
 
 `autocannon -a 100 -c 100 localhost:3000`
@@ -70,6 +72,9 @@ As fast as possible
 
 ----
 
+
+Nicht representativ da clk bei server start resolved, das erst bei erstem GET
+
 ### Plain sdk use WITH initial resolving 1
 
 ```
@@ -109,7 +114,15 @@ As fast as possible
 ```
 
 
+----
+
+
 ### { run: "myinc" } 1
+
+Falsche methodologie 
+
+Nicht repräsentativ da Server neugestartet wurde und unbestimmete Zeit danach danach schon GET (manchmal clk noch beim resolven und Zeit fließt mitein,  manchmal nicht, etc)
+
 
 `autocannon -a 100 -c 100 localhost:3000`
 
