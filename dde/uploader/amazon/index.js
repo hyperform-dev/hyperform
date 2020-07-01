@@ -29,8 +29,9 @@ function generateDeployCommand(options) {
   const handler = options.task.config.amazon.handler || DEFAULTHANDLERS[options.language]
   
   let cmd = `aws lambda create-function --function-name ${options.name} --runtime ${runtime} --role ${options.task.config.amazon.role} --handler ${handler} --zip-file fileb://${options.pathOfUploadable}`
-  if (options.task.config.timeout) cmd += ` --timeout ${options.task.config.timeout} `
-
+  if (options.task.config.amazon.timeout) cmd += ` --timeout ${options.task.config.amazon.timeout} `
+  if (options.task.config.amazon.region) cmd += ` --region ${options.task.config.amazon.region}`
+  
   return cmd
 }
 
