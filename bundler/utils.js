@@ -5,11 +5,15 @@ const os = require('os')
 const { logdev } = require('../printers/index')
 
 /**
- * @description Bundles a given .js files with its dependencies using webpack
+ * @description Bundles a given .js files with its dependencies using webpack. 
+ * Does not include dependencies that are given in "externals", 
+ * for instance { 'aws-sdk': 'aws-sdk' }.
  * @param {string} inpath Path to entry .js file
+ * @param {*} externals Webpack 'externals' field of package names we don't need to bundle. 
+ * For example { 'aws-sdk': 'aws-sdk' } to skip 'aws-sdk'
  * @returns {Promise<string>} The bundled code
  */
-async function bundle(inpath) {
+async function _bundle(inpath, externals) {
   // create out dir (silly webpack)
   const outdir = await fsp.mkdtemp(path.join(os.tmpdir(), 'bundle-'))
   const outpath = path.join(outdir, 'bundle.js')
@@ -27,10 +31,7 @@ async function bundle(inpath) {
           libraryTarget: 'commonjs',
         },
         // aws-sdk is already provided in lambda
-        externals: {
-          'aws-sdk': 'aws-sdk', // TODO does google include gcloud sdk? // TODO wont be true if aws code uses google sdk etc
-          // But for now, if we only support Amazon, it's fine
-        },
+        externals: externals,
       },
       (err, stats) => {
         if (err || stats.hasErrors()) {
@@ -54,5 +55,5 @@ async function bundle(inpath) {
 }
 
 module.exports = {
-  bundle,
+  _bundle,
 }

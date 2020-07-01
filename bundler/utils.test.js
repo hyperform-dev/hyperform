@@ -2,7 +2,7 @@ const fsp = require('fs').promises
 const os = require('os')
 const path = require('path')
 const uuidv4 = require('uuid').v4 
-const { bundle } = require('./index')
+const { _bundle } = require('./utils')
 
 describe('bundler', () => {
   test('does not throw on empty js file & returns string', async () => {
@@ -14,7 +14,7 @@ describe('bundler', () => {
     let err;
     let res
     try {
-      res = await bundle(inpath, 'js', 'amazon')
+      res = await _bundle(inpath)
     } catch (e) {
       console.log(e)
       err = e
@@ -34,7 +34,7 @@ describe('bundler', () => {
     let err;
     let res
     try {
-      res = await bundle(inpath, 'js', 'amazon')
+      res = await _bundle(inpath)
     } catch (e) {
       console.log(e)
       err = e
@@ -51,7 +51,7 @@ describe('bundler', () => {
     let err;
     let res
     try {
-      res = await bundle(invalidinpath, 'js', 'amazon')
+      res = await _bundle(invalidinpath)
       console.log(res)
     } catch (e) {
       err = e
