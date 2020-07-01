@@ -66,20 +66,32 @@ async function createLambdaRole(roleName) {
     RoleName: roleName,
   }
 
-  let roleArn 
+  let roleArn
   try {
     const createRes = await iam.createRole(createParams).promise()
     // Role did not exist yet
     // Created new role
-    roleArn = createRes.Role.Arn 
+    roleArn = createRes.Role.Arn
   } catch (e) {
     if (e.code === 'EntityAlreadyExists') {
       // Role with that name already exists
-      // Use that role, proceed normally to attach poilicy
+      // TODO GETROLE or SOMETHING SIMILAR 
+      // Use that role , proceed normally to attach poilicy
+      const getParams = {
+        RoleName: roleName,
+      }
+      console.log(`role with name ${roleName} already exists. getting its arn`)
+      const getRes = await iam.getRole(getParams).promise()
+      roleArn = getRes.Role.Arn 
     } else {
       // some other error
       throw e
     }
+  }
+
+  // for more helpful errors
+  if (roleArn == null) {
+    throw new Error(`Could not create or get role with name ${roleArn}, Arn is ${roleArn}`)
   }
 
   // Attach a basic Lambda policy to the role (allows write to cloudwatch logs etc)
@@ -148,13 +160,13 @@ async function deployAmazon(pathToZip, options) {
 
   const existsOptions = {
     name: options.name,
-    region: options.region, 
+    region: options.region,
   }
   // check if lambda exists 
   const exists = await isExistsAmazon(existsOptions)
 
   // if not, create new role 
-  const roleName = `TRY-hyperform-lambda-role-${options.name}`
+  const roleName = `hyperform-r2-${options.name}`
   const roleArn = await createLambdaRole(roleName)
 
   const fulloptions = {
@@ -173,16 +185,41 @@ async function deployAmazon(pathToZip, options) {
 
   // run shell command to deploy/update
   let arn
-  try {
-    console.time(`Amazon-deploy-${options.name}`)
-    // TODO sanitize
+  const tryUpload = async () => {
     const { stdout } = await exec(uploadCmd)
     arn = extractArn(stdout)
-  } catch (e) {
-    console.log(`Errored amazon deploy: ${e}`)
-    // spinnies.fail(options.path, { text: `Deploy Error for ${options.name}: ` })
-    throw e
+    return arn
   }
+  const sleep = async (millis) => new Promise((resolve) => {
+    setTimeout(() => {
+      resolve()
+    }, millis);
+  })
+
+  // tryUpload might throw if we create Lambda just after role creation
+  // Just wait and retry
+  // See: https://stackoverflow.com/a/37503076
+
+  for (let i = 0; i < 4; i += 1) {
+    try {
+      console.log('trying to upload to amazon')
+      arn = await tryUpload()
+      console.log('success uploading to amazon')
+      break // we're done
+    } catch (e) {
+      // TODO write test that enters here, reliably
+      if (e.code === 'InvalidParameterValueException') {
+        console.log('amazon deploy threw InvalidParameterValueException (role not ready yet). Retrying in 3 seconds...')
+        await sleep(3000) // wait 3 seconds
+        continue
+      } else {
+        console.log(`Amazon upload errorred forrreal: ${e}`)
+        console.log(JSON.stringify(e, null, 2))
+        throw e;
+      }
+    }
+  }
+
   console.timeEnd(`Amazon-deploy-${options.name}`)
 
   return arn
