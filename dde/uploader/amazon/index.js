@@ -34,6 +34,7 @@ function generateDeployCommand(options) {
   let cmd = `aws lambda create-function --function-name ${options.name} --runtime ${runtime} --role ${options.task.config.amazon.role} --handler ${handler} --zip-file fileb://${options.pathOfUploadable}`
   if (options.task.config.amazon.timeout) cmd += ` --timeout ${options.task.config.amazon.timeout} `
   if (options.task.config.amazon.region) cmd += ` --region ${options.task.config.amazon.region}`
+  if (options.task.config.amazon.ram) cmd += ` --memory-size ${options.task.config.amazon.ram}`
   
   return cmd
 }

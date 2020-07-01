@@ -10,6 +10,7 @@ const task = joi.object({
       timeout: joi.number(),
       language: joi.string().valid('js', 'java'),
       region: joi.string(),
+      ram: joi.number(),
       handler: joi.string()
         .when('language', { is: 'java', then: joi.required() })
       ,
