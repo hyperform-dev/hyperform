@@ -3,21 +3,24 @@ const exec = util.promisify(require('child_process').exec);
 const AWS = require('aws-sdk')
 
 /**
- * @description Creates a new API named "apiName" that 
+ * @description Creates a new REGIONAL API in "region" named "apiName" that 
  * forwards requests to the "targetlambdaArn" Lambda
  * @param {string} apiName Name of API
  * @param {string} targetlambdaArn ARN of Lambda where requests should be forwarded to
+ * @param {string} region 
  * @returns {Promise<{apiId: string, apiUrl: string}>} Id and URL of the endpoint
  * // TODO throws on existing? 
  */
-async function createApi(apiName, targetlambdaArn) {
+async function createApi(apiName, targetlambdaArn, region) {
   const apigatewayv2 = new AWS.ApiGatewayV2({
     apiVersion: '2018-11-29',
+    region: region, 
   })
 
   const createApiParams = {
     Name: apiName,
     ProtocolType: 'HTTP',
+    EndpointType: 'REGIONAL',
     Target: targetlambdaArn,
   }
 
@@ -66,8 +69,8 @@ async function getApiDetails(apiName) {
 
 /**
  * @description Add permssion to allow API gateway to invoke given Lambda
- * @param {string} lambdaName 
- * @param {string} region 
+ * @param {string} lambdaName Name of Lambda
+ * @param {string} region Region of Lambda
  * @returns {Promise<void>}
  */
 async function allowApiGatewayToInvokeLambda(lambdaName, region) {

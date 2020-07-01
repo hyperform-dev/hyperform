@@ -35,7 +35,7 @@ async function publishAmazon(lambdaArn, { allowUnauthenticated, bearerToken, reg
     // does not exist
     // create one
   } else {
-    const createRes = await createApi(apiName, lambdaArn)
+    const createRes = await createApi(apiName, lambdaArn, region)
     apiId = createRes.apiId
     apiUrl = createRes.apiUrl
   }
