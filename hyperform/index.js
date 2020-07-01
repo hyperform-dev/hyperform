@@ -88,118 +88,127 @@ const appendix = `
  * @param {Regex} fnregex 
  */
 async function main(dir, fnregex) {
-  // [ { p: /home/file.js, exps: ['fn_1', 'fn_2'] }, ... ]
-  const infos = (await getJsFilepaths(dir))
-    .map((p) => ({
-      p: p,
-      exps: getNamedExports(p),
-    }))
-    // skip files that don't have named exports
-    .filter(({ exps }) => exps != null && exps.length > 0)
-    // skip files that don't have named exports that fit fnregex
-    .filter(({ exps }) => exps.some((exp) => fnregex.test(exp) === true))
-    // filter out exports that don't fit fnregex
-    .map((el) => ({ ...el, exps: el.exps.filter((exp) => fnregex.test(exp) === true) }))
 
-  /*
-        [
-          {
-            p: '/home/qng/cloudkernel/recruiter/lambs/hmm.js',
-            exps: [ 'fn_' ]
-          }
-        ]
-    */
-  // read, transpile, bundle, deploy each p as exps
-  await infos.map(async (info) => {
-    // bundle file
-    let bundledCode = await bundle(info.p)
-
-    // add module append
-    bundledCode += appendix
-
-    //////////////////////
-    // Amazon
-    //////////////////////
-    {
-      // zip it
-      const zipPath = await zip(bundledCode)
-
-      // for every named fn_ export, deploy the zip 
-      // with correct handler
-      await Promise.all(
-        info.exps.map(async (exp) => { // under same name
-
-          const amazonOptions = {
-            name: exp,
-           // handler is always the same
-            role: 'arn:aws:iam::735406098573:role/lambdaexecute'
-          }
-
-       //   console.log(`Amazon: Deploying ${zipPath} as ${amazonOptions.name}`)
-          spinnies.add(amazonOptions.name, { 
-            text: `${chalk.rgb(20, 20, 20).bgWhite(` Amazon `)} ${amazonOptions.name}`
-          
-          })
-
-          const amazonEndpoint = await deployAmazon(zipPath, amazonOptions)
-
-          spinnies.succeed(amazonOptions.name, { 
-            text: `${chalk.rgb(20, 20, 20).bgWhite(` Amazon `)} ${chalk.bold(amazonEndpoint)}`
-          })
-        }),
-      )
-    }
-
-    //////////////////////
-    // Google
-    //////////////////////
-
-    {
-      // create temporary directory
-      const tmpdir = path.join(
-        os.tmpdir(),
-        uuidv4()
-      )
-
-      await fsp.mkdir(tmpdir)
-
-      // write code to there as file
-      await fsp.writeFile(
-        path.join(tmpdir, 'index.js'),
-        bundledCode,
-        { encoding: 'utf-8' }
-      )
-
-      // for every named fn_ export, deploy the folder 
-      // with correct handler
-      await Promise.all(
-        info.exps.map(async (exp) => { // under same name
-
-          const googleOptions = {
-            name: exp,
-            entrypoint: exp,
-            stagebucket: 'jak-functions-stage-bucket'
-          }
-
+  // Top-level error boundary
+  try {
     
-          spinnies.add(googleOptions.name, { 
-            text: `${chalk.rgb(20, 20, 20).bgWhite(` Google `)} ${googleOptions.name}`
+    // [ { p: /home/file.js, exps: ['fn_1', 'fn_2'] }, ... ]
+    const infos = (await getJsFilepaths(dir))
+      .map((p) => ({
+        p: p,
+        exps: getNamedExports(p),
+      }))
+      // skip files that don't have named exports
+      .filter(({ exps }) => exps != null && exps.length > 0)
+      // skip files that don't have named exports that fit fnregex
+      .filter(({ exps }) => exps.some((exp) => fnregex.test(exp) === true))
+      // filter out exports that don't fit fnregex
+      .map((el) => ({ ...el, exps: el.exps.filter((exp) => fnregex.test(exp) === true) }))
+  
+    /*
+          [
+            {
+              p: '/home/qng/cloudkernel/recruiter/lambs/hmm.js',
+              exps: [ 'fn_' ]
+            }
+          ]
+      */
+    // read, transpile, bundle, deploy each p as exps
+    await infos.map(async (info) => {
+      // bundle file
+      let bundledCode = await bundle(info.p)
+  
+      // add module append
+      bundledCode += appendix
+  
+      //////////////////////
+      // Amazon
+      //////////////////////
+      {
+        // zip it
+        const zipPath = await zip(bundledCode)
+  
+        // for every named fn_ export, deploy the zip 
+        // with correct handler
+        await Promise.all(
+          info.exps.map(async (exp) => { // under same name
+  
+            const amazonOptions = {
+              name: exp,
+             // handler is always the same
+              role: 'arn:aws:iam::735406098573:role/lambdaexecute'
+            }
+  
+         //   console.log(`Amazon: Deploying ${zipPath} as ${amazonOptions.name}`)
+            spinnies.add(amazonOptions.name, { 
+              text: `${chalk.rgb(20, 20, 20).bgWhite(` Amazon `)} ${amazonOptions.name}`
+            
+            })
+  
+            const amazonEndpoint = await deployAmazon(zipPath, amazonOptions)
+  
+            spinnies.succeed(amazonOptions.name, { 
+              text: `${chalk.rgb(20, 20, 20).bgWhite(` Amazon `)} ${chalk.bold(amazonEndpoint)}`
+            })
+          }),
+        )
+      }
+  
+      //////////////////////
+      // Google
+      //////////////////////
+  
+      {
+        // create temporary directory
+        const tmpdir = path.join(
+          os.tmpdir(),
+          uuidv4()
+        )
+  
+        await fsp.mkdir(tmpdir)
+  
+        // write code to there as file
+        await fsp.writeFile(
+          path.join(tmpdir, 'index.js'),
+          bundledCode,
+          { encoding: 'utf-8' }
+        )
+  
+        // for every named fn_ export, deploy the folder 
+        // with correct handler
+        await Promise.all(
+          info.exps.map(async (exp) => { // under same name
+  
+            const googleOptions = {
+              name: exp,
+              entrypoint: exp,
+              stagebucket: 'jak-functions-stage-bucket'
+            }
+  
+      
+            spinnies.add(googleOptions.name, { 
+              text: `${chalk.rgb(20, 20, 20).bgWhite(` Google `)} ${googleOptions.name}`
+            })
+            
+            const googleEndpoint = await deployGoogle(tmpdir, googleOptions)
+  
+            spinnies.succeed(googleOptions.name, { 
+              text: `${chalk.rgb(20, 20, 20).bgWhite(` Google `)} ${chalk.bold(googleEndpoint)}`
+            })
+            // TODO delete file & tmpdir
+  
+  
+  
           })
-          
-          const googleEndpoint = await deployGoogle(tmpdir, googleOptions)
+        )
+      }
+  
+    })
+  } catch(e){
+    console.error(e)
+    process.exit(1) // stop spinnies etc
+  }
 
-          spinnies.succeed(googleOptions.name, { 
-            text: `${chalk.rgb(20, 20, 20).bgWhite(` Google `)} ${chalk.bold(googleEndpoint)}`
-          })
-          // TODO delete file & tmpdir
-
-
-
-        })
-      )
-    }
-
-  })
 }
 
 

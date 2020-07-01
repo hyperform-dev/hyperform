@@ -14,7 +14,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "aws-sdk": "^2.792.0",
+    "aws-sdk": "^2.814.0",
     "chalk": "^4.1.0",
     "findit": "^2.0.0",
     "spinnies": "^0.5.1",

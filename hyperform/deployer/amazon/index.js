@@ -1,5 +1,9 @@
 const util = require('util');
 const exec = util.promisify(require('child_process').exec);
+const aws = require('aws-sdk')
+const apigatewayv2 = new aws.ApiGatewayV2({
+  region: 'us-east-2'
+})
 
 /**
  * 
@@ -46,14 +50,57 @@ function extractArn(stdout) {
   return arn
 }
 
-/*
 
-API GATEWAY CALL: 
+// TODO handle regional / edge / read up on how edge works
+// TODO don't create 
+/**
+ * * Takes Lambda ARN and makes it public with API gateway
+ * @returns {string} HTTP endpoint of lambda
+ * @param {string} lambdaArn 
+ */
 
-aws lambda add-permission --function-name arn:aws:lambda:us-east-2:735406098573:function:endpoint_hello --statement-id statement-id-guid --action lambda:InvokeFunction --source-arn arn:aws:execute-api:us-east-2:735406098573:vca3i8138h/*/GET/* --principal apigateway.amazonaws.com
+ // TODO do we need to publish 1 or N times for every lambda deploy?
+async function _publishAmazon(lambdaArn) {
+  const lambdaName = lambdaArn.split(':').slice(-1)[0]
+  const apiName = `hyperform-${lambdaName}`
+
+  // TODO Check if API exists, if so do nothing
+  // should Follows Hyperform conv: same name implies identical, for lambdas, and api endpoints etc
+  
+  //  const existsCmd = `aws apigatewayv2 get-api --api-id ${xx}` 
+  // TODO query
+  // aws apigatewayv2 get-apis --query 'items[?name==`first-http-api`]'
+  
+
+  // can be run multiple times, produces new URLs(not ideal)
+  const cmd1 = `aws apigatewayv2 create-api --name ${apiName} --protocol-type HTTP --target ${lambdaArn}`
+
+  let { stdout } = await exec(cmd1, { encoding: 'utf-8'})
+  let parsedstdout = JSON.parse(stdout)
+
+  const apiUrl = parsedstdout.ApiEndpoint
+  const apiId = parsedstdout.ApiId
 
 
-*/
+
+  // add permission to that lambda to be accessed by API gateway
+  // nice and easy now and has only to be done 1 (will throw on subsequent)
+  // später gleich, statt N dupe APIs 1 API, kann man spezifisch der api access der lambda erlauben
+
+  const cmd2 = `aws lambda add-permission --function-name ${lambdaName} --action lambda:InvokeFunction --statement-id hyperform-statement-${lambdaName} --principal apigateway.amazonaws.com`
+
+  try {
+    await exec(cmd2)
+  //  console.log(`Authorized Gateway to access ${lambdaName}`)
+  } catch(e) {
+    // means statement exists already - means API gateway is already auth to access that lambda
+   // console.log(`Probably already authorized to access ${lambdaName}`)
+   // surpress throw e
+  }
+
+  return apiUrl
+}
+
 
 /**
  * 
@@ -90,18 +137,23 @@ async function deployAmazon(pathToZip, options) {
     : createDeployCommand(pathToZip, fulloptions)
 
   // deploy/upload
+  let arn 
   try {
     console.time(`Amazon-deploy-${options.name}`)
     // TODO sanitize
     const { stdout } = await exec(uploadCmd)
-    const arn = extractArn(stdout)
-    return arn
+    arn = extractArn(stdout)
   } catch (e) {
     console.log(`Errored amazon deploy: ${e}`)
     // spinnies.fail(options.path, { text: `Deploy Error for ${options.name}: ` })
     throw e
   }
   console.timeEnd(`Amazon-deploy-${options.name}`)
+
+  // publish (create URL with API Gateway)
+  const url = await _publishAmazon(arn)
+  return url
+  
 }
 
 module.exports = {

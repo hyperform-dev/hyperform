@@ -1,9 +1,9 @@
-function endpoint_hello(input) {
+function endpoint_hellotwo(input) {
   console.log("hello")
   console.log("input: ", input)
-  return { a: 1, intptus: input }
+  return { a: 1 }
 }
 
 module.exports = {
-  endpoint_hello
+  endpoint_hellotwo
 }
