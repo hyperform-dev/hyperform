@@ -28,28 +28,51 @@ module.exports = () => {
       let wrappedfunc;
       if (platform === 'amazon') {
         wrappedfunc = async function handler(input, context) {
-          console.log('from API gateway received inp: ', JSON.stringify(input));
+          // first argument
           let event = {};
-          // check for GET query string
-          if (input.queryStringParameters != null) {
-            event = input.queryStringParameters;
+          // second argument
+          let httpsubset = {};
+
+          /// ///////////////////////////////
+          // We are invoked from console, or via SDK ///////
+          /// ////////////////////////////////
+          if (input.routeKey === undefined || input.rawPath === undefined || input.headers === undefined) {
+            event = input;
+            httpsubset = {};
           }
-          // check for POST body
-          else if (input.body != null) {
-            event = (input.isBase64Encoded === true)
-              ? Buffer.from(input.body, 'base64').toString('utf-8')
-              : input.body;
-            // try to parse as JSON first
-            try {
-              event = JSON.parse(event);
-            } catch (e) {
-              // try to parse as query string second
-              event = Object.fromEntries(new URLSearchParams(event));
+
+          /// ////////////////////////////////
+          // We are invoked from HTTP ///////
+          /// ////////////////////////////////
+          else {
+            httpsubset = {
+              // fields will all be undefined when invoked from console
+              method: input.requestContext && input.requestContext.http && input.requestContext.http.method,
+              headers: input.headers,
+            };
+            // check for GET query string
+            if (input.queryStringParameters != null) {
+              event = input.queryStringParameters;
             }
-          } else {
-            console.log("Warn: No query string, or 'body' field found in input."); // visible in CloudWatch and on Google
+            // check for POST body
+            else if (input.body != null) {
+              event = (input.isBase64Encoded === true)
+                ? Buffer.from(input.body, 'base64').toString('utf-8')
+                : input.body;
+              // try to parse as JSON first
+              try {
+                event = JSON.parse(event);
+              } catch (e) {
+                // try to parse as query string second
+                event = Object.fromEntries(new URLSearchParams(event));
+              }
+            } else {
+              console.log("Warn: No query string, or 'body' field found in input."); // visible in CloudWatch and on Google
+            }
           }
-          const res = await userfunc(event); // TODO add context.fail?
+
+          // Invoke user function
+          const res = await userfunc(event, httpsubset); // TODO add context.fail?
           context.succeed(res);
         };
       }
@@ -57,8 +80,15 @@ module.exports = () => {
         wrappedfunc = async function handler(req, resp) {
           ${ googleBearerCheckCode }
           //            GET          POST
-          const input = req.query || JSON.parse(JSON.stringify(req.body));
-          const output = await userfunc(input);
+          const event = req.query || JSON.parse(JSON.stringify(req.body));
+          const httpsubset = {
+            // may be undefined fields, and thus httpsubset be {}
+            method: req.method,
+            headers: req.headers,
+          };
+
+          // Invoke user function
+          const output = await userfunc(event, httpsubset);
           resp.json(output);
         };
       }
