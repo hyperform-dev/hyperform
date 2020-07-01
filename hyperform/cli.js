@@ -17,6 +17,15 @@ const absdir = path.resolve(
   process.cwd(),
   dir,
 )
-const fnregex = /^endpoint_/
 
-main(absdir, fnregex)
+// be overgenerous, in worst case we add a nothing-doing module appendix code
+const fnregex = /endpoint_/
+
+// Top-level error boundary
+try {
+  // Main
+  main(absdir, fnregex)
+} catch (e) {
+  console.log(e)
+  process.exit(1)
+}

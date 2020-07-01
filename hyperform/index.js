@@ -126,7 +126,7 @@ async function amazonMain(info, bundledCode, bearerToken) {
 
   // for every named fn_ export, deploy the zip 
   // with correct handler
-  await Promise.all(
+  const amazonEndpoints = await Promise.all(
     info.exps.map(async (exp) => { // under same name
       const amazonOptions = {
         name: exp,
@@ -154,8 +154,12 @@ async function amazonMain(info, bundledCode, bearerToken) {
       spinnies.succeed(spinnieName, {
         text: `${chalk.rgb(20, 20, 20).bgWhite(' Amazon ')} ${amazonOptions.name} ${chalk.bold(amazonEndpoint)}`,
       })
+
+      return amazonEndpoint
     }),
   )
+
+  return amazonEndpoints
 }
 
 /* Does not use bearerToken, it's already baked into bundledCode */
@@ -176,7 +180,7 @@ async function googleMain(info, bundledCode, bearerToken) {
 
   // for every named fn_ export, deploy the folder 
   // with correct handler
-  await Promise.all(
+  const googleEndpoints = await Promise.all(
     info.exps.map(async (exp) => { // under same name
       const googleOptions = {
         name: exp,
@@ -195,23 +199,26 @@ async function googleMain(info, bundledCode, bearerToken) {
       spinnies.succeed(spinnieName, {
         text: `${chalk.rgb(20, 20, 20).bgWhite(' Google ')} ${googleOptions.name} ${chalk.bold(googleEndpoint)}`,
       })
+
+      return googleEndpoint
       // TODO do somewhere else
       // TODO delete file & tmpdir
     }),
   )
+
+  return googleEndpoints
 }
 
 /**
  * 
  * @param {string} dir 
  * @param {Regex} fnregex 
+ * @throws
  */
 async function main(dir, fnregex) {
-  // Top-level error boundary
-  try {
-    const infos = await getInfos(dir, fnregex)
+  const infos = await getInfos(dir, fnregex)
 
-    /*
+  /*
           [
             {
               p: '/home/qng/cloudkernel/recruiter/lambs/hmm.js',
@@ -219,57 +226,58 @@ async function main(dir, fnregex) {
             }
           ]
       */
-    // read, transpile, bundle, deploy each info
-    await Promise.all(
-      infos.map(async (info) => {
-        // bundle file
-        let bundledCode = await bundle(info.p)
+  // read, transpile, bundle, deploy each info
+  const endpoints = await Promise.all(
+    infos.map(async (info) => {
+      // bundle file
+      let bundledCode = await bundle(info.p)
       
-        // add module append
-        // use one token for all endpoints (derweil)
-        // TODO generate token from terminal seed 
-        const bearerToken = generateRandomBearerToken(/* TODO ?SEED */)
-        // Hardcode expected token into function (for Google)
-        const appendix = createAppendix(bearerToken)
+      // add module append
+      // use one token for all endpoints (derweil)
+      // TODO generate token from terminal seed 
+      const bearerToken = generateRandomBearerToken(/* TODO ?SEED */)
+      // Hardcode expected token into function (for Google)
+      const appendix = createAppendix(bearerToken)
        
-        bundledCode += appendix
+      bundledCode += appendix
 
-        // TODO mach parallel und do spinnies woanders (eh besser), sollte auch wrapping lösen
-        // nicht wichtig
+      // TODO mach parallel und do spinnies woanders (eh besser), sollte auch wrapping lösen
+      // nicht wichtig
 
-        // Try to copy token to clipboard
-        let tokenMsg = `Authorization: Bearer ${chalk.bold(bearerToken)}`
-        try {
-          await clipboardy.write(bearerToken)
-          // success
-          tokenMsg += ` ${chalk.rgb(175, 175, 175)('(Copied)')}`
-        } catch (e) {
-          // fail - not the end of the world
-        }
-        // Print token to console
-        console.log(tokenMsg)
+      // Try to copy token to clipboard
+      let tokenMsg = `Authorization: Bearer ${chalk.bold(bearerToken)}`
+      try {
+        await clipboardy.write(bearerToken)
+        // success
+        tokenMsg += ` ${chalk.rgb(175, 175, 175)('(Copied)')}`
+      } catch (e) {
+        // fail - not the end of the world
+      }
+      // Print token to console
+      console.log(tokenMsg)
         
-        // Deploy and publish
+      // Deploy and publish
         
-        /// ///////////////////
-        // Amazon
-        /// ///////////////////
+      /// ///////////////////
+      // Amazon
+      /// ///////////////////
         
-        await amazonMain(info, bundledCode, bearerToken)
+      const amazonEndpoints = await amazonMain(info, bundledCode, bearerToken)
         
-        /// ///////////////////
-        // Google
-        /// ///////////////////
+      /// ///////////////////
+      // Google
+      /// ///////////////////
         
-        // NOTE for new functions add allUsers as invoker
-        // Keep that for now so don't forget the CLI setInvoker thing may screw up --allow-unauthenticated
-        await googleMain(info, bundledCode, bearerToken)
-      }),
-    )
-  } catch (e) {
-    console.error(e)
-    process.exit(1) // stop spinnies etc
-  }
+      // NOTE for new functions add allUsers as invoker
+      // Keep that for now so don't forget the CLI setInvoker thing may screw up --allow-unauthenticated
+      const googleEndpoints = await googleMain(info, bundledCode, bearerToken)
+
+      // just for tests
+      return [...amazonEndpoints, ...googleEndpoints]
+    }),
+  )
+
+  return endpoints
 }
 
 module.exports = {
