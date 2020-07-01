@@ -39,7 +39,7 @@ function generateUpdateCommand(task, name, pathOfUploadable) {
  * @param {string} pathOfUploadable Where the zip ... lies
  */
 async function runUploadAmazon(task, name, pathOfUploadable, path) {
-  spinnies.add(path, { text: `Uploading ${name} ...` })
+  spinnies.add(path, { text: `Deploying ${name} ...` })
   // check if lambda already exists
   const exists = await isExistsAmazon(name)
   // piece together terminal command to deploy
@@ -49,10 +49,11 @@ async function runUploadAmazon(task, name, pathOfUploadable, path) {
 
   // deploy/upload
   try {
-    await exec(uploadCmd)
-    spinnies.succeed(path, { text: `Uploaded ${name}` })
+    // TODO TEMP: DO NOT ACTUALLY DEPLOY await exec(uploadCmd)
+    await new Promise((resolve) => setTimeout(resolve, 3000))
+    spinnies.succeed(path, { text: `Deployed ${name}` })
   } catch (e) {
-    spinnies.fail(path, { text: `Upload Error for ${name}: ` })
+    spinnies.fail(path, { text: `Deploy Error for ${name}: ` })
     throw e
   }
 }

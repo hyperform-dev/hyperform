@@ -1,8 +1,8 @@
 const util = require('util');
 const exec = util.promisify(require('child_process').exec);
 const lstat = util.promisify(require('fs').lstat);
+const { EOL } = require('os')
 const { spinnies } = require('../printer')
-
 /**
  * 
  * @param {string} path The path of the lambda folder
@@ -10,7 +10,6 @@ const { spinnies } = require('../printer')
 async function runDo(path, command, hint) {
   // Show progress spinner 
   spinnies.add(path, { text: `Building ${hint}` })
-  // TODO DO somewhere else along with semantic validation
   // ensure path is a directory
   const lstatRes = await lstat(path)
   if (lstatRes.isDirectory() === false) {
@@ -20,10 +19,10 @@ async function runDo(path, command, hint) {
 
   try {
     const { stdout } = await exec(command, { cwd: path })
-    //  console.log(stdout)
     spinnies.succeed(path, { text: `Built ${hint}` })
   } catch (e) {
-    spinnies.fail(path, { text: `Building Error: "do" script returned a non-zero exit code: ${e}` })
+    // TODO somehow get stdout up until the error & print it
+    spinnies.fail(path, { text: `Building Error: "do" script ran in '${path}' returned a non-zero exit code: ${EOL} ${e}` })
     throw e
   }
 }

@@ -40,9 +40,15 @@ async function processTask(args, task, provider = 'amazon') {
   }
 
   // List all child folders of 'forEachIn' field
-  let fnFolderNames = await fsp.readdir(
-    path.join(args.root, task.forEachIn), { withFileTypes: true }, 
-  ) 
+  let fnFolderNames
+  try {
+    fnFolderNames = await fsp.readdir(
+      path.join(args.root, task.forEachIn), { withFileTypes: true }, 
+    ) 
+  } catch (e) {
+    spinnies.justPrintFail(`Could not read directory: ${path.join(args.root, task.forEachIn)}`)
+    throw e
+  }
 
   // TODO ignore hidden folders on Unix, Windows
   // only keep folders (directories)
@@ -78,7 +84,9 @@ async function main() {
  
   // For each element in deploy.json (a task), "do" and "upload"
   const proms = parsedJson
-    .map((task) => processTask(args, task, 'amazon'))
+    .map((task) => processTask(args, task, 'amazon')
+      .catch(() => { /* Do nothing, if one task failed we can still do the others. 
+      The user is made aware in processTask */ }))
 
   // wait for all to complete
   await Promise.all(proms)
