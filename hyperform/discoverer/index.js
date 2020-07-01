@@ -42,7 +42,7 @@ function getJsFilepaths(absdir) {
 }
 
 /**
- * @description Evaluates a .js file to get its named export keys 
+ * @description Runs a .js file to get its named export keys 
  * @param {string} filepath Path to .js file
  * @returns {string[]} Array of named export keys
  */
@@ -66,7 +66,31 @@ function getNamedExportKeys(filepath) {
   }
 }
 
+/**
+ * @description Scouts "dir" and its subdirectories for .js files named 
+ * exports that match "fnregex"
+ * @param {string} dir 
+ * @param {Regex} fnregex 
+ * @returns {[ { p: string, exps: string[] } ]} Array of "p" (path to js file)
+ *  and its named exports that match fnregex ("exps")
+ */
+async function getInfos(dir, fnregex) {
+  const jsFilePaths = await getJsFilepaths(dir)
+  const infos = jsFilePaths
+    .map((p) => ({
+      p: p,
+      exps: getNamedExportKeys(p),
+    }))
+    // skip files that don't have named exports
+    .filter(({ exps }) => exps != null && exps.length > 0)
+    // skip files that don't have named exports that fit fnregex
+    .filter(({ exps }) => exps.some((exp) => fnregex.test(exp) === true))
+    // filter out exports that don't fit fnregex
+    .map((el) => ({ ...el, exps: el.exps.filter((exp) => fnregex.test(exp) === true) }))
+
+  return infos
+}
+
 module.exports = {
-  getJsFilepaths,
-  getNamedExportKeys,
+  getInfos,
 }
