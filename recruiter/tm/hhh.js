@@ -1,3 +1,1 @@
-exports.myfunc = (event) => ({
-  a: 98,
-})
+exports.myfunc = (event) => ({ a: 1 })

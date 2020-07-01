@@ -6,117 +6,65 @@ const os = require('os')
 const { bundle, createZip } = require('./bundler/index')
 const { getJsFilePaths, getNamedExports } = require('./discoverer/index')
 const { deployAmazon } = require('./deployer/amazon/index')
-const { transpileToAmazon } = require('./transpiler/amazon/index')
+const { transpile } = require('./transpiler/index')
+const { zip } = require('./zipper/index')
+
+const LANG = 'js'
+const PROVIDER = 'amazon'
 
 async function main(root) {
   // paths to relevant js files
-  /*
-  eg 
-  ├── ayy.js
-  ├── demo.js
-  └── index.js
-  */
-  const jspaths = await getJsFilePaths(root)
+  let jspaths = await getJsFilePaths(root)
+  // get each .js's file named export
+  let namedexpkeys = jspaths.map((jspath) => getNamedExports(jspath))
 
-  // make a place for all our bundles
-  /*
-  eg 
-  /tmp
-   └── 81723
-   */
-  const bundledir = await fsp.mkdir(
-    path.join(
-      os.tmpdir(),
-      `${Math.ceil(Math.random() * 100000)}`,
-    ),
-    { recursive: true },
+  // filter out files with no named exports
+  jspaths = jspaths.filter((p, idx) => namedexpkeys[idx] && namedexpkeys[idx].length > 0)
+  namedexpkeys = namedexpkeys.filter((k) => k && k.length > 0)
+
+  // bundle each file
+  const bundleCodes = await Promise.all(
+    jspaths.map((jspath) => bundle(jspath, LANG)),
   )
-  
-  // bundle js files and remember which named exports they each have
-  let res = await Promise.all(
-    jspaths.map(async (jspath) => {
-      // import & check for named exports
-      // TOD (also runs top-level code lol)
-      const namedexpkeys = getNamedExports(jspath)
-      const filename = path.basename(jspath)
 
-      // make subdir for that bundle
-      /*
-      eg
-      /tmp
-        └── 81723
-            └── ayy.js
-      */
-      const thisbundledir = await fsp.mkdir(
-        path.join(
-          bundledir,
-          filename,
-        ),
-        { recursive: true },
+  // for each named export, transpile file, zip it, and upload it
+  // [ {namedexp: string, zippath: string }, ... ]
+  let zippedInfos = await Promise.all(
+    // for each file in parallel
+    namedexpkeys.map(async (ks, idx) => {
+      const done = []
+      // for a file, for each named export in parallel
+      await Promise.all(
+        ks.map(async (k) => {
+          // transpile it
+          const transpiled = transpile(bundleCodes[idx], k, LANG, PROVIDER)
+          // zip it 
+          const zippath = await zip(transpiled)
+          done.push({
+            namedexp: k,
+            zippath: zippath,
+          })
+        }),
       )
-      
-      /**
-       *      
-       * eg
-      /tmp
-        └── 81723
-            └── ayy.js 
-               └── bundle.js
-       */
-      const thisbundlepath = path.join(
-        thisbundledir,
-        'index.js',
-      )
-      // bundle file
-      await bundle(
-        jspath,
-        thisbundlepath,
-      )
-
-      // read bundle contents (annoying af)
-      let bundlestr = await fsp.readFile(thisbundlepath, { encoding: 'utf8' })
-
-      console.log(`picking ${namedexpkeys[0]} of ${namedexpkeys} llol`)
-      // transpile bundle
-      bundlestr = transpileToAmazon(bundlestr, namedexpkeys[0])
-
-      // overwrite back to file 
-      await fsp.writeFile(thisbundlepath, bundlestr) 
-
-      // remember that these named exports are in this bundle
-      return {
-        names: namedexpkeys,
-        bundlepath: thisbundlepath,
-      }
+      // TODO don't nest em too much
+      return done
     }),
   )
+
+  // flatten it, we don't need info grouped per-file
+  zippedInfos = zippedInfos.reduce((acc, curr) => [...acc, ...curr], [])
  
-  // zip them
-  // filter out bundles that don't have named exports
-  res = res
-    .filter((r) => r && r.names && r.names.length) 
+  console.log(zippedInfos)
+  // deplopy each zip
 
-  console.log(res)
-
-  const zipPaths = await Promise.all(
-    res.map((r) => createZip(r)),
-  )
-
-  console.log(zipPaths)
-
-  // await Promise.all(
-  //   zipPaths.map(zp => deployAmazon(zp, ))
-  // )
-  // await deployAmazon()
-
-  // deploy/ update them 
   await Promise.all(
-    zipPaths.map((zp, idx) => deployAmazon(zp, `${res[idx].names}-fn`)),
+    zippedInfos.map((zinfo) => {
+      const fnname = `${zinfo.namedexp}-fn` // Lambda name
+      return deployAmazon(zinfo.zippath, fnname)
+    }),
   )
 
-  console.log('deployed all')
-
-  // TODO deploy/update them to amazon
+  console.log('deployed all fns')
 }
 
 main('/home/qng/cloudkernel/recruiter/tm')
