@@ -24,9 +24,10 @@ jobs:
       uses: actions/setup-node@v1
       with:
         node-version: ${{ matrix.node-version }}
-        env:
-          AWS_ACCESS_KEY_ID: ${{ secrets.AWSACCESSKEYID }}
-          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWSSECRETACCESSKEY }} 
+      env:
+        AWS_ACCESS_KEY_ID: ${{ secrets.AWSACCESSKEYID }}
+        AWS_SECRET_ACCESS_KEY: ${{ secrets.AWSSECRETACCESSKEY }} 
+        AWS_DEFAULT_REGION: us-east-2
     - run: npm ci
     - run: npm run lint
     - run: npm run test
