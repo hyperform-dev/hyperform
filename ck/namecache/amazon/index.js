@@ -1,4 +1,3 @@
-const { spawn } = require('child_process')
 const aws = require('aws-sdk')
 const { sharedNamecache } = require('../index')
 
@@ -11,22 +10,30 @@ const lambda = new aws.Lambda({
  * @param {*} name 
  */
 function amazonQuery(name) {
-  console.log(`querying for ${name}`)
+  console.time('namequery')
+
+  // console.log(`querying for ${name}`)
   // NOTE don't do elaborate querying, if deployed, ready and so on
   // query is really just if Amazon is the right handler to call for the name
   if (/^arn:(aws|aws-cn|aws-us-gov):lambda:/.test(name) === true) {
+    console.log('name: trivial')
+    console.timeEnd('namequery')
+
     return Promise.resolve(name)
   }
 
   // consult cache
   const cacheRes = sharedNamecache.get(name)
   if (cacheRes) {
+    console.log('name: cached')
+    console.timeEnd('namequery')
+
     // safeguard if cache is corrupted
     // Is a programmer mistake, should not be handled
     // if (/^arn:(aws|aws-cn|aws-us-gov):lambda:/.test(name) === false) {
     //   throw new Error("Non-arn found in cache, ")
     // }
-    console.log(`Cache resolved ${name}`)
+    //  console.log(`Cache resolved ${name}`)
     return Promise.resolve(cacheRes)
   }
 
@@ -35,11 +42,14 @@ function amazonQuery(name) {
     FunctionName: name,
   }
 
+  console.log('name: asked amazon')
+
   return (
     lambda.getFunction(params).promise()
       .then((res) => res && res.Configuration && res.Configuration.FunctionArn)
       .then((arn) => {
         sharedNamecache.put(name, arn) // remember this name resolves to this arn for later
+        console.timeEnd('namequery')
         return arn
       })
       .catch((err) => {

@@ -53,6 +53,7 @@ function parseCliArgs() {
 
 async function main() {
   // Top level error boundary of ck
+  console.time('all')
   try {
     const args = parseCliArgs()
     const parsedFlowJson = await readparsevalidate({
@@ -64,20 +65,23 @@ async function main() {
       parsedFlowJson, 
       { in: '__workflow_in' },
     )
-  
-    console.log(JSON.stringify(enrichedFlowJson, null, 2))
+    
+    //   console.log(JSON.stringify(enrichedFlowJson, null, 2))
     // Put --input (the workflow input) onto stash
     sharedStash.put('__workflow_in', args.parsedInput)
-
+    
     const lastKey = outputkey
     // build top-level function
     const wf = await build(enrichedFlowJson)
-    console.log(JSON.stringify(wf))
+    //  console.log(JSON.stringify(wf))
     // run top-level function
+ 
     await wf()
-
+    
+    console.timeEnd('all')
+    
     // print output
-    console.log(`${EOL} WF OUTPUT:`, sharedStash.get(lastKey))
+    console.log(sharedStash.get(lastKey))
   } catch (e) {
     console.log(e)
     process.exit(1)

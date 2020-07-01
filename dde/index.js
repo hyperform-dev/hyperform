@@ -93,24 +93,20 @@ async function processTask(args, task, provider = 'amazon') {
       )
     })
 }
-
 /// //////////////////////////////////////////////////
 
-async function main() {
+async function main(parsedArgs) {
   // Top level error boundary of dd
   try {
-    // parse CLI args
-    const args = parseCliArgs()
-
     // parse deploy.json
     const parsedJson = await readparsevalidate({
       presetName: 'deploy.json',
-      path: path.join(args.root, 'deploy.json'),
+      path: path.join(parsedArgs.root, 'deploy.json'),
     })
    
     // For each element in deploy.json (a task), "do" and "upload"
     const proms = parsedJson
-      .map((task) => processTask(args, task, 'amazon')
+      .map((task) => processTask(parsedArgs, task, 'amazon')
         .catch((e) => {
           console.log(e)
           /* This is the catch if the SYNCHRONIOUS code in processTasks throws
@@ -127,4 +123,6 @@ async function main() {
   }
 }
 
-main()
+module.exports = {
+  main,
+}

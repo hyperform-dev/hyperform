@@ -1,6 +1,6 @@
 const Spinnies = require('spinnies')
 const uuidv4 = require('uuid').v4
-const { isInTesting } = require('../utils/index')
+const { isInTesting } = require('../meta/index')
 
 const spinner = {
   interval: 80,

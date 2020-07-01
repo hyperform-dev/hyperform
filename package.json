@@ -5,6 +5,9 @@
   "description": "",
   "license": "ISC",
   "main": "index.js",
+  "bin": {
+    "ck": "./ck/index.js"
+  },
   "scripts": {
     "test": "jest",
     "lint": "eslint",

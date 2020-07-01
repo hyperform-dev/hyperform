@@ -1,3 +1,4 @@
+const uuidv4 = require('uuid').v4 
 const { amazonEnvoy } = require('./amazon/index')
 
 const envoys = [
@@ -21,9 +22,10 @@ async function envoy(name, input) {
 
   const selectedenvoy = envoys[canEnvoyAnswers.indexOf(true)]
   // Call cloud fn
-  console.time(`envoy-${name}`)
+  const uid = uuidv4()
+  console.time(`envoy-${uid}`)
   const response = await selectedenvoy.envoy(name, input)
-  console.timeEnd(`envoy-${name}`)
+  console.timeEnd(`envoy-${uid}`)
 
   return response
 }

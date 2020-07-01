@@ -1,0 +1,20 @@
+{
+  "name": "dde",
+  "version": "0.0.1",
+  "description": "",
+  "main": "index.js",
+  "bin": {
+    "dde": "./cli.js"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "DPS Group, University of Innsbruck <jakob.wallnoefer@student.uibk.ac.at>",
+  "license": "ISC",
+  "dependencies": {
+    "arg": "^4.1.3",
+    "joi": "^17.3.0",
+    "spinnies": "^0.5.1",
+    "uuid": "^8.3.1"
+  }
+}

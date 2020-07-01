@@ -2,22 +2,6 @@ const path = require('path')
 const fsp = require('fs').promises
 const arg = require('arg')
 const { spinnies } = require('../printer/index')
-/**
- * Detects whether jest is running this code
- */
-function isInTesting() {
-  if (process.env.JEST_WORKER_ID != null) {
-    return true 
-  }
-  if (process.env.NODE_ENV === 'test') {
-    return true
-  } 
-  return false 
-}
-
-module.exports = {
-  isInTesting,
-}
 
 /**
  * @returns { mode: 'init'|'deploy', root: String}
@@ -70,7 +54,6 @@ async function getCandidatePaths(task, args) {
 }
 
 module.exports = {
-  isInTesting,
   getCandidatePaths,
   parseCliArgs,
 }
