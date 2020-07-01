@@ -4,7 +4,7 @@ const fs = require('fs')
 const { init } = require('./initer/index')
 const { getParsedHyperformJson } = require('./parser/index')
 const { log } = require('./printers/index')
-
+const { maybeShowSurvey, answerSurvey } = require('./surveyor/index')
 // Ingest CLI arguments
 // DEV NOTE: Keep it brief and synchronious
 
@@ -30,6 +30,14 @@ if (mode === 'init') {
   process.exit()
 }
 
+// Mode is answer survey
+if (mode === 'answer') {
+  const answer = args.slice(1) // words after $ hyperform answer
+  // Send anonymous answer (words and date recorded)
+  answerSurvey(answer)
+    .then(process.exit())
+}
+
 // Mode is deploy
 
 // try to read hyperform.json
@@ -49,7 +57,7 @@ const parsedHyperformJson = getParsedHyperformJson(absdir)
 // However, that is fine, hyperform.json should still take precedence
 process.env.AWS_ACCESS_KEY_ID = parsedHyperformJson.amazon.aws_access_key_id,
 process.env.AWS_SECRET_ACCESS_KEY = parsedHyperformJson.amazon.aws_secret_access_key,
-process.env.AWS_REGION = parsedHyperformJson.amazon.aws_default_region 
+process.env.AWS_REGION = parsedHyperformJson.amazon.aws_default_region
 
 // Load GC Credentials from hyperform.json into process.env
 // These are different from what Google usually occupies (GCLOUD_...)
@@ -67,6 +75,8 @@ try {
   // TODO: make less sloppy
   const { main } = require('./index')
   main(absdir, fnregex, parsedHyperformJson, allowUnauthenticated)
+    // show anonymous survey question with 1/30 percent probability
+    .then(() => maybeShowSurvey())
 } catch (e) {
   log(e)
   process.exit(1)
