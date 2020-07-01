@@ -8,6 +8,10 @@ const BLACKLIST = [
 
 const filepathgetters = {
   js: function (dir) {
+    // NodeJS 12+
+    if (path.isAbsolute(dir) === false) {
+      throw new Error('getFilePaths: given root must be absolute')
+    }
     return new Promise((resolve, reject) => {
       const fnames = []
       const finder = findit(dir)
@@ -56,8 +60,10 @@ function getNamedExports(filepath) {
     const namedexpkeys = Object.keys(imp)
     return namedexpkeys
   } catch (e) {
-    console.log(e)
-    throw e
+    console.log(`Failed to determine named exports of ${filepath}. Ignoring it.`)
+    // if js file isn't parseable, top level code throws, etc
+    // say that it does not have named exports
+    return []
   }
 }
 

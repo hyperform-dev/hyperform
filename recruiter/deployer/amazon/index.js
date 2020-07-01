@@ -39,12 +39,12 @@ async function isExistsAmazon(options) {
   }
 }
 
-async function deployAmazon(pathToZip, name) {
+async function deployAmazon(pathToZip, name, handler) {
   const options = {
     name: name,
     runtime: 'nodejs12.x',
     timeout: 60,
-    handler: 'index.handler',
+    handler: handler || 'index.handler',
     role: 'arn:aws:iam::735406098573:role/lambdaexecute',
     region: 'us-east-2',
   }
