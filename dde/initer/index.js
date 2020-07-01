@@ -12,6 +12,7 @@ const deployJson = [
     config: {
       amazon: {
         role: '',
+        timeout: 60,
       },
     },
   },
