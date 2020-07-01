@@ -8,6 +8,7 @@ const os = require('os')
 const fsp = require('fs').promises
 const { spinnies } = require('./printers/index')
 const { zip } = require('./zipper/index')
+const chalk = require('chalk')
 
 // in lambda : export normally, but wrap in context.succeed (idempotent)
 // in local: export normally
@@ -135,9 +136,14 @@ async function main(dir, fnregex) {
           }
 
        //   console.log(`Amazon: Deploying ${zipPath} as ${amazonOptions.name}`)
-          spinnies.add(amazonOptions.name, { text: `Amazon: Deploying ${amazonOptions.name} (${zipPath})`})
+          spinnies.add(amazonOptions.name, { 
+            text: `${chalk.rgb(20, 20, 20).bgWhite(` Amazon `)} ${amazonOptions.name}`
+          
+          })
           await deployAmazon(zipPath, amazonOptions)
-          spinnies.succeed(amazonOptions.name, { text: `Amazon: ${amazonOptions.name}`})
+          spinnies.succeed(amazonOptions.name, { 
+            text: `${chalk.rgb(20, 20, 20).bgWhite(` Amazon `)} ${amazonOptions.name}`
+          })
         }),
       )
     }
@@ -173,12 +179,20 @@ async function main(dir, fnregex) {
             stagebucket: 'jak-functions-stage-bucket'
           }
 
-      //    console.log(`Google: Deploying ${tmpdir} as ${googleOptions.name} with entrypoint ${googleOptions.entrypoint}`)
+    
+          spinnies.add(googleOptions.name, { 
+            text: `${chalk.rgb(20, 20, 20).bgWhite(` Google `)} ${googleOptions.name}`
+          })
+          
+          const googleEndpoint = await deployGoogle(tmpdir, googleOptions)
 
-          spinnies.add(googleOptions.name, { text: `Google: Deploying ${googleOptions.name} (${tmpdir})`})
-          await deployGoogle(tmpdir, googleOptions)
-          spinnies.succeed(googleOptions.name, { text: `Google: ${googleOptions.name}`})
+          spinnies.succeed(googleOptions.name, { 
+            text: `${chalk.rgb(20, 20, 20).bgWhite(` Google `)} ${googleEndpoint}`
+          })
           // TODO delete file & tmpdir
+
+
+
         })
       )
     }
