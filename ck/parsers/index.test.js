@@ -1,6 +1,6 @@
-const validators = require('./index')._onlyfortesting_validators
+const firstvalidators = require('./index')._onlyfortesting_firstvalidators
 
-describe('validators', () => {
+describe('firstvalidators', () => {
   describe('for flow.json', () => {
     describe('it accepts correct schemas: names, ARNs, URLs', () => {
       test('full', async () => {
@@ -10,7 +10,7 @@ describe('validators', () => {
           { run: 'google.com' }, // URLs are allowed
         ]
         
-        const toBeTested = () => validators['flow.json'](input)
+        const toBeTested = () => firstvalidators['flow.json'](input)
 
         expect(toBeTested)
           .not 
@@ -22,7 +22,7 @@ describe('validators', () => {
           { run: 'function1' },
         ]
         
-        const toBeTested = () => validators['flow.json'](input)
+        const toBeTested = () => firstvalidators['flow.json'](input)
 
         expect(toBeTested)
           .not 
@@ -33,7 +33,7 @@ describe('validators', () => {
         const input = [
         ]
         
-        const toBeTested = () => validators['flow.json'](input)
+        const toBeTested = () => firstvalidators['flow.json'](input)
 
         expect(toBeTested)
           .not 
@@ -47,7 +47,7 @@ describe('validators', () => {
           { run: 'google.com' }, // URLs are allowed
         ]
         
-        const toBeTested = () => validators['flow.json'](input)
+        const toBeTested = () => firstvalidators['flow.json'](input)
 
         expect(toBeTested)
           .not 
@@ -63,7 +63,7 @@ describe('validators', () => {
           { run: 'google.com' }, // URLs are allowed
         ]
         
-        const toBeTested = () => validators['flow.json'](input)
+        const toBeTested = () => firstvalidators['flow.json'](input)
 
         expect(toBeTested)
           .toThrow()

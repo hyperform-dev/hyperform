@@ -135,6 +135,3 @@ module.exports = {
   readparsevalidate, 
   _onlyfortesting_firstvalidators: firstvalidators,
 }
-
-readparsevalidate({ presetName: 'flow.json', path: '../flow.json' })
-  .then((res) => console.log(res))
