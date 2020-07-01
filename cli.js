@@ -55,15 +55,19 @@ const parsedHyperformJson = getParsedHyperformJson(absdir)
 // Load AWS Credentials from hyperform.json into process.env
 // These are identical with variables that Amazon CLI uses, so they may be set
 // However, that is fine, hyperform.json should still take precedence
-process.env.AWS_ACCESS_KEY_ID = parsedHyperformJson.amazon.aws_access_key_id,
-process.env.AWS_SECRET_ACCESS_KEY = parsedHyperformJson.amazon.aws_secret_access_key,
-process.env.AWS_REGION = parsedHyperformJson.amazon.aws_default_region
+if (parsedHyperformJson.amazon != null) {
+  process.env.AWS_ACCESS_KEY_ID = parsedHyperformJson.amazon.aws_access_key_id,
+  process.env.AWS_SECRET_ACCESS_KEY = parsedHyperformJson.amazon.aws_secret_access_key,
+  process.env.AWS_REGION = parsedHyperformJson.amazon.aws_default_region
+}
 
 // Load GC Credentials from hyperform.json into process.env
 // These are different from what Google usually occupies (GCLOUD_...)
-process.env.GC_CLIENT_EMAIL = parsedHyperformJson.google.gc_client_email,
-process.env.GC_PRIVATE_KEY = parsedHyperformJson.google.gc_private_key,
-process.env.GC_PROJECT = parsedHyperformJson.google.gc_project
+if (parsedHyperformJson.google != null) {
+  process.env.GC_CLIENT_EMAIL = parsedHyperformJson.google.gc_client_email,
+  process.env.GC_PRIVATE_KEY = parsedHyperformJson.google.gc_private_key,
+  process.env.GC_PROJECT = parsedHyperformJson.google.gc_project
+}
 
 // The regex that determines whether a function will be uploaded as serverless function
 const fnregex = /endpoint/
