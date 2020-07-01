@@ -9,75 +9,54 @@ $ npm install -g hyperform-cli
 ## A simple serverless App
 
 ```js
-/**
- * 'aws-sdk' and '@google/*' are included per default.
- * 
-**/
+// index.js
 const AWS = require('aws-sdk')
+
 const s3 = new AWS.S3()
-const bucket = "my-todo-s3-bucket"
+const bucket = 'my-todo-s3-bucket'
 
 /**
  * Export each desired endpoint using 'exports' or 'module.exports'
  * It should have 'endpoint' in its name
-**/
+* */
 
-/**
- * 
- * @param {{id: number, text: string}} 
- */
-exports.endpoint_addTodo = ({ id, text }) => {
+exports.endpoint_addTodo = async ({ id, text }) => {
   const todo = {
     id: id,
     text: text,
     completed: false,
   }
 
-  const params = {
+  await s3.putObject({
     Bucket: bucket,
-    Key: `todos/${id}`,
+    Key: id,
     Body: JSON.stringify(todo),
-  }
-  await s3.putObject(params).promise()
+  }).promise()
 }
 
-/**
- * 
- * @param {{id: number}} 
- */
-exports.endpoint_toggleTodo = ({ id }) => {
-  const getParams = {
+exports.endpoint_toggleTodo = async ({ id }) => {
+  const todo = await s3.getObject({
     Bucket: bucket,
-    Key: `todos/${id}`,
-  }
-
-  const todo = await s3.getObject(getParams).promise()
+    Key: id,
+  })
+    .promise()
     .then((res) => JSON.parse(Buffer.from(res.Body).toString())) // TODO
 
   todo.completed = !todo.completed
 
-  const putParams = {
-    Bucket: bucket,
-    Key: `todos/${id}`,
-    Body: JSON.stringify(todo),
-  }
-
-  await s3.putObject(putParams).promise()
-}
-
-/**
- * 
- * @param {{id: number}} 
- */
-exports.endpoint_deleteTodo = ({ id }) => {
-  const params = {
+  await s3.putObject({
     Bucket: bucket,
     Key: id,
-  }
-  await s3.deleteObject(params).promise()
+    Body: JSON.stringify(todo),
+  }).promise()
 }
 
-
+exports.endpoint_deleteTodo = async ({ id }) => {
+  await s3.deleteObject({
+    Bucket: bucket,
+    Key: id,
+  }).promise()
+}
 
 ```
 
