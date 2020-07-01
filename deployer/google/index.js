@@ -137,6 +137,37 @@ async function _createGoogle(signedUploadUrl, options) {
 }
 
 /**
+ * 
+ * @param {{
+ * name: string,
+ * project: string,
+ * region: string
+ * }} options 
+ */
+async function _allowPublicInvokeGoogle(options) {
+  // TODO GetIam and get etag of current role first 
+  // And then specify that in setIam, to avoid race conditions
+  // @see "etag" on https://cloud.google.com/functions/docs/reference/rest/v1/Policy
+
+  const setIamPolicyOptions = {
+    resource: `projects/${options.project}/locations/${options.region}/functions/${options.name}`,
+    policy: {
+      // @see https://cloud.google.com/functions/docs/reference/rest/v1/Policy#Binding
+      bindings: [
+        {
+          role: 'roles/cloudfunctions.invoker',
+          members: ['allUsers'],
+          version: 3,
+        },
+      ],
+    },
+  }
+
+  logdev('setting IAM policy')
+  const res = await client.setIamPolicy(setIamPolicyOptions)
+}
+
+/**
  * @description If Google Cloud Function "options.name" 
  * does not exist yet in "options.project", "options.region", 
  * it creates a new GCF with given code ("pathToZip") and "options". 
@@ -193,6 +224,17 @@ async function deployGoogle(pathToZip, options) {
     await _updateGoogle(signedUploadUrl, updateParams)
   }
 
+  // allow anyone to invoke function 
+  // Note that a correct Bearer token may still be required to not have it exit immediately
+  // But on Google we check for that inside the function
+
+  const allowPublicInvokeOptions = {
+    name: options.name,
+    project: options.project, 
+    region: options.region, 
+  }
+  await _allowPublicInvokeGoogle(allowPublicInvokeOptions)
+    
   // Construct endpoint URL (it's deterministic)
   const endpointUrl = `https://${options.region}-${options.project}.cloudfunctions.net/${options.name}`
 
