@@ -1,3 +1,4 @@
+const path = require('path')
 const { validate } = require('./parsers/index')
 const { enrich } = require('./enrichers/index')
 const { build } = require('./nodebuilders/index')
@@ -7,6 +8,7 @@ const { Namecache } = require('./namecache/index')
 const { Stash } = require('./stashes/index')
 const { spinnies } = require('./printers/index')
 const { validateOutput } = require('./utils/index')
+const { recruiter } = require('../recruiter/index')
 // TODO enforce ck is run in project root
 // TODO (prob already done, since it checks for flow)
 
@@ -70,6 +72,15 @@ class Cloudkernel {
     console.time('build-wf')
     const wf = await build(this.enrichedFlow, this.stash, this.namecache)
     console.timeEnd('build-wf')
+
+    // deploy with recruiter 
+    const fnsPath = path.join(process.cwd(), '..', 'recruiter', 'tm')
+    const whitelist = getAllFunctionNames(this.flow)
+    await recruiter(
+      fnsPath,
+      LANG,
+      whitelist,
+    )
 
     // run WF
     console.time('run-wf')
