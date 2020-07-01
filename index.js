@@ -78,7 +78,7 @@ async function bundleTranspileZipGoogle(fpath) {
 async function deployPublishAmazon(name, region, zipPath) {
   const amazonSpinnieName = `amazon-main-${name}`
   try {
-    spinnies.add(amazonSpinnieName, { text: `${chalk.rgb(255, 255, 255).bgWhite(' AWS Lambda ')} Deploying ${name}` })
+    spinnies.add(amazonSpinnieName, { text: `Deploying ${name}` })
 
     // Deploy it
     const amazonDeployOptions = {
@@ -88,13 +88,13 @@ async function deployPublishAmazon(name, region, zipPath) {
     const amazonArn = await deployAmazon(zipPath, amazonDeployOptions)
     // Publish it
     const amazonUrl = await publishAmazon(amazonArn, region)
-    spinnies.succeed(amazonSpinnieName, { text: `${chalk.rgb(255, 255, 255).bgWhite(' AWS Lambda ')} 🟢 ${name} ${chalk.rgb(255, 255, 255).bgWhite(amazonUrl)}` })
+    spinnies.succ(amazonSpinnieName, { text: `🟢 ${name} ${chalk.rgb(255, 255, 255).bgWhite(amazonUrl)}` })
 
     // return url 
     return amazonUrl
   } catch (e) {
-    spinnies.fail(amazonSpinnieName, {
-      text: `${chalk.rgb(255, 255, 255).bgWhite(' AWS Lambda ')} Error deploying ${name}: ${e.stack}`,
+    spinnies.f(amazonSpinnieName, {
+      text: `Error deploying ${name}: ${e.stack}`,
     })
     logdev(e, e.stack)
     return null
@@ -112,7 +112,7 @@ async function deployPublishAmazon(name, region, zipPath) {
 async function deployPublishGoogle(name, region, project, zipPath) {
   const googleSpinnieName = `google-main-${name}`
   try {
-    spinnies.add(googleSpinnieName, { text: `${chalk.rgb(255, 255, 255).bgWhite(' Google ')} ${name}` })
+    spinnies.add(googleSpinnieName, { text: `Deploying ${name}` })
     const googleOptions = {
       name: name,
       project: project, // process.env.GC_PROJECT,
@@ -120,13 +120,13 @@ async function deployPublishGoogle(name, region, project, zipPath) {
       runtime: 'nodejs12',
     }
     const googleUrl = await deployGoogle(zipPath, googleOptions)
-    spinnies.succeed(googleSpinnieName, { text: `${chalk.rgb(255, 255, 255).bgWhite(' Google ')} ${name} ${chalk.rgb(255, 255, 255).bgWhite(googleUrl)}` })
+    spinnies.succ(googleSpinnieName, { text: `🟢 ${name} ${chalk.rgb(255, 255, 255).bgWhite(googleUrl)}` })
     console.log('Google takes another 1 - 2m for changes to take effect')
 
     // return url
     return googleUrl
   } catch (e) {
-    spinnies.fail(googleSpinnieName, {
+    spinnies.f(googleSpinnieName, {
       text: `${chalk.rgb(255, 255, 255).bgWhite(' Google ')} ${name}: ${e.stack}`,
     })
     logdev(e, e.stack)

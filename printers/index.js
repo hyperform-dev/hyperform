@@ -38,6 +38,9 @@ if (isInTesting() === true) {
   spinnies.updateSpinnerState = () => {}
 }
 
+spinnies.f = spinnies.fail 
+spinnies.succ = spinnies.succeed 
+
 module.exports = {
   spinnies,
   log,
