@@ -39,7 +39,7 @@ function amazonLog(envoyRes) {
       .map((l) => l.replace(/^\t/, '')) // trim leading tab (aws style) user had it
 
     // print it ( TODO lol )
-    const styleIt = (l) => `${chalk.rgb(20, 20, 20).bgHex('#52d89a')(' Amazon ')} ${l}`
+    const styleIt = (l) => `${chalk.rgb(20, 20, 20).bgHex('#52d89a')('Amazon')} ${l}`
     loglines
       .map((l) => styleIt(l))
       .map((l) => console.log(l))

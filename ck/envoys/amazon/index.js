@@ -1,5 +1,5 @@
 const aws = require('aws-sdk')
-const { amazonQuery } = require('../../nameresolvers/amazon/index')
+const { amazonQuery } = require('../../namecache/amazon/index')
 const { amazonLog } = require('../../loggers/amazon/index')
 
 // aws.config.logger = console
