@@ -33,14 +33,14 @@ async function zip(code) {
   // this way, rezipping identical files is deterministic (gives the same codesha256)
   // that way we can skip uploading zips that haven't changed
   const options = {
-    mtime: new Date(1577836800),
+    mtime: new Date(1577836),
     // note: spare seting unix permissions with mode:
     // indicates a different PC and does not hurt actually redeploy 
   }
 
   zipfile.addReadStream(s, 'index.js', options); // place code in index.js inside zip
   zipfile.end()
-
+  
   console.timeEnd(`zip-${uid}`)
   return outpath
 }
