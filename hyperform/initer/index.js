@@ -32,7 +32,7 @@ function getDefaultSectionString(filecontents) {
  * default: { 
   * aws_access_key_id?: string, 
   * aws_secret_access_key?: string, 
-  * region?: string 
+  * aws_default_region?: string 
  * }}
  */
 function parseAwsCredentialsOrConfigFile(filecontents) {

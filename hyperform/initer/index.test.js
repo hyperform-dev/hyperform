@@ -154,7 +154,7 @@ aws_secret_access_key =XXXXXXXXXX+tgppEZPzdN/XXXXlXXXXX/XXXXXXX
       expect(hyperformJson.amazon).toBeDefined()
       expect(hyperformJson.amazon.aws_access_key_id).toBeDefined()
       expect(hyperformJson.amazon.aws_secret_access_key).toBeDefined()
-      expect(hyperformJson.amazon.region).toBeDefined()
+      expect(hyperformJson.amazon.aws_default_region).toBeDefined()
     })
   })
 })
