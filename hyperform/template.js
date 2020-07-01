@@ -33,6 +33,11 @@ module.exports = () => {
       } 
       if(platform === 'google') {
         wrappedfunc = async function handler(req, resp) {
+          if (!req.headers.authorization || req.headers.authorization !== 'Bearer abcde') {
+            // unauthorized, exit
+            return resp.sendStatus(403)
+          }
+          // authorized
           const res = await userfunc(req.body) // TODO add fail 500
           resp.json(res)
         }

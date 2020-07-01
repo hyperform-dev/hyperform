@@ -1,6 +1,6 @@
 const { bundle } = require('./bundler/index')
 const { getJsFilepaths, getNamedExports } = require('./discoverer/index')
-const { deployAmazon } = require('./deployer/amazon/index')
+const { deployAmazon, publishAmazon } = require('./deployer/amazon/index')
 const { deployGoogle } = require('./deployer/google/index')
 const uuidv4 = require('uuid').v4
 const path = require('path')
@@ -47,6 +47,11 @@ const appendix = `
       } 
       if(platform === 'google') {
         wrappedfunc = async function handler(req, resp) {
+          if (!req.headers.authorization || req.headers.authorization !== 'Bearer abcde') {
+            // unauthorized, exit
+            return resp.sendStatus(403)
+          }
+          // authorized
           const res = await userfunc(req.body) // TODO add fail 500
           resp.json(res)
         }
@@ -145,8 +150,11 @@ async function main(dir, fnregex) {
             
             })
   
-            const amazonEndpoint = await deployAmazon(zipPath, amazonOptions)
-  
+            const amazonArn = await deployAmazon(zipPath, amazonOptions)
+                                                               // is public
+                                                               // TODO split methods so no coincidental mixup of public and private
+            const amazonEndpoint  = await publishAmazon(amazonArn, true)
+
             spinnies.succeed(amazonOptions.name, { 
               text: `${chalk.rgb(20, 20, 20).bgWhite(` Amazon `)} ${chalk.bold(amazonEndpoint)}`
             })
