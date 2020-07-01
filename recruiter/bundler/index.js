@@ -2,15 +2,17 @@ const webpack = require('webpack')
 const path = require('path')
 
 async function bundle(filepath, outpath) {
+  console.log(filepath, outpath)
   return new Promise((resolve, reject) => {
     webpack(
       {
         mode: 'development',
         entry: filepath,
-        target: 'node',
+        //  target: 'node',
         output: {
           path: path.dirname(outpath),
           filename: path.basename(outpath),
+          libraryTarget: 'commonjs',
         },
       },
       (err, stats) => {
