@@ -225,6 +225,28 @@ async function deployAmazon(pathToZip, options) {
   return arn
 }
 
+/**
+ * @description Deletes a Lambda function in a given region.
+ * @param {string} name Name, ARN or partial ARN of the function
+ * @param {string} region Region of the function
+ * @throws If function does not exist in that region, or could not delete
+ */
+async function deleteAmazon(name, region) { 
+  const lambda = new aws.Lambda({
+    region: region, 
+  })
+
+  const deleteParams = {
+    FunctionName: name, 
+  }
+  try {
+    await lambda.deleteFunction(deleteParams).promise()
+  } catch (e) {
+    throw new Error(`Could not delete Lambda ${name}: ${e}`)
+  }
+}
+
 module.exports = {
   deployAmazon,
+  deleteAmazon,
 }
