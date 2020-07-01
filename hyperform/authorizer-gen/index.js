@@ -38,7 +38,6 @@ async function deployAuthorizer(authorizerName, expectedBearer, region) {
 
   const deployOptions = {
     name: authorizerName,
-    role: 'arn:aws:iam::735406098573:role/lambdaexecute',
     timeout: 1, // 1 second is ample time
     handler: 'index.handler',
     region: region, // if not defined, it will use default TODO throw on not defined

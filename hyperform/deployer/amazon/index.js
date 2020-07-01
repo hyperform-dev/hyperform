@@ -1,6 +1,6 @@
 const util = require('util');
 const exec = util.promisify(require('child_process').exec);
-
+const aws = require('aws-sdk')
 /**
  * 
  * @description Returns shell command that updates <options.name>'s Lambda's code
@@ -38,6 +38,69 @@ function createDeployCommand(pathToZip, options) {
   return cmd
 }
 
+
+
+/**
+ * @description Creates a new role and attaches basic Lambda policy (AWSLambdaBasicExecutionRole) to it. If role with that name exists already, it just attaches the policy
+ * @param {string} roleName Unique name to be given to the role
+ * @returns {Promise<string>} ARN of the created or updated role
+ * @see https://docs.aws.amazon.com/sdk-for-javascript/v2/developer-guide/using-lambda-iam-role-setup.html
+ */
+async function createLambdaRole(roleName) {
+
+  const iam = new aws.IAM()
+
+  // Create new Lambda role
+  const createParams = {
+    AssumeRolePolicyDocument: JSON.stringify(
+      {
+        "Version": "2012-10-17",
+        "Statement": [
+          {
+            "Effect": "Allow",
+            "Principal": {
+              "Service": "lambda.amazonaws.com"
+            },
+            "Action": "sts:AssumeRole"
+          }
+        ]
+      }
+    ),
+    RoleName: roleName
+  }
+
+  let roleArn 
+  try {
+     let createRes = await iam.createRole(createParams).promise()
+     // Role did not exist yet
+     roleArn = createRes.Role.Arn 
+     console.log("successfully created new role " + roleName + " :" + roleArn)
+  } catch(e) {
+    if(e.code === 'EntityAlreadyExists') {
+      console.log("already exists role " + roleName + " . Proceeding")
+      // role with that name already exists
+      // proceed normally to attach poilicy
+    }
+    else {
+      // some other error
+      throw e
+    }
+  }
+
+
+  // Attach a basic Lambda policy to the role (allows write to cloudwatch logs etc)
+  // Equivalent to in Lambda console, choosing 'Create new role with basic permissions'
+  const policyParams = {
+    PolicyArn: "arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole",
+    RoleName: roleName
+  }
+  await iam.attachRolePolicy(policyParams).promise()
+  console.log("successfully attached AWSLambdaBasicExectuinRole to " + roleName)
+
+  return roleArn
+}
+
+
 /**
  * @description Checks whether a Lambda exists in a given region
  * @param {{
@@ -67,7 +130,7 @@ async function isExistsAmazon(options) {
 function extractArn(stdout) {
   // amazon CLI returns JSON, very nice 
   const parsed = JSON.parse(stdout) // TODO fallback on per-line regex
-  const arn = parsed.FunctionArn  
+  const arn = parsed.FunctionArn
   return arn
 }
 
@@ -78,7 +141,6 @@ function extractArn(stdout) {
  * @param {*} pathToZip Path to the zipped Lambda code
  * @param {{
  * name: string, 
- * role: string, 
  * region?: string,
  * timeout?: number,
  * ram?: number,
@@ -87,29 +149,37 @@ function extractArn(stdout) {
  * @returns {Promise<string>} The Lambda ARN
  */
 async function deployAmazon(pathToZip, options) {
-  if (!options.name || !options.role) {
-    throw new Error(`name, and role must be specified, but they are ${options.name}, ${options.role}`)
+  if (!options.name) {
+    throw new Error(`name  must be specified, but is ${options.name}`) // HF programmer mistake
   }
-  
+
+  const existsOptions = {
+    name: options.name,
+    region: options.region || 'us-east-2' // TODO lol
+  }
+  // check if lambda exists 
+  const exists = await isExistsAmazon(existsOptions)
+
+  // if not, create new role 
+  const roleName = `TRY-hyperform-lambda-role-${options.name}`
+  const roleArn = await createLambdaRole(roleName)
+
   const fulloptions = {
     name: options.name,
     runtime: 'nodejs12.x',
     timeout: options.timeout || 60, // also prevents 0
     'memory-size': options.ram || 128,
     handler: options.handler || `index.${options.name}`,
-    role: options.role, // || 'arn:aws:iam::735406098573:role/lambdaexecute',
+    role: roleArn,
     region: options.region || 'us-east-2',
   }
- 
-  // check if lambda exists already
-  const exists = await isExistsAmazon(fulloptions)
   // create shell command
-  const uploadCmd = exists === true 
+  const uploadCmd = exists === true
     ? createUpdateCommand(pathToZip, fulloptions)
     : createDeployCommand(pathToZip, fulloptions)
 
   // run shell command to deploy/update
-  let arn 
+  let arn
   try {
     console.time(`Amazon-deploy-${options.name}`)
     // TODO sanitize
@@ -128,3 +198,5 @@ async function deployAmazon(pathToZip, options) {
 module.exports = {
   deployAmazon,
 }
+
+createLambdaRole('my_hf_generated_role_first-8')

@@ -146,8 +146,7 @@ async function amazonMain(info, bundledCode, bearerToken) {
   const amazonEndpoints = await Promise.all(
     info.exps.map(async (exp) => { // under same name
       const amazonOptions = {
-        name: exp,
-        role: 'arn:aws:iam::735406098573:role/lambdaexecute',
+        name: exp
       }
 
       const spinnieName = `amazon-${amazonOptions.name}`

@@ -25,7 +25,6 @@ describe('deployer', () => {
 
         const options = {
           name: name,
-          role: 'arn:aws:iam::735406098573:role/lambdaexecute',
         }
 
         let err 
