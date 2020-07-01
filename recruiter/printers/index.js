@@ -4,16 +4,20 @@ const { isInTesting } = require('../meta/index')
 const spinner = {
   interval: 80,
   frames: [
+    '⠄',
+    '⠆',
+    '⠇',
     '⠋',
     '⠙',
-    '⠹',
     '⠸',
-    '⠼',
-    '⠴',
-    '⠦',
-    '⠧',
+    '⠰',
+    '⠠',
+    '⠰',
+    '⠸',
+    '⠙',
+    '⠋',
     '⠇',
-    '⠏',
+    '⠆',
   ],
 }
 
