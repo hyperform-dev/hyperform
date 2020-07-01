@@ -125,7 +125,7 @@ async function main(dir, fnregex, parsedHyperformJson, allowUnauthenticated) {
               }
               amazonUrl = await publishAmazon(amazonArn, amazonPublishOptions) // TODO
                
-              spinnies.succeed(amazonSpinnieName, { text: `${chalk.rgb(20, 20, 20).bgWhite(' Amazon ')} ${exp} ${chalk.bold(amazonUrl)}` })
+              spinnies.succeed(amazonSpinnieName, { text: `${chalk.rgb(20, 20, 20).bgWhite(' Amazon ')} ${exp} ${chalk.underline(amazonUrl)}` })
             } catch (e) {
               spinnies.fail(amazonSpinnieName, {
                 text: `${chalk.rgb(20, 20, 20).bgWhite(' Amazon ')} ${exp}: ${e.stack}`,
@@ -151,7 +151,7 @@ async function main(dir, fnregex, parsedHyperformJson, allowUnauthenticated) {
                 entrypoint: exp,
               }
               googleUrl = await deployGoogle(zipPath, googleOptions)
-              spinnies.succeed(googleSpinnieName, { text: `${chalk.rgb(20, 20, 20).bgWhite(' Google ')} ${exp} ${chalk.bold(googleUrl)}` })
+              spinnies.succeed(googleSpinnieName, { text: `${chalk.rgb(20, 20, 20).bgWhite(' Google ')} ${exp} ${chalk.underline(googleUrl)}` })
             } catch (e) {
               spinnies.fail(googleSpinnieName, {
                 text: `${chalk.rgb(20, 20, 20).bgWhite(' Google ')} ${exp}: ${e.stack}`,
