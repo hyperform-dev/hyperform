@@ -38,6 +38,12 @@ const amazonEnvoy = {
           amazonLog(res, name)
           return res
         })
+        // .then((res) => {
+        //   console.log(res)
+        //   return res
+        // })
+        // TODO do multiple parses if it was stringified multiple times lol
+        // TODO or check that its an object after 1 go, otherwise throw / complain to user
         // 3) Parse its return value
         .then((p) => p.Payload)
         .then((p) => JSON.parse(p))

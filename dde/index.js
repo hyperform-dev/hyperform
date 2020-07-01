@@ -13,6 +13,9 @@ const { inferLanguageFromDir } = require('./langinferer/index')
  * Deletes an uploadable
  * @param {{pathOfUploadable: string}} options 
  */
+
+// TODO clean up on first CTRL-C
+
 async function cleanUp(options) {
   try {
     await fsp.unlink(options.pathOfUploadable)
