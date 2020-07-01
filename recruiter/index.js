@@ -12,8 +12,30 @@ const { zip } = require('./zipper/index')
 const appendix = `
 
 ;module.exports = (() => {
+  const aws = require('aws-sdk')
+  const lambda = new aws.Lambda({ region: 'us-east-2' })
   function envoy(name, input) {
-    console.log("Would envoy " + name + " input " + input)
+    const uid = Math.ceil(Math.random() * 1000) + ""
+    console.time("envoy-" + uid)
+    const jsonInput = JSON.stringify(input)
+    return (
+      lambda.invoke({
+        FunctionName: name,
+        Payload: jsonInput,
+        LogType: 'Tail',
+      })
+        .promise()
+        // 1) Check if function succeeded
+        .then((p) => {
+          if (p && p.FunctionError) {
+            throw new Error("Function " + name + " failed: " + p.Payload)
+          }
+          console.timeEnd("envoy-" + uid)
+          return p
+        })
+        .then((p) => p.Payload)
+        .then((p) => JSON.parse(p))
+    )
   }
 
   // for lambda, wrap all exports in context.succeed
@@ -52,6 +74,7 @@ const appendix = `
 
   const curr = { ...module.exports }
 
+  console.log(Object.keys(curr))
   const isExportingFns = Object.keys(curr).some((k) => (/fn_/.test(k) === true))
   const isInLambda = !!(process.env.LAMBDA_TASK_ROOT || process.env.AWS_EXECUTION_ENV)
   const isCloudFlagTrue = (process.argv.includes('--cloud') === true)
@@ -122,86 +145,5 @@ async function main(dir, fnregex) {
     )
   })
 }
-
-// /**
-//  * 
-//  * @param {string} root 
-//  * @param {string} lang js|
-//  * @param {Regex} fnregex Tests named exports
-//  */
-// async function main(root, lang, fnregex) {
-//   // top level error boundary
-//   try {
-//     // paths to relevant js files
-//     let jspaths = await getFilePaths(root, lang)
-//     // get each .js's file named export
-//     let namedexpkeys = jspaths.map((jspath) => getNamedExports(jspath))
-  
-//     // filter out files with no named exports
-//     jspaths = jspaths.filter((p, idx) => namedexpkeys[idx] && namedexpkeys[idx].length > 0)
-//     namedexpkeys = namedexpkeys.filter((ks) => ks && ks.length > 0)
-  
-//     // if whitelist provided, filter out named exports that aren't on there
-//     if (fnregex != null) {
-//       namedexpkeys = namedexpkeys
-//         .map((ks) => ks.filter((k) => fnregex.test(k) === true))
-//       // skip files that now have no asked-for named exports
-//       jspaths = jspaths.filter((p, idx) => namedexpkeys[idx] && namedexpkeys[idx].length > 0)
-//     }
-  
-//     // bundle each file
-//     spinnies.add('bundling', { text: 'Bundling...' })
-//     const bundleCodes = await Promise.all(
-//       jspaths.map((jspath) => bundle(jspath, LANG, PROVIDER)),
-//     )
-//     spinnies.remove('bundling')
-  
-//     // for each named export, transpile file, zip it, and upload it
-//     // [ {namedexp: string, zippath: string }, ... ]
-//     spinnies.add('zipping', { text: 'Zipping...' })
-//     let zippedInfos = await Promise.all(
-//       // for each file in parallel
-//       namedexpkeys.map(async (ks, idx) => {
-//         const done = []
-//         // for a file, for each named export in parallel
-//         await Promise.all(
-//           ks.map(async (k) => {
-//             // transpile it
-//             const transpiled = transpile(bundleCodes[idx], k, LANG, PROVIDER)
-//             // zip it 
-//             const zippath = await zip(transpiled)
-//             done.push({
-//               namedexp: k,
-//               zippath: zippath,
-//             })
-//           }),
-//         )
-//         return done
-//       }),
-//     )
-//     spinnies.remove('zipping')
-  
-//     // flatten it, we don't need info grouped per-file
-//     zippedInfos = zippedInfos.reduce((acc, curr) => [...acc, ...curr], [])
-  
-//     // deplopy each zip
-//     spinnies.add('deploying', { text: 'Deploying...' })
-//     await Promise.all(
-//       zippedInfos.map((zinfo) => {
-//         const fnname = `${zinfo.namedexp}` // Lambda name (use exact same value so ck can call them)
-//         return deployAmazon(zinfo.zippath, fnname)
-//       }),
-//     )
-//     spinnies.remove('deploying')
-//     spinnies.stopAll()
-//   } catch (e) {
-//     spinnies.stopAll()
-//     throw e
-//   }
-// }
-
-// module.exports = {
-//   recruiter: main,
-// }
 
 main('/home/qng/cloudkernel/recruiter', /^fn_/)

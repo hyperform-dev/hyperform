@@ -1,6 +1,29 @@
+/* eslint-disable */
 module.exports = (() => {
+  const aws = require('aws-sdk')
+  const lambda = new aws.Lambda({ region: 'us-east-2' })
   function envoy(name, input) {
-    console.log(`Would envoy ${name} input ${input}`)
+    const uid = Math.ceil(Math.random() * 1000) + ""
+    console.time("envoy-" + uid)
+    const jsonInput = JSON.stringify(input)
+    return (
+      lambda.invoke({
+        FunctionName: name,
+        Payload: jsonInput,
+        LogType: 'Tail',
+      })
+        .promise()
+        // 1) Check if function succeeded
+        .then((p) => {
+          if (p && p.FunctionError) {
+            throw new Error("Function " + name + " failed: " + p.Payload)
+          }
+          console.timeEnd("envoy-" + uid)
+          return p
+        })
+        .then((p) => p.Payload)
+        .then((p) => JSON.parse(p))
+    )
   }
 
   // for lambda, wrap all exports in context.succeed
@@ -39,9 +62,12 @@ module.exports = (() => {
 
   const curr = { ...module.exports }
 
+  console.log(Object.keys(curr))
   const isExportingFns = Object.keys(curr).some((k) => (/fn_/.test(k) === true))
+  console.log("isexportingfns", isExportingFns)
   const isInLambda = !!(process.env.LAMBDA_TASK_ROOT || process.env.AWS_EXECUTION_ENV)
   const isCloudFlagTrue = (process.argv.includes('--cloud') === true)
+  console.log("iscloudflagtrue", isCloudFlagTrue)
 
   const shouldWrapExports = isInLambda
   const shouldConvExports = (isCloudFlagTrue && isExportingFns)
