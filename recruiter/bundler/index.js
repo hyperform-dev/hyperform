@@ -19,7 +19,7 @@ const bundlers = {
         {
           mode: 'production',
           entry: inpath,
-          //  target: 'node',
+          target: 'node',
           output: {
             path: outdir,
             filename: 'bundle.js',

@@ -9,6 +9,7 @@ const { zip } = require('./zipper/index')
 const LANG = 'js'
 const PROVIDER = 'amazon'
 
+// TODO refac out 'js'
 async function main(root) {
   // paths to relevant js files
   let jspaths = await getJsFilePaths(root)
