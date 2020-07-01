@@ -1,24 +1,44 @@
 #!/usr/bin/env node
 const path = require('path')
+const fs = require('fs')
 const { main } = require('./index')
+const { init } = require('./initer/index')
+// Ingest CLI arguments
 
-if (process.argv.length !== 3) {
+let mode 
+
+if (process.argv.length !== 3 || /init|deploy/.test(process.argv[2]) === false) {
   console.log(`Usage: 
- $ hyperform path/to/dir`)
+ $ hyperform init|deploy`)
   process.exit(1)
 }
+
+mode = process.argv[2]
+const absdir = process.cwd()
+
+// Mode is init
+if (mode === 'init') {
+  init(absdir)
+  console.log('Created hyperform.json') // TODO ask for defaults guide through in init etc
+  process.exit()
+}
+
+// Mode is deploy
 
 // hide timing info
 console.time = () => { }
 console.timeEnd = () => { }
 
-const dir = process.argv[2]
-const absdir = path.resolve(
-  process.cwd(),
-  dir,
-)
+// ensure hyperform.json exists 
+const hyperformJsonExists = fs.existsSync(path.join(absdir, 'hyperform.json'))
+if (hyperformJsonExists === false) {
+  console.log(`No hyperform.json found. You can create one with:
+ $ hyperform init`)
+  process.exit(1)
+}
 
-// be overgenerous, in worst case we add a nothing-doing module appendix code
+// be overgenerous in detecting endpoints
+// in worst case we add a nothing-doing module appendix code
 const fnregex = /endpoint_/
 
 // Top-level error boundary
