@@ -24,7 +24,10 @@ const { ensureBearerTokenSecure } = require('../authorizer-gen/utils')
 /**
  * 
  * @param {string} bundleCode 
- * @param {{needAuth: boolean, expectedBearer: string}} options 
+ * @param {{
+ * needAuth: boolean, 
+ * expectedBearer?: string
+ * }} options 
  */
 function transpile(bundleCode, options) {
   if (options.needAuth === true && !options.expectedBearer) {

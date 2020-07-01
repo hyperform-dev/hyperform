@@ -19,15 +19,12 @@ const spinnies = new Spinnies({ color: 'white', succeedColor: 'white', spinner: 
 
 const { log } = console
 let logdev 
-// set right logging level
-// don't show dev-level logging
-// Show logdev
-// logdev = console.log 
 
-// Don't show logdev
+// Don't show dev-level logging
+// (Comment out to show dev-level logging)
 logdev = () => { }
-// don't show timings
-// Comment this out to see timings
+// Don't show timings
+// (Comment out to see timings)
 console.time = () => { }
 console.timeEnd = () => { }
 
