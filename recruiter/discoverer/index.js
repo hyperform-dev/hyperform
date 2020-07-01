@@ -6,33 +6,44 @@ const BLACKLIST = [
   'node_modules',
 ]
 
-async function getJsFilePaths(dir) {
-  return new Promise((resolve, reject) => {
-    const fnames = []
-    const finder = findit(dir)
-
-    finder.on('directory', (_dir, stat, stop) => {
-      const base = path.basename(_dir);
-      if (BLACKLIST.includes(base)) {
-        stop()
-      }
-    });
-
-    finder.on('file', (file, stat) => {
-      // only return .js files
-      if (/.js$/.test(file) === true) {
-        fnames.push(file)
-      }
-    });
-
-    finder.on('end', () => {
-      resolve(fnames)
+const filepathgetters = {
+  js: function (dir) {
+    return new Promise((resolve, reject) => {
+      const fnames = []
+      const finder = findit(dir)
+    
+      finder.on('directory', (_dir, stat, stop) => {
+        const base = path.basename(_dir);
+        if (BLACKLIST.includes(base)) {
+          stop()
+        }
+      });
+    
+      finder.on('file', (file, stat) => {
+        console.log(file)
+        // only return .js files
+        if (/.js$/.test(file) === true) {
+          console.log(`will use ${file}`)
+          fnames.push(file)
+        }
+      });
+    
+      finder.on('end', () => {
+        resolve(fnames)
+      })
+    
+      finder.on('error', (err) => {
+        reject(err)
+      })
     })
+  },
+}
 
-    finder.on('error', (err) => {
-      reject(err)
-    })
-  })
+function getFilePaths(root, lang) {
+  if (lang !== 'js') {
+    throw new Error(`UNIMPLEMENTED: getFilePaths for ${lang}`)
+  }
+  return filepathgetters[lang](root)
 }
 
 function getNamedExports(filepath) {
@@ -53,6 +64,6 @@ function getNamedExports(filepath) {
 }
 
 module.exports = {
-  getJsFilePaths,
+  getFilePaths,
   getNamedExports,
 }
