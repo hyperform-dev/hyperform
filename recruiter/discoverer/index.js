@@ -37,14 +37,19 @@ async function getJsFilePaths(dir) {
 
 function getNamedExports(filepath) {
   // TODO hides that code is run but actually runs it lol, find a way to get exports without running code
-  const imp = (() => {
-    console.log = () => {}
-    console.error = () => {}
-    console.warn = () => {}
-    return require(filepath)
-  })()
-  const namedexpkeys = Object.keys(imp)
-  return namedexpkeys
+  try {
+    const imp = (() => 
+      // console.log = () => {}
+      // console.error = () => {}
+      // console.warn = () => {}
+      require(filepath)
+    )()
+    const namedexpkeys = Object.keys(imp)
+    return namedexpkeys
+  } catch (e) {
+    console.log(e)
+    throw e
+  }
 }
 
 module.exports = {

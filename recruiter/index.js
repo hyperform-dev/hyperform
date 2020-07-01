@@ -3,26 +3,9 @@
 const path = require('path')
 const fsp = require('fs').promises
 const os = require('os')
-const compressing = require('compressing')
-// TODO clean up dependencies
-const { bundle } = require('./bundler/index')
+const { bundle, createZip } = require('./bundler/index')
 const { getJsFilePaths, getNamedExports } = require('./discoverer/index')
-
-/**
-     * Creates zip of a certain bundle, right next to it.
-     * @returns {Promise<string>} path to the zip
-     * @param {{names: string[], bundlepath: string}} r 
-     */
-async function createZip(r) {
-  const outpath = path.join(
-    path.dirname(r.bundlepath),
-    // this must be the prefix of handlers when deploying !
-    'deploypackage.zip',
-  )
-  const inpath = r.bundlepath 
-  await compressing.zip.compressFile(inpath, outpath)
-  return outpath
-}
+const { deployAmazon } = require('./deployer/amazon/index')
 
 async function main(root) {
   // paths to relevant js files
@@ -110,7 +93,19 @@ async function main(root) {
 
   console.log(zipPaths)
 
-  // zip them, deploy them to amazon
+  // await Promise.all(
+  //   zipPaths.map(zp => deployAmazon(zp, ))
+  // )
+  // await deployAmazon()
+
+  // deploy/ update them 
+  await Promise.all(
+    zipPaths.map((zp, idx) => deployAmazon(zp, `${res[idx].names}-fn`)),
+  )
+
+  console.log('deployed all')
+
+  // TODO deploy/update them to amazon
 }
 
 main('/home/qng/cloudkernel/recruiter/tm')

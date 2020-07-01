@@ -1,12 +1,13 @@
 const webpack = require('webpack')
 const path = require('path')
+const compressing = require('compressing')
 
 async function bundle(filepath, outpath) {
   console.log(filepath, outpath)
   return new Promise((resolve, reject) => {
     webpack(
       {
-        mode: 'development',
+        mode: 'production',
         entry: filepath,
         //  target: 'node',
         output: {
@@ -32,6 +33,23 @@ async function bundle(filepath, outpath) {
   })
 }
 
+/**
+     * Creates zip of a certain bundle, right next to it.
+     * @returns {Promise<string>} path to the zip
+     * @param {{names: string[], bundlepath: string}} r 
+     */
+async function createZip(r) {
+  const outpath = path.join(
+    path.dirname(r.bundlepath),
+    // this must be the prefix of handlers when deploying !
+    'deploypackage.zip',
+  )
+  const inpath = r.bundlepath 
+  await compressing.zip.compressFile(inpath, outpath)
+  return outpath
+}
+
 module.exports = {
   bundle,
+  createZip,
 }
