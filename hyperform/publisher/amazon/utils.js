@@ -53,36 +53,44 @@ async function deleteApi(apiId, apiRegion) {
 }
 
 /**
- * @description Returns ApiId and ApiEndpoint of the a API gateway API with the name "apiName".
+ * @description Returns ApiId and ApiEndpoint of a regional API gateway API with the name "apiName" 
+ * in "apiRegion".
  * If multiple APIs exist with that name, it warns, and uses the first one in the received list.
- * If none exist, returns null
  * @param {string} apiName 
+ * @param {string} apiRegion
  * @returns {Promise<{apiId: string, apiUrl: string}>} Details of the API, or null
  */
-async function getApiDetails(apiName) {
+async function getApiDetails(apiName, apiRegion) {
   // Check if API with that name exists
   // Follows Hyperform conv: same name implies identical, for lambdas, and api endpoints etc
-  const cmd = `aws apigatewayv2 get-apis --query 'Items[?Name==\`${apiName}\`]'`
-  const res = await exec(cmd, { encoding: 'utf-8' })
-  const { stdout } = res 
-  
-  const parsedStdout = JSON.parse(stdout)
-  
-  if (parsedStdout.length > 0) {
-    // API with that name exists already
-    // use that one
-    if (parsedStdout.length !== 1) {
-      // Against HF convention but does not impact us anywhere really so just tolerate it
-      console.warn(`Multiple (${parsedStdout.length}) APIs found with same name ${apiName}. Using first one`)
-    }
+  const apigatewayv2 = new AWS.ApiGatewayV2({
+    apiVersion: '2018-11-29',
+    region: apiRegion,
+  })
 
-    return {
-      apiId: parsedStdout[0].ApiId,
-      apiUrl: parsedStdout[0].ApiEndpoint,
-    }
-  } else {
-    return null
+  const getApisParams = {
+    MaxResults: '9999',
   }
+
+  const res = await apigatewayv2.getApis(getApisParams).promise()
+
+  const matchingApis = res.Items.filter((item) => item.Name === apiName)
+  if (matchingApis.length === 0) {
+    throw new Error(`Could not get api details of name, region ${apiName} ${apiRegion}`)
+  }
+
+  if (matchingApis.length >= 2) {
+    console.warn(`Multiple (${matchingApis.length}) APIs found with same name ${apiName}. Using first one`)
+  }
+
+  // just take first one
+  // Hyperform convention is there's only one with any given name
+  const apiDetails = {
+    apiId: matchingApis[0].ApiId,
+    apiUrl: matchingApis[0].ApiEndpoint,
+  }
+
+  return apiDetails
 }
 
 /**
