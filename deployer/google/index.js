@@ -4,15 +4,18 @@ const fetch = require('node-fetch')
 const { logdev } = require('../../printers/index')
 
 let gcOptions
-if (process.env.GC_CLIENT_EMAIL && process.env.GC_PRIVATE_KEY && process.env.GC_PROJECT) {
-  gcOptions = {
-    credentials: {
-      client_email: process.env.GC_CLIENT_EMAIL,
-      private_key: process.env.GC_PRIVATE_KEY,
-    },
-    projectId: process.env.GC_PROJECT,
-  }
-}
+// Don't consult hyperform.json yet for Google credentials
+
+// if (process.env.GC_CLIENT_EMAIL && process.env.GC_PRIVATE_KEY && process.env.GC_PROJECT) {
+//   gcOptions = {
+//     credentials: {
+//       client_email: process.env.GC_CLIENT_EMAIL,
+//       private_key: process.env.GC_PRIVATE_KEY,
+//     },
+//     projectId: process.env.GC_PROJECT,
+//   }
+// }
+
 const client = new CloudFunctionsServiceClient(gcOptions)
 
 /**

@@ -61,6 +61,11 @@ describe('System tests (takes 1-2 minutes)', () => {
             aws_secret_access_key: process.env.AWS_SECRET_ACCESS_KEY, 
             aws_default_region: process.env.AWS_REGION, 
           },
+          google: {
+            gc_client_email: '',
+            gc_private_key: '',
+            gc_project: '',
+          },
         }
         const allowUnauthenticated = false
   

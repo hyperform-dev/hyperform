@@ -145,7 +145,7 @@ async function main(dir, fnregex, parsedHyperformJson, allowUnauthenticated) {
               spinnies.add(googleSpinnieName, { text: `${chalk.rgb(20, 20, 20).bgWhite(' Google ')} ${exp}` })
               const googleOptions = { 
                 name: exp,
-                project: 'firstnodefunc', // TODO TODO TODO
+                project: process.env.GC_PROJECT,
                 region: 'us-central1', // TODO get from parsedhyperfromjson
                 runtime: 'nodejs12',
                 entrypoint: exp,
