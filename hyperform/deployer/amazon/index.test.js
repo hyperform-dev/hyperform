@@ -3,9 +3,14 @@
 const LAMBDANAME = 'jest-reserved-returna1'
 const LAMBDAREGION = 'us-east-2'
 
+// After all tests, delete the Lambda
 afterAll(async () => {
   const { deleteAmazon } = require('./index')
-  await deleteAmazon(LAMBDANAME, LAMBDAREGION)
+  try {
+    await deleteAmazon(LAMBDANAME, LAMBDAREGION)
+  } catch (e) {
+    /* tests themselves already deleted the Lambda */
+  }
 }) 
 
 // Helpers 
@@ -67,25 +72,33 @@ describe('deployer', () => {
       test('completes if Lambda already exists, and returns ARN', async () => {
         const { deployAmazon } = require('./index')
         const { zip } = require('../../zipper/index')
-
+        
         /// //////////////////////////////////////////////
         // Setup: create code zip
-
+        
         const code = `module.exports = { ${LAMBDANAME}: () => ({a: 1}) }`
-
+        
         const zipPath = await zip(code)
 
         /// //////////////////////////////////////////////
-        // Setup: Deploy first time
-
+        // Setup: ensure function exists already
+        
         const options = {
           name: LAMBDANAME,
           region: LAMBDAREGION,
         }
-        await deployAmazon(zipPath, options)
+        try {
+          await deployAmazon(zipPath, options)
+        } catch (e) {
+          if (e.code === 'ResourceConflictException') {
+            /* exists already anyway, cool */
+          } else {
+            throw e
+          }
+        }
 
         /// ////////////////////////////////////////////////////
-        // Deploy second time
+        // Actual test
 
         let err 
         let lambdaArn 
