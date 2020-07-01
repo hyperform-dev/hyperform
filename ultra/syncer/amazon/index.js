@@ -1,5 +1,6 @@
 const aws = require('aws-sdk')
 const fsp = require('fs').promises
+const { spinnies } = require('../../printer/index')
 
 const s3 = new aws.S3();
 
@@ -15,7 +16,7 @@ async function uploadFileS3(options) {
     Body: filecontents,
   }
 
-  return s3.upload(params).promise().then(() => console.log(`Uploaded ${options.filepath}`))
+  return s3.upload(params).promise()
 }
 
 // async function downloadFileS3(key) {
@@ -31,12 +32,17 @@ async function uploadFileS3(options) {
  * @param {} filepath Eg '/home/qng/lambdas/index.js'
  */
 async function syncAmazon(filepath, bucket) {
+  spinnies.add(filepath, { text: `Uploading ${filepath}` })
   // Exactly mirror file on S3, with same path as on local OS
-  return uploadFileS3({
-    filepath: filepath,
-    key: filepath,
-    bucket: bucket,
-  })
+  return (
+    uploadFileS3({
+      filepath: filepath,
+      key: filepath,
+      bucket: bucket,
+    })
+      .then(() => spinnies.succeed(filepath, { text: `Uploaded ${filepath}` }))
+      .catch((e) => spinnies.fail(filepath, { text: `Failed to upload ${filepath}. ${e}` }))
+  )
 }
 
 module.exports = {
