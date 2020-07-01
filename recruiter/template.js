@@ -39,6 +39,11 @@ module.exports = function change(moduleexp, exp = {}) {
     for (let i = 0; i < expkeys.length; i += 1) {
       const expkey = expkeys[i]
       const userfunc = newmoduleexports[expkey]
+      // if we process same export twice for some reason
+      // it should be idempotent
+      if (userfunc.hyperform_wrapped === true) {
+        continue
+      }
       const wrappedfunc = async function handler(event, context) {
         const res = await userfunc(event, context) // todo add context.fail
         context.succeed(res)
@@ -59,6 +64,11 @@ module.exports = function change(moduleexp, exp = {}) {
     for (let i = 0; i < fn_expkeys.length; i += 1) {
       // replace it with envoy version
       const fn_expkey = fn_expkeys[i]
+      // if we process same export twice for some reason
+      // it should be idempotent
+      if (newmoduleexports[fn_expkey].hyperform_converted === true) {
+        continue
+      }
       console.log('changing ', fn_expkey)
       newmoduleexports[fn_expkey] = (...args) => envoy(fn_expkey, ...args)
       newmoduleexports[fn_expkey].hyperform_converted = true

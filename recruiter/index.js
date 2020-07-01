@@ -9,6 +9,8 @@ const { zip } = require('./zipper/index')
 // in local: export normally
 // in local --cloud: export als envoy
 
+// TODO all this
+
 const appendix = `
 
 ;module.exports = (() => {
