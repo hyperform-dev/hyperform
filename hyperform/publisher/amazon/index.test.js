@@ -21,6 +21,7 @@ describe('utils', () => {
       try {
         res = await createApi(apiName, targetlambdaArn, APIREGION)
       } catch (e) {
+        console.log(e)
         err = e
       }
 

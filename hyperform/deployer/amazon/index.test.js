@@ -57,6 +57,7 @@ describe('deployer', () => {
         try {
           lambdaArn = await deployAmazon(zipPath, options)
         } catch (e) {
+          console.log(e)
           err = e
         }
  
@@ -105,6 +106,7 @@ describe('deployer', () => {
         try {
           lambdaArn = await deployAmazon(zipPath, options)
         } catch (e) {
+          console.log(e)
           err = e
         }
 

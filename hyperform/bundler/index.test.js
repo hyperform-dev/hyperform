@@ -16,6 +16,7 @@ describe('bundler', () => {
     try {
       res = await bundle(inpath, 'js', 'amazon')
     } catch (e) {
+      console.log(e)
       err = e
     }
 
@@ -35,6 +36,7 @@ describe('bundler', () => {
     try {
       res = await bundle(inpath, 'js', 'amazon')
     } catch (e) {
+      console.log(e)
       err = e
     }
 
@@ -52,6 +54,7 @@ describe('bundler', () => {
       res = await bundle(invalidinpath, 'js', 'amazon')
       console.log(res)
     } catch (e) {
+      console.log(e)
       err = e
     }
 

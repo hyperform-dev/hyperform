@@ -137,6 +137,7 @@ aws_secret_access_key =XXXXXXXXXX+tgppEZPzdN/XXXXlXXXXX/XXXXXXX
       try {
         init(absdir)
       } catch (e) {
+        console.log(e)
         err = e
       }
 

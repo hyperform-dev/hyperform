@@ -48,6 +48,7 @@ describe('deployer', () => {
         try {
           googleUrl = await deployGoogle(tmpdir, options)
         } catch (e) {
+          console.log(e)
           err = e
         }
 

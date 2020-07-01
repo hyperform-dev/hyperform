@@ -69,6 +69,7 @@ describe('System tests (takes 1-2 minutes)', () => {
       try {
         mainres = await main(dir, fnregex, parsedHyperformJson)
       } catch (e) {
+        console.log(e)
         err = e
       }
 

@@ -9,6 +9,7 @@ describe('zipper', () => {
     try {
       res = await zip(code)
     } catch (e) {
+      console.log(e)
       err = e
     }
 
