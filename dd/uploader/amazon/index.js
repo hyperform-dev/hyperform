@@ -1,8 +1,8 @@
 const util = require('util');
 const exec = util.promisify(require('child_process').exec);
 const lstat = util.promisify(require('fs').lstat);
-const { spinnies } = require('../../printer')
 const fsp = require('fs').promises
+const { spinnies } = require('../../printer')
 
 // TODO intelligently infer runtime from uploadable or handler, if not specified in config
 
@@ -12,7 +12,7 @@ const HANDLER = 'index.handler'
 
 async function isExistsAmazon(functionName) {
   // TODO cancel after 5ish seconds 
-  try {
+  try { // TODO sanitize
     await exec(`aws lambda wait function-exists --function-name ${functionName}`)
     return true
   } catch (e) {
@@ -52,6 +52,7 @@ async function runUploadAmazon(task, name, pathOfUploadable, path) {
   // deploy/upload
   try {
     // TODO TEMP: DUUMMY DEPLOY, DO NOT ACTUALLY DEPLOY 
+    // TODO sanitize
     await exec(uploadCmd)
     await new Promise((resolve) => setTimeout(resolve, 3000))
     spinnies.succeed(path, { text: `Deployed ${name}` })

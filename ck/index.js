@@ -2,7 +2,6 @@ const arg = require('arg')
 const path = require('path')
 const { readparsevalidate } = require('./parsers/index')
 const { enrichvalidate } = require('./enrichers/index')
-const { envoy } = require('./envoys/index')
 const { sharedStash } = require('./stashes')
 const { build } = require('./nodebuilders/index')
 /**
@@ -50,7 +49,6 @@ async function main() {
     const wf = await build(parsedFlowJson)
     await wf()
 
-    console.log('xxx')
     console.log(sharedStash.get(lastid))
   } catch (e) {
     console.log(e)
