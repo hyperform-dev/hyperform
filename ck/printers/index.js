@@ -22,13 +22,13 @@ const spinnies = new Spinnies({ color: 'white', succeedColor: 'white', spinner: 
 
 // For visual consistency, use same coloring for spinners & console.logs
 spinnies.justPrintSuccess = (text) => {
-  const unique = uuidv4()
+  const unique = Math.ceil(Math.random() * 1000)
   spinnies.add(unique)
   spinnies.succeed(unique, { text: text })
 }
 
 spinnies.justPrintFail = (text) => {
-  const unique = uuidv4()
+  const unique = Math.ceil(Math.random() * 1000)
   spinnies.add(unique)
   spinnies.fail(unique, { text: text })
 }
