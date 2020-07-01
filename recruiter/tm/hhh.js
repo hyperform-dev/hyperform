@@ -10,7 +10,11 @@ function myincsucceed(event, context) {
   })
 }
 
+function myreturnarray() {
+  return [89, 99, 100, 1092838471, 192]
+}
 module.exports = {
   myincreturn,
   myincsucceed,
+  myreturnarray,
 }
