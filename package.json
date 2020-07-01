@@ -7,7 +7,8 @@
   "main": "index.js",
   "scripts": {
     "test": "jest",
-    "lint": "eslint --fix"
+    "lint": "eslint",
+    "lintfix": "eslint --fix"
   },
   "engineStrict": true,
   "engines": {
@@ -22,7 +23,7 @@
   },
   "husky": {
     "hooks": {
-      "pre-push": "npm run lint; npm run test"
+      "pre-push": "npm run lintfix; npm run test"
     }
   },
   "dependencies": {

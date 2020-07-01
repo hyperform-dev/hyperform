@@ -1,9 +1,10 @@
 [
   {
-    "forEachIn": " weoginweo",
-    "upload": "owegin",
+    "forEachIn": "./lamb",
+    "do": "zip -r deploypackage.zip .",
+    "upload": "./deploypackage.zip",
     "config": {
-      "role": "wegweg"
+      "role": "arn:aws:iam::735406098573:role/lambdaexecute"
     }
   }
 ]

@@ -16,6 +16,7 @@
         "no-trailing-spaces": "off",
         "semi": "off",
         "object-shorthand": "off",
-        "no-unused-vars": "warn"
+        "no-unused-vars": "warn",
+        "no-useless-catch": "warn"
     }
 }
