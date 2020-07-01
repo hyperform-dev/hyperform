@@ -16,9 +16,9 @@ const TIMEOUT = 2 * 60 * 1000
 describe('System tests (takes 1-2 minutes)', () => {
   describe('main', () => {
     describe('authenticated', () => {
-      test('runs without errors, and resulting endpoints 403 without Bearer token', async () => {
+      test('completes, and endpoints return expected output when authorized, and 403/401 without and with wrong Bearer', async () => {
         const { main } = require('./index')
-  
+        const { ensureBearerTokenSecure } = require('./authorizer-gen/utils')
         /// ////////////////////////////////////////////
         // Set up
   
@@ -27,18 +27,20 @@ describe('System tests (takes 1-2 minutes)', () => {
           `${Math.ceil(Math.random() * 100000000000)}`,
         )
         
+        const randomNum = Math.ceil(Math.random() * 100000000000)
+
         await fsp.mkdir(tmpdir)
         const code = `
         function irrelevant() {
           return 100
         }
         
-        function endpoint_systemtest_testhello() {
-          return { z: 0 }
+        function endpoint_systemtest_returnnum() {
+          return { num: ${randomNum} }
         }
         
         module.exports = {
-          endpoint_systemtest_testhello
+          endpoint_systemtest_returnnum
         }
         `
         
@@ -73,15 +75,49 @@ describe('System tests (takes 1-2 minutes)', () => {
   
         // Expect main did not throw
         expect(err).not.toBeDefined()
-  
-        /// ////////////////////////////////////////////////
-  
+        // Expect main returned sensible data
+        expect(mainres).toBeDefined()
+        expect(mainres.urls).toBeDefined()
+        // Expect expectedBearer to be defined, since this is an authenticated test
+        expect(mainres.expectedBearer).toBeDefined()
+        // Conveniently use util method
+        expect(() => ensureBearerTokenSecure(mainres.expectedBearer)).not.toThrow()
+
+        /// /////////////////////////////
+        // Ping each URL with correct bearer token
+        // Expect correct result
+        const expectedResult = { num: randomNum }
+        let urls = [].concat(...mainres.urls)
+        // Don't test Google ones, they take another 1-2min to be ready
+        // TODO ensure in deployGoogle we return only on truly completed 
+        // TODO then, we can start testing them here again
+        urls = urls.filter((u) => /cloudfunctions/.test(u) === false)
+        for (let i = 0; i < urls.length; i += 1) {
+          // POST
+          const url = urls[i]
+          const res = await fetch(url, { 
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              Authorization: `Bearer ${mainres.expectedBearer}`,
+            },
+          })
+          const statusCode = res.status 
+          const actualResult = await res.json()
+          // HTTP Code 2XX
+          expect(/^2/.test(statusCode)).toBe(true)
+          // Returned correct object
+          expect(actualResult).toEqual(expectedResult)
+        }
+
+        /// /////////////////////////////
+        // Ping each URL without Authorization header
+        // Expect 401 or 403
+        // TODO check more precise ... google weirdly returns 403s here instead of 401
+
         // NOTE: had to grant allUsers access in Gcloud console
         // Thus for google new functions not 100% representative
-  
-        // Expect endpoints return 401 or 403 when no Authorization header
-        // TODO check more precise ... google weirdly returns 403s here instead of 401
-        const urls = [].concat(...mainres)
+        // But we don't test Google currently anyway (see above)
         for (let i = 0; i < urls.length; i += 1) {
           // POST
           const url = urls[i]
@@ -95,10 +131,11 @@ describe('System tests (takes 1-2 minutes)', () => {
           // console.log(`Pinged without Authorization header: ${url}`)
           expect([401, 403]).toContain(statusCode)
         }
-  
-        /// ////////////////////////////////////////////////
-        // Expect endpoints return  403 when invalid Authorization header 
-  
+
+        /// /////////////////////////////
+        // Ping each URL with wrong Authorization header
+        // Expect 403 
+
         for (let i = 0; i < urls.length; i += 1) {
           // POST 
           const url = urls[i]

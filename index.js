@@ -20,7 +20,8 @@ const schema = require('./schemas/index').hyperformJsonSchema
  * @param {Regex} fnregex 
  * @param {*} parsedHyperformJson
  * @param {boolean} allowUnauthenticated
- * @returns {string[]} Mixed, nested list of endpoint URLs
+ * @returns {{ urls: string[], expectedBearer?: string }} urls: Mixed, nested Array of endpoint URLs. 
+ * expectedBearer: if allowUnauthenticated was false, the Bearer token needed to invoke the Fn.
  * @throws
  */
 async function main(dir, fnregex, parsedHyperformJson, allowUnauthenticated) {
@@ -166,7 +167,7 @@ async function main(dir, fnregex, parsedHyperformJson, allowUnauthenticated) {
       return [].concat(...endpts)
     }),
   )
-  return endpoints
+  return { urls: endpoints, expectedBearer: publishOptions.expectedBearer }
 }
 
 module.exports = {
