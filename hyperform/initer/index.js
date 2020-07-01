@@ -151,7 +151,7 @@ function init(absdir) {
     const parsedCredentials = parseAwsCredentialsOrConfigFile(credentialsFileContents)
     hyperformJsonContents.amazon.aws_access_key_id = parsedCredentials.default.aws_access_key_id
     hyperformJsonContents.amazon.aws_secret_access_key = parsedCredentials.default.aws_secret_access_key
-    log(`Inferred [default] AWS credentials from ${possibleCredentialsPath}`)
+    log(`Inferred AWS credentials from ${possibleCredentialsPath}`)
   } else {
     log(`Could not guess AWS credentials. No AWS credentials file found in ${possibleCredentialsPath}`)
   }
@@ -167,7 +167,7 @@ function init(absdir) {
 
     const parsedConfig = parseAwsCredentialsOrConfigFile(configFileContents)
     hyperformJsonContents.amazon.aws_default_region = parsedConfig.default.region
-    log(`Inferred [default] AWS region from ${possibleConfigPath}`)
+    log(`Inferred AWS region from ${possibleConfigPath}`)
   } else {
     log(`Could not guess AWS region. No AWS config file found in ${possibleConfigPath}`) // TODO region will not be a single region, but smartly multiple ones (or?)
   }
