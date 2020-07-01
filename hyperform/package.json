@@ -18,6 +18,7 @@
     "chalk": "^4.1.0",
     "clipboardy": "^2.3.0",
     "findit": "^2.0.0",
+    "node-fetch": "^2.6.1",
     "spinnies": "^0.5.1",
     "uuid": "^8.3.2",
     "webpack": "^5.4.0",
