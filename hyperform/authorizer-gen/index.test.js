@@ -5,6 +5,7 @@ const exec = util.promisify(require('child_process').exec);
 
 const LAMBDANAME = 'jest-reserved-authorizer'
 const LAMBDAREGION = 'us-east-2'
+const APIREGION = 'us-east-2'
 const LAMBDAARN = 'arn:aws:lambda:us-east-2:735406098573:function:jest-reserved-authorizer'
 
 // NOTE Currently convention is one API per endpoint
@@ -24,7 +25,7 @@ describe('authorizer-gen', () => {
         let err 
         let res 
         try {
-          res = await getRouteId(apiId, routeKey)
+          res = await getRouteId(apiId, routeKey, LAMBDAREGION)
         } catch (e) {
           err = e
         }
@@ -46,7 +47,7 @@ describe('authorizer-gen', () => {
         let err 
         let res 
         try {
-          res = await getRouteId(apiId, routeKey)
+          res = await getRouteId(apiId, routeKey, LAMBDAREGION)
         } catch (e) {
           err = e
         }
@@ -64,7 +65,7 @@ describe('authorizer-gen', () => {
         let err 
         let res 
         try {
-          res = await getRouteId(apiId, routeKey)
+          res = await getRouteId(apiId, routeKey, LAMBDAREGION)
         } catch (e) {
           err = e
         }
@@ -202,7 +203,7 @@ describe('authorizer-gen', () => {
 
         let err 
         try {
-          await setAuthorizer(apiId, LAMBDAARN)
+          await setAuthorizer(apiId, LAMBDAARN, APIREGION)
         } catch (e) {
           err = e
         }
@@ -220,7 +221,7 @@ describe('authorizer-gen', () => {
         const apiId = 'vca3i8138h' // first-http-api in my API Gateway
         const routeKey = '$default'
         
-        const routeId = await getRouteId(apiId, routeKey)
+        const routeId = await getRouteId(apiId, routeKey, LAMBDAREGION)
 
         // TODO put detach into own function in index.js, that is in turn tested
         const detachCmd = `aws apigatewayv2 update-route --api-id ${apiId} --route-id ${routeId} --authorization-type NONE`
@@ -235,7 +236,7 @@ describe('authorizer-gen', () => {
        
         let err 
         try {
-          await setAuthorizer(apiId, LAMBDAARN)
+          await setAuthorizer(apiId, LAMBDAARN, APIREGION)
         } catch (e) {
           err = e
         }
@@ -256,7 +257,7 @@ describe('authorizer-gen', () => {
 
       let err 
       try {
-        await setAuthorizer(apiId, invalidArn)
+        await setAuthorizer(apiId, invalidArn, APIREGION)
       } catch (e) {
         err = e
       }

@@ -1,9 +1,7 @@
-const util = require('util');
-const exec = util.promisify(require('child_process').exec);
+const AWS = require('aws-sdk')
 const { deployAmazon } = require('../deployer/amazon/index')
 const { allowApiGatewayToInvokeLambda } = require('../publisher/amazon/utils')
 const { zip } = require('../zipper/index')
-
 /**
  * @description Creates or updates Authorizer lambda that will
  * greenlight requests with given expectedBearer token
@@ -60,31 +58,48 @@ async function deployAuthorizer(authorizerName, expectedBearer, options) {
  * @description Gets the RouteId of a route belonging to an API on API Gateway
  * @param {string} apiId Id of the API in API Gateway
  * @param {string} routeKey For example '$default'
+ * @param {string} region Region of the API in API Gateway
  * @returns {Promise<string>} RouteId of the route
+ * @throws If query items did not include a Route named "routeKey"
  */
-async function getRouteId(apiId, routeKey) {
-  const cmd = `aws apigatewayv2 get-routes --api-id ${apiId} --query 'Items[?RouteKey==\`${routeKey}\`]'`
+async function getRouteId(apiId, routeKey, region) {
+  const apigatewayv2 = new AWS.ApiGatewayV2({
+    apiVersion: '2018-11-29',
+    region: region,
+  })
 
-  const { stdout } = await exec(cmd, { encoding: 'utf-8' })
-  const parsedStdout = JSON.parse(stdout)
-
-  if (parsedStdout.length !== 1) {
-    throw new Error(`Could not get RouteId of apiId, routeKey ${apiId}, ${routeKey}: ${parsedStdout}`)
+  // TODO Amazon might return a paginated response here  (?)
+  // In that case with many routes, the route we look for may not be on first page
+  const params = {
+    ApiId: apiId,
+    MaxResults: '9999', // string according to docs and it works... uuh?
   }
-  const routeId = parsedStdout[0].RouteId
+
+  const res = await apigatewayv2.getRoutes(params).promise() 
+
+  const matchingRoutes = res.Items.filter((item) => item.RouteKey === routeKey)
+  if (matchingRoutes.length === 0) {
+    throw new Error(`Could not get RouteId of apiId, routeKey ${apiId}, ${routeKey}`)
+  }
+
+  // just take first one
+  // Hyperform convention is there's only one with any given name
+  const routeId = matchingRoutes[0].RouteId
+
   return routeId
 }
 
 /**
- * @description Sets the $default path of <apiId> to be guarded by <authorizerArn> lambda.
+ * @description Sets the $default path of "apiId" to be guarded by "authorizerArn" lambda.
  * @param {string} apiId Id of API in API Gateway to be guarded
  * @param {string} authorizerArn ARN of Lambda that should act as the authorizer
  * @returns {void}
  * @throws Throws if authorizerArn is not formed like a Lambda ARN. 
  * Fails silently if authorizerArn Lambda does not exist.
  */
-async function setAuthorizer(apiId, authorizerArn) {
-  // ARN format: https://docs.aws.amazon.com/general/latest/gr/aws-arns-and-namespaces.html
+async function setAuthorizer(apiId, authorizerArn, apiRegion) {
+  // TODO what happens when api (set to REGIONAL) and authorizer lambda are in different regions
+
   // region is the fourth field
   const authorizerRegion = authorizerArn.split(':')[3] 
   // name is the last field
@@ -100,38 +115,67 @@ async function setAuthorizer(apiId, authorizerArn) {
   // Fails => Authorizer already existed with that name. 
   // Get that one's authorizerId (Follow Hyperform conv: same name - assume identical)
 
-  const cmd = `aws apigatewayv2 create-authorizer --api-id ${apiId} --name ${authorizerName} --authorizer-type ${authorizerType} --identity-source '${identitySource}' --authorizer-uri ${authorizerUri} --authorizer-payload-format-version 2.0 --enable-simple-responses`
-  let authorizerId 
+  const apigatewayv2 = new AWS.ApiGatewayV2({
+    apiVersion: '2018-11-29',
+    region: apiRegion,
+  })
 
-  try {
-    // Try to create authorizer
-    const { stdout } = await exec(cmd, { encoding: 'utf-8' })
-    //   console.log(`Newly created Authorizer from Lambda ${authorizerName}`)
-    //  console.log(stdout)
-    const parsedStdout = JSON.parse(stdout)
-    authorizerId = parsedStdout.AuthorizerId
-  } catch (e) {
-    // authorizer already exists
-    // obtain its id
-    //   console.log(`Reusing existing authorizer ${authorizerName}`)
-    const cmd2 = `aws apigatewayv2 get-authorizers --api-id ${apiId} --query 'Items[?Name==\`${authorizerName}\`]'`
-    const { stdout } = await exec(cmd2, { encoding: 'utf-8' })
-    const parsedStdout = JSON.parse(stdout)
-    // Could not create, and could not get
-    // Means bad input
-    if (!parsedStdout.length || parsedStdout[0].AuthorizerId == null) {
-      throw new Error(`Could not create or get Authorizer ${authorizerName}. Check these inputs to setAuthorizer: ${apiId} , ${authorizerArn}`) // TODO HF Programmer mistake
-    }
-
-    authorizerId = parsedStdout[0].AuthorizerId
+  const createAuthorizerParams = {
+    ApiId: apiId,
+    Name: authorizerName,
+    AuthorizerType: authorizerType,
+    IdentitySource: [identitySource],
+    AuthorizerUri: authorizerUri,
+    AuthorizerPayloadFormatVersion: '2.0',
+    EnableSimpleResponses: true,
   }
 
+  let authorizerId
+
+  try {
+    const createRes = await apigatewayv2.createAuthorizer(createAuthorizerParams).promise()
+    // authorizer does not exist
+    authorizerId = createRes.AuthorizerId
+  } catch (e) {
+    if (e.code === 'BadRequestException') {
+      // authorizer already exists
+      // TODO update authorizer to make sure it points 
+      // ...to authorizerArn lambda (to behave exactly as stated in @description)
+
+      // TODO pull-up this and/or add update authorizer
+      
+      // obtain its id
+      const getAuthorizersParams = {
+        ApiId: apiId,
+        MaxResults: '9999',
+      }
+      const getRes = await apigatewayv2.getAuthorizers(getAuthorizersParams).promise()
+
+      const matchingRoutes = getRes.Items.filter((item) => item.Name === authorizerName)
+      if (matchingRoutes.length === 0) {
+        throw new Error(`Could not get AuthorizerId of apiId ${apiId}`)
+      }
+
+      // just take first one
+      // Hyperform convention is there's only one with any given name
+      authorizerId = matchingRoutes[0].AuthorizerId
+    } else {
+      // some other error
+      throw e
+    }
+  }
+  
+  // attach authorizer to $default
   const routeKey = '$default'
-  // attach authorizer (may be already attached if entered catch but alas)
-  const routeId = await getRouteId(apiId, routeKey)
-  const cmd3 = `aws apigatewayv2 update-route --api-id ${apiId} --route-id ${routeId} --authorization-type CUSTOM --authorizer-id ${authorizerId} `
-  await exec(cmd3, { encoding: 'utf-8' })
-  // attached authorizer Lambda to routeId
+  const routeId = await getRouteId(apiId, routeKey, apiRegion)
+
+  const updateRouteParams = {
+    ApiId: apiId,
+    RouteId: routeId,
+    AuthorizerId: authorizerId,
+  }
+  await apigatewayv2.updateRoute(updateRouteParams).promise()
+  // done
 }
 
 // TODO set authorizer cache ??
