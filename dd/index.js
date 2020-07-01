@@ -8,6 +8,8 @@ const { runUpload } = require('./uploader/index')
 const { getCandidatePaths } = require('./utils/index')
 const { parseCliArgs } = require('./utils/index')
 
+// TODO support region field for amazon
+
 /**
  * Deletes an uploadable
  * @param {{pathOfUploadable: string}} options 

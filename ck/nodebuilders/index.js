@@ -20,7 +20,7 @@ const nodebuilders = {
       return !error
     },
     build: async (obj) => {
-      console.log('building atomic')
+    //  console.log('building atomic')
       return async function () {
         const inp = sharedStash.get(obj.in)
         const outp = await envoy(obj.run, inp)
@@ -36,7 +36,7 @@ const nodebuilders = {
       return !error
     },
     build: async (obj) => {
-      console.log('building sequence')
+    //  console.log('building sequence')
       // Build each member fn in the sequence
       // Note: Seems to runaway if not immediately .all'ed
       const builtMembers = await Promise.all(obj.map((o) => build(o)))
@@ -106,7 +106,7 @@ function build(obj) {
   // find out which builder to use
   const nodetype = detectnodetype(obj)
   // build the node function
-  console.log('BUILDING ', nodetype)
+  // console.log('BUILDING ', nodetype)
   return nodebuilders[nodetype].build(obj)
 }
 

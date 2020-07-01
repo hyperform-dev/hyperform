@@ -26,6 +26,8 @@ function amazonQuery(name) {
     queryproc.on('close', (code) => {
       if (code === 0) {
         // FN EXISTS
+        // TODO return arn 
+
         // TODO currently 'myfn1' is sufficient. Maybe later enforce ARN
         //  in pro version with multiple users may not be enough to identify
         // don't forget to clear timer

@@ -1,5 +1,6 @@
 const arg = require('arg')
 const path = require('path')
+const { EOL } = require('os')
 const { readparsevalidate } = require('./parsers/index')
 const { enrich } = require('./enrichers/index')
 const { sharedStash } = require('./stashes')
@@ -10,7 +11,12 @@ const { build } = require('./nodebuilders/index')
  */
 function parseCliArgs() {
   const args = arg({
+    '--input': String,
   })
+
+  if (args['--input'] == null) {
+    throw new Error('Please specify --input "...JSON...". ')
+  }
 
   // Defaults
   let mode = 'run'
@@ -20,9 +26,20 @@ function parseCliArgs() {
   // ~~ Force user to invoke dd in his project folder (akin to pip, npm)
   const root = process.cwd()
 
+  // Try to parse CLI input as JSON
+  let parsedInput // TODO what's void? Null? Empty object: we don't care, stash does not care either
+  try {
+    parsedInput = JSON.parse(args['--input'])
+  } catch (e) {
+    console.log('--input "...JSON..." is invalid JSON')
+    throw e
+  }
+
   return {
+    ...args,
     mode: mode,
     root: root,
+    parsedInput: parsedInput,
   }
 }
 
@@ -35,20 +52,24 @@ async function main() {
       path: path.join(args.root, 'flow.json'),
     })
 
-    const [enrichedFlowJson, outputkey] = await enrich(parsedFlowJson, { in: '__workflow_in' })
+    const [enrichedFlowJson, outputkey] = await enrich(
+      parsedFlowJson, 
+      { in: '__workflow_in' },
+    )
   
     console.log(JSON.stringify(enrichedFlowJson, null, 2))
-    sharedStash.put('__workflow_in', { num: 1 })
-    
-    // TODO overhaul lol
-    
+    // Put --input (the workflow input) onto stash
+    sharedStash.put('__workflow_in', args.parsedInput)
+
+    const lastKey = outputkey
     // build top-level function
-    const lastid = outputkey
     const wf = await build(enrichedFlowJson)
     console.log(JSON.stringify(wf))
+    // run top-level function
     await wf()
 
-    console.log('WF output:', sharedStash.get(lastid))
+    // print output
+    console.log(`${EOL} WF OUTPUT:`, sharedStash.get(lastKey))
   } catch (e) {
     console.log(e)
     process.exit(1)
