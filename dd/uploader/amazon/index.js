@@ -6,6 +6,7 @@ const fsp = require('fs').promises
 
 // TODO intelligently infer runtime from uploadable or handler, if not specified in config
 
+// TODO yeah fix that lol
 const RUNTIME = 'nodejs12.x'
 const HANDLER = 'index.handler' 
 

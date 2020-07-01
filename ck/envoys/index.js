@@ -10,11 +10,12 @@ const envoys = [
  * @param {*} name 
  * @param {*} input 
  */
-function envoy(name, input) {
+async function envoy(name, input) {
   for (let i = 0; i < envoys.length; i += 1) {
     const en = envoys[i]
     if (en.canEnvoy(name)) { 
-      return en.envoy(name, input)
+      const response = await en.envoy(name, input)
+      return response
     }
   }
   throw new Error(`No envoy found for ${name}`)
