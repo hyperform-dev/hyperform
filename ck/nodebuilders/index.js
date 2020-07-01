@@ -8,7 +8,7 @@ const { sharedStash } = require('../stashes')
 // takes an object such as 
 // { run: "function1", in: "function0" }
 // and creates a asyncronius function that when run, will run that fn in the cloud 
-// ... and return its result or a promise thereof. Calls envoy.
+// ... and return its result or a promise thereof (by calling envoy)
 
 // NO TWO canBuild should overlap (be true at the same time). Any of them might be picked
 const nodebuilders = {
