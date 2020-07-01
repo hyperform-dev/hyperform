@@ -40,19 +40,19 @@ describe('firstvalidators', () => {
           .toThrow()
       })
 
-      test('with in field', async () => {
-        const input = [
-          { run: 'function1', in: 'abcde' },
-          { run: 'arn:aws:iam::735406098573:role/lambdaexecute' },
-          { run: 'google.com' }, // URLs are allowed
-        ]
+      // test('with in field', async () => {
+      //   const input = [
+      //     { run: 'function1' },
+      //     { run: 'arn:aws:iam::735406098573:role/lambdaexecute' },
+      //     { run: 'google.com' }, // URLs are allowed
+      //   ]
         
-        const toBeTested = () => firstvalidators['flow.json'](input)
+      //   const toBeTested = () => firstvalidators['flow.json'](input)
 
-        expect(toBeTested)
-          .not 
-          .toThrow()
-      })
+      //   expect(toBeTested)
+      //     .not 
+      //     .toThrow()
+      // })
     })
 
     describe('it rejects incorrect schemas', () => {

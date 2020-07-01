@@ -3,6 +3,8 @@ const joi = require('joi')
 const fsp = require('fs').promises
 const uuidv4 = require('uuid').v4 
 
+const { firstschemas, secondschemas } = require('../schemas')
+
 const readers = {
   'flow.json': (path) => {
     if (fs.existsSync(path) === false) {
@@ -21,12 +23,7 @@ const parsers = {
 
 const firstvalidators = {
   'flow.json': (obj) => {
-    const schema = joi.array().items(
-      joi.object({
-        run: joi.string().required(),
-        in: joi.string(),
-      }),
-    )
+    const schema = firstschemas.sequence // TODO not only support sequence lol
 
     const { error, value } = schema.validate(obj)
     if (error) {
@@ -76,13 +73,7 @@ const enrichers = {
 const secondvalidators = {
   'flow.json': (obj) => {
     // here after enriching, "in" is not mandatory
-    const schema = joi.array().items(
-      joi.object({
-        run: joi.string().required(),
-        in: joi.string().required(),
-        id: joi.string().required(),
-      }),
-    )
+    const schema = secondschemas.sequence
 
     const { error, value } = schema.validate(obj)
     if (error) {
