@@ -21,9 +21,27 @@ const { ensureBearerTokenSecure } = require('../authorizer-gen/utils')
 //   throw new Error(`deployAuthorizerLambda: expectedBearer needs to have 10 or more digits for security: ${expectedBearer}`)
 // }
 
-function transpile(bundleCode, expectedToken) {
-  // done at a few places but better safe than sorry
-  ensureBearerTokenSecure(expectedToken)
+/**
+ * 
+ * @param {string} bundleCode 
+ * @param {{allowUnauthenticated: boolean, expectedBearer: string}} options 
+ */
+function transpile(bundleCode, options) {
+  if (options.allowUnauthenticated === false && !options.expectedBearer) {
+    throw new Error(`expectedBearer must be defined when allowUnauthenticated is false but is ${options.expectedBearer}`) // TODO HF programmer mistake
+  }
+
+  let googleBearerCheckCode = ''
+  if (options.allowUnauthenticated === false) {
+    // done at a few places but better safe than sorry
+    ensureBearerTokenSecure(options.expectedBearer)
+    googleBearerCheckCode = `
+    if (!req.headers.authorization || req.headers.authorization !== 'Bearer ${options.expectedBearer}') {
+      // unauthorized, exit
+      return resp.sendStatus(403);
+    }
+    `
+  }
 
   // note how expectedToken is hardcoded into the appendix
   const appendix = `
@@ -75,10 +93,7 @@ function transpile(bundleCode, expectedToken) {
       } 
       if(platform === 'google') {
         wrappedfunc = async function handler(req, resp) {
-          if (!req.headers.authorization || req.headers.authorization !== 'Bearer ${expectedToken}') {
-            // unauthorized, exit
-            return resp.sendStatus(403)
-          }
+          ${googleBearerCheckCode}
           const input = JSON.parse(JSON.stringify(req.body)) // get rid of prototype methods of req.body
           const output = await userfunc(input) // TODO add fail 500
           resp.json(output)
