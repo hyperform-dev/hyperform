@@ -33,12 +33,10 @@ const bundlers = {
             // so amazon sees it
             libraryTarget: 'commonjs',
           },
-          // so we don't upload unnecessary SDKs
-          plugins: [
-            new webpack.IgnorePlugin(
-              ignorePluginOptions[provider],
-            ),
-          ],
+          // aws-sdk is already provided in lambda
+          externals: {
+            'aws-sdk': 'aws-sdk',
+          },
         },
         (err, stats) => {
           if (err || stats.hasErrors()) {
