@@ -48,11 +48,15 @@ function transpile(bundleCode, options) {
 
 ;module.exports = (() => {
 
-
-
-  // for lambda, wrap all exports in context.succeed
+  
   /**
-   * 
+  * This is the Hyperform wrapper
+  * Plain-text for better readability
+  */
+
+  /**
+   * @description Helper function that wraps the 'return' 
+   * statement depending on platform
    * @param {*} moduleexports 
    * @param {string} platform amazon | google
    */
@@ -72,9 +76,7 @@ function transpile(bundleCode, options) {
       let wrappedfunc
       if(platform === 'amazon') {
         wrappedfunc = async function handler(input, context) {
-          let event = {} // that way, no event is included in a simple echo (when undefined, the field simply does not appear marshalled)
-          //https://docs.aws.amazon.com/apigateway/latest/developerguide/http-api-develop-integrations-lambda.html
-          
+          let event = {} 
           // TODO support plain inputs
           // try to parse as json, otherwise just pass 
           // 1 => "1", "abc" => "abc", '{"a":1}' => { a: 1}
@@ -85,9 +87,9 @@ function transpile(bundleCode, options) {
               // TODO generally a way to throw HTTP status codes
               
           } else {
-            console.log("No 'body' field found in input.") //TODO remove
+            console.log("No 'body' field found in input.") // visible in CloudWatch and on Google
           }
-          const res = await userfunc(event, context) // todo add context.fail // todo don't pass context otherwise usercode might become amz flavored
+          const res = await userfunc(event) // TODO add context.fail?
           context.succeed(res)
         }
       } 
@@ -125,7 +127,6 @@ function transpile(bundleCode, options) {
 
   return curr; // Export unchanged (local, fallback)
 
-  
 
 })();
     `
