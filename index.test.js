@@ -21,12 +21,12 @@ describe('System tests (takes 1-2 minutes)', () => {
         const { ensureBearerTokenSecure } = require('./authorizer-gen/utils')
         /// ////////////////////////////////////////////
         // Set up
-  
+
         const tmpdir = path.join(
           os.tmpdir(),
           `${Math.ceil(Math.random() * 100000000000)}`,
         )
-        
+
         const randomNum = Math.ceil(Math.random() * 100000000000)
 
         await fsp.mkdir(tmpdir)
@@ -43,71 +43,102 @@ describe('System tests (takes 1-2 minutes)', () => {
           endpoint_systemtest_returnnum
         }
         `
-        
+
         const tmpcodepath = path.join(tmpdir, 'index.js')
         await fsp.writeFile(tmpcodepath, code, { encoding: 'utf-8' })
-        
-        // const tmpjsonpath = path.join(tmpdir, 'hyperform.json')
-        // await fsp.writeFile(tmpjsonpath, json, { encoding: 'utf-8' })
-        
-        /// ////////////////////////////////////////////
-        // Run
-        
+    
         const dir = tmpdir
         const fnregex = /endpoint/
-        const parsedHyperformJson = {
-          amazon: {
-            aws_access_key_id: process.env.AWS_ACCESS_KEY_ID,
-            aws_secret_access_key: process.env.AWS_SECRET_ACCESS_KEY, 
-            aws_default_region: process.env.AWS_REGION, 
-          },
-          google: {
-            gc_client_email: '',
-            gc_private_key: '',
-            gc_project: '',
-          },
-        }
-        const needAuth = true
-  
-        let mainres 
-        let err 
-        try {
-          mainres = await main(dir, fnregex, parsedHyperformJson, needAuth)
-        } catch (e) {
-          console.log(e)
-          err = e
-        }
-  
-        // Expect main did not throw
-        expect(err).not.toBeDefined()
-        // Expect main returned sensible data
-        expect(mainres).toBeDefined()
-        expect(mainres.urls).toBeDefined()
-        // Expect expectedBearer to be defined, since this is an authenticated test
-        expect(mainres.expectedBearer).toBeDefined()
-        // Conveniently use util method
-        expect(() => ensureBearerTokenSecure(mainres.expectedBearer)).not.toThrow()
+        
+        /// ////////////////////////////////////////////
+        // Run main for Amazon
+        /// ////////////////////////////////////////////
 
-        /// /////////////////////////////
-        // Ping each URL with correct bearer token
+        let amazonMainRes
+        {
+          const amazonParsedHyperformJson = {
+            amazon: {
+              aws_access_key_id: process.env.AWS_ACCESS_KEY_ID,
+              aws_secret_access_key: process.env.AWS_SECRET_ACCESS_KEY,
+              aws_default_region: process.env.AWS_REGION,
+            },
+
+          }
+          const needAuth = true
+
+          let err
+          try {
+            amazonMainRes = await main(dir, fnregex, amazonParsedHyperformJson, needAuth)
+          } catch (e) {
+            console.log(e)
+            err = e
+          }
+
+          // Expect main did not throw
+          expect(err).not.toBeDefined()
+          // Expect main returned sensible data
+          expect(amazonMainRes).toBeDefined()
+          expect(amazonMainRes.urls).toBeDefined()
+          // Expect expectedBearer to be defined, since this is an authenticated test
+          expect(amazonMainRes.expectedBearer).toBeDefined()
+          // Conveniently use util method
+          expect(() => ensureBearerTokenSecure(amazonMainRes.expectedBearer)).not.toThrow()
+        }
+        
+        /// ////////////////////////////////////////////
+        // Run main for Google
+        /// ////////////////////////////////////////////  
+        let googleMainRes
+        {
+          const googleParsedHyperformJson = {
+            google: {
+              gc_client_email: '',
+              gc_private_key: '',
+              gc_project: '',
+            },
+
+          }
+          const needAuth = true
+
+          let err
+          try {
+            googleMainRes = await main(dir, fnregex, googleParsedHyperformJson, needAuth)
+          } catch (e) {
+            console.log(e)
+            err = e
+          }
+
+          // Expect main did not throw
+          expect(err).not.toBeDefined()
+          // Expect main returned sensible data
+          expect(googleMainRes).toBeDefined()
+          expect(googleMainRes.urls).toBeDefined()
+          // Expect expectedBearer to be defined, since this is an authenticated test
+          expect(googleMainRes.expectedBearer).toBeDefined()
+          // Conveniently use util method
+          expect(() => ensureBearerTokenSecure(googleMainRes.expectedBearer)).not.toThrow()
+        }
+
+        /// ///////////////////////////////////////////
+        // Ping each Amazon URL with correct bearer token
         // Expect correct result
-        const expectedResult = { num: randomNum }
-        let urls = [].concat(...mainres.urls)
+        /// ///////////////////////////////////////////
         // Don't test Google ones, they take another 1-2min to be ready
+        const urls = [].concat(...amazonMainRes.urls)
         // TODO ensure in deployGoogle we return only on truly completed 
         // TODO then, we can start testing them here again
-        urls = urls.filter((u) => /cloudfunctions/.test(u) === false)
+        const expectedResult = { num: randomNum }
         for (let i = 0; i < urls.length; i += 1) {
           // POST
           const url = urls[i]
-          const res = await fetch(url, { 
+          const res = await fetch(url, {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
-              Authorization: `Bearer ${mainres.expectedBearer}`,
+              Authorization: `Bearer ${amazonMainRes.expectedBearer}`,
             },
           })
-          const statusCode = res.status 
+          const statusCode = res.status
           const actualResult = await res.json()
           // HTTP Code 2XX
           expect(/^2/.test(statusCode)).toBe(true)
@@ -126,13 +157,13 @@ describe('System tests (takes 1-2 minutes)', () => {
         for (let i = 0; i < urls.length; i += 1) {
           // POST
           const url = urls[i]
-          const res = await fetch(url, { 
+          const res = await fetch(url, {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
             },
           })
-          const statusCode = res.status 
+          const statusCode = res.status
           // console.log(`Pinged without Authorization header: ${url}`)
           expect([401, 403]).toContain(statusCode)
         }
@@ -144,14 +175,14 @@ describe('System tests (takes 1-2 minutes)', () => {
         for (let i = 0; i < urls.length; i += 1) {
           // POST 
           const url = urls[i]
-          const res = await fetch(url, { 
+          const res = await fetch(url, {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
               Authorization: 'Bearer XXXXXXXXXNONSENSETOKENXXXXXXX',
             },
           })
-          const statusCode = res.status 
+          const statusCode = res.status
           //   console.log(`Pinged with invalid Authorization header: ${url}`)
           expect([403]).toContain(statusCode)
         }
