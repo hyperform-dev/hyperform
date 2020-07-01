@@ -14,6 +14,11 @@ let parsedHyperformJson
  *  aws_access_key_id: string?,
  *  aws_secret_access_key: string?,
  *  aws_default_region: string?
+ * },
+ * google: {
+ *  gc_private_key: string,
+ *  gc_client_email: string,
+ *  gc_project: string,
  * }
  * }} 
  * @throws ENOENT if could not open hyperform.json, SyntaxError if it contains invalid JSON
