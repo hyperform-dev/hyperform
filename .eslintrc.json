@@ -18,6 +18,7 @@
         "object-shorthand": "off",
         "no-unused-vars": "warn",
         "no-useless-catch": "warn",
-        "no-underscore-dangle": "warn"
+        "no-underscore-dangle": "warn",
+        "no-await-in-loop": "warn"
     }
 }
