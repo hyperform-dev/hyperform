@@ -54,7 +54,6 @@ describe('bundler', () => {
       res = await bundle(invalidinpath, 'js', 'amazon')
       console.log(res)
     } catch (e) {
-      console.log(e)
       err = e
     }
 
