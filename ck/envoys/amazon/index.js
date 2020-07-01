@@ -35,7 +35,7 @@ const amazonEnvoy = {
         })
         // 2) If yes, log Lambda's stdout in local terminal
         .then((res) => {
-          amazonLog(res)
+          amazonLog(res, name)
           return res
         })
         // 3) Parse its return value
