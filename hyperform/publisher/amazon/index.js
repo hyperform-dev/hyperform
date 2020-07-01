@@ -48,7 +48,7 @@ async function createApi(apiName, targetlambdaArn) {
 
   return {
     apiId: parsedStdout.ApiId,
-    apiUrl: parsedStdout.ApiUrl,
+    apiUrl: parsedStdout.ApiEndpoint,
   }
 }
 
@@ -66,7 +66,7 @@ async function publishAmazon(lambdaArn, { allowUnauthenticated, bearerToken }) {
 
   const lambdaName = lambdaArn.split(':').slice(-1)[0]
   const apiName = `hyperform-${lambdaName}`
-  
+
   let apiId 
   let apiUrl
   
@@ -104,6 +104,7 @@ async function publishAmazon(lambdaArn, { allowUnauthenticated, bearerToken }) {
   if (allowUnauthenticated === true) {
     // do nothing
     // default is allow unauthenticated
+    
     return apiUrl
   }
   
@@ -118,7 +119,7 @@ async function publishAmazon(lambdaArn, { allowUnauthenticated, bearerToken }) {
     return apiUrl
   }
 
-  // good form
+  // exhaustive
   throw new Error(`allowUnauthenticated must be true or false but is ${allowUnauthenticated}`)
 }
 
