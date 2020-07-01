@@ -7,10 +7,12 @@ const { spinnies } = require('../../printer/index')
 
 const DEFAULTRUNTIMES = {
   js: 'nodejs12.x',
-  java: 'java8',
+  java: 'java11',
+  py: 'python3.8',
 }
 const DEFAULTHANDLERS = {
   js: 'index.handler',
+  py: 'lambda_function.lambda_handler',
 }
 
 async function isExistsAmazon(functionName) {

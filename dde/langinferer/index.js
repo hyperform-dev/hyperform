@@ -5,16 +5,15 @@ const dree = require('dree')
 const DREEWHITELIST = [
   'js',
   'java',
+  'py',
 ]
 
-const WHITELISTMATCH = /js|java/
+const WHITELISTMATCH = /js|java|py/
 
 const DREEBLACKLIST = [
-  /node_modules/,
-  /target/,
   /\.github/,
   /\.git/,
-  /build/,
+  /coverage/,
 ]
 // TODO wont work well with java due to nested dir structure
 
