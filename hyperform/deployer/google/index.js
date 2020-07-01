@@ -44,8 +44,8 @@ function extractUrl(stdout) {
  * @param {string} pathToCode 
  * @param {{
  * name: string,
- * entrypoint: string,
  * stagebucket: string,
+ * entrypoint?: string,
  * region?: string,
  * runtime?: string,
  * }} options 
@@ -53,15 +53,15 @@ function extractUrl(stdout) {
  */
 async function deployGoogle(pathToCode, options) {
   // TODO make more things required lol
-  if (!options.name) {
-    throw new Error(`name must be specified but is ${options.name}`)
+  if (!options.name || !options.stagebucket) {
+    throw new Error(`name and stagebucket must be specified but is ${options.name}, ${options.stagebucket}`)
   }
 
   const fulloptions = {
     name: options.name,
     region: options.region || 'us-central1',
     runtime: options.runtime || 'nodejs12',
-    entrypoint: options.entrypoint, // currently identical to name 
+    entrypoint: options.entrypoint || options.name,  
     stagebucket: options.stagebucket,
   }
 

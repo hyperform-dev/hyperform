@@ -3,7 +3,7 @@ const path = require('path')
 const os = require('os')
 
 /**
- * 
+ * @description Extracts the [default] section of an AWS .aws/config or .aws/credentials file
  * @param {string} filecontents File contents of an .aws/credentials or .aws/config file
  * @returns {string} The string between [default] and the next [...] header, if exists.
  *  Otherwise returns empty string
@@ -26,7 +26,7 @@ function getDefaultSectionString(filecontents) {
 // TODO error handling & meaningful stdout
 // TODO tests
 /**
- * Extracts aws_access_key_id and aws_secret_access_key from a given AWS credentials file
+ * @description Extracts aws_access_key_id and aws_secret_access_key fields from a given .aws/credentials file
  * @param {string} filecontents File contents of .aws/credentials
  * @returns {
  * default: { 
@@ -103,6 +103,11 @@ function parseAwsCredentialsOrConfigFile(filecontents) {
 }
 
 // TODO shorten
+/**
+ * @description Tries to infer AWS credentials and config, and creates a hyperform.json in "absdir" with what it could infer. If hyperform.json already exists in "absdir" it just prints a message.
+ * @param {string} absdir The directory where 'hyperform.json' should be created
+ * @returns {void}
+ */
 function init(absdir) {
   const hyperformJsonContents = {
     amazon: {

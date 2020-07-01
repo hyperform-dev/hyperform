@@ -13,6 +13,7 @@ const BLACKLIST = [
  */
 // TODO do not follow symlinks (or do?)
 function getJsFilepaths(dir) {
+  // NODEJS 12 needed? TODO replace / dont do at all
   if (path.isAbsolute(dir) === false) {
     throw new Error('getJsFilepaths: given dir must be absolute')
   }
