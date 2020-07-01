@@ -80,7 +80,7 @@ function transpile(bundleCode, options) {
          /// ///////////////////////////////
          // We are invoked from console, or via SDK ///////
          /// ////////////////////////////////
-         if (input.routeKey === undefined || input.rawPath === undefined || input.headers === undefined) {
+         if (input == null || input.routeKey === undefined || input.rawPath === undefined || input.headers === undefined) {
            event = input;
            httpsubset = {};
          }
