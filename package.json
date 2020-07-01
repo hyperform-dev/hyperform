@@ -23,7 +23,7 @@
   },
   "husky": {
     "hooks": {
-      "pre-push": "npm run lintfix; npm run test"
+      "pre-push": "npm run lintfix"
     }
   },
   "dependencies": {
