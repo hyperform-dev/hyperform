@@ -2,6 +2,7 @@ const util = require('util');
 const exec = util.promisify(require('child_process').exec);
 const lstat = util.promisify(require('fs').lstat);
 const { spinnies } = require('../../printer')
+const fsp = require('fs').promises
 
 // TODO intelligently infer runtime from uploadable or handler, if not specified in config
 
@@ -19,7 +20,7 @@ async function isExistsAmazon(functionName) {
 }
 
 function generateDeployCommand(task, name, pathOfUploadable) {
-  let cmd = `aws lambda create-function --function-name ${name} --runtime ${RUNTIME} --role ${task.config.role} --handler ${HANDLER} --zip-file fileb://${pathOfUploadable}`
+  let cmd = `aws lambda create-function --function-name ${name} --runtime ${RUNTIME} --role ${task.config.amazon.role} --handler ${HANDLER} --zip-file fileb://${pathOfUploadable}`
   if (task.config.timeout) cmd += ` --timeout ${task.config.timeout} `
 
   return cmd
@@ -50,16 +51,31 @@ async function runUploadAmazon(task, name, pathOfUploadable, path) {
   // deploy/upload
   try {
     // TODO TEMP: DUUMMY DEPLOY, DO NOT ACTUALLY DEPLOY 
-    // await exec(uploadCmd)
+    await exec(uploadCmd)
     await new Promise((resolve) => setTimeout(resolve, 3000))
     spinnies.succeed(path, { text: `Deployed ${name}` })
   } catch (e) {
     spinnies.fail(path, { text: `Deploy Error for ${name}: ` })
     throw e
   }
+
+  // clean up: delete the uploadable to force rebuilding on next deploy, 
+  // and not get into self-zipping rabbithole
+
+  try {
+    // TODO could be dangerous .. 
+    // only do if "do" was specified?
+    // user may point to irreplacable jar lol
+    await fsp.unlink(pathOfUploadable)
+    console.log(`Cleaned up ${pathOfUploadable}`)
+  } catch (e) {
+    throw new Error('Could not clean up (delete uploadable)')
+  }
 }
 
 // TODO updade deploy.json schema for google
 // TODO implement google uploader
 
-module.exports = { runUploadAmazon }
+module.exports = { 
+  runUploadAmazon, 
+}

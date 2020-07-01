@@ -83,7 +83,7 @@ async function processTask(args, task, provider = 'amazon') {
 /// //////////////////////////////////////////////////
 
 async function main() {
-  // Top level error boundary
+  // Top level error boundary of dd
   try {
     // parse CLI args
     const args = parseCliArgs()
