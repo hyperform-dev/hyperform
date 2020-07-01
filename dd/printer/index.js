@@ -1,5 +1,6 @@
 const Spinnies = require('spinnies')
 const uuidv4 = require('uuid').v4
+const { isInTesting } = require('../meta')
 
 const spinner = {
   interval: 80,
@@ -30,6 +31,15 @@ spinnies.justPrintFail = (text) => {
   const unique = uuidv4()
   spinnies.add(unique)
   spinnies.fail(unique, { text: text })
+}
+
+// In testing, be silent
+if (isInTesting() === true) {
+  spinnies.justPrintSuccess = () => {}
+  spinnies.justPrintFail = () => {}
+  spinnies.add = () => {}
+  spinnies.update = () => {}
+  spinnies.updateSpinnerState = () => {}
 }
 
 module.exports = {
