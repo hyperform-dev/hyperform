@@ -170,8 +170,10 @@ async function setDefaultRouteAuthorizer(apiId, authorizerArn, apiRegion) {
     ApiId: apiId,
     RouteId: routeId,
     AuthorizerId: authorizerId,
+    AuthorizationType: 'CUSTOM',
   }
   await apigatewayv2.updateRoute(updateRouteParams).promise()
+  console.log('set authorizer')
   // done
 }
 
@@ -199,6 +201,7 @@ async function detachDefaultRouteAuthorizer(apiId, apiRegion) {
   }
 
   await apigatewayv2.updateRoute(updateRouteParams).promise()
+  console.log('detached authorizer ')
 }
 // TODO set authorizer cache ??
 
