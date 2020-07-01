@@ -140,9 +140,11 @@ async function main(dir, fnregex) {
             text: `${chalk.rgb(20, 20, 20).bgWhite(` Amazon `)} ${amazonOptions.name}`
           
           })
-          await deployAmazon(zipPath, amazonOptions)
+
+          const amazonEndpoint = await deployAmazon(zipPath, amazonOptions)
+
           spinnies.succeed(amazonOptions.name, { 
-            text: `${chalk.rgb(20, 20, 20).bgWhite(` Amazon `)} ${amazonOptions.name}`
+            text: `${chalk.rgb(20, 20, 20).bgWhite(` Amazon `)} ${chalk.bold(amazonEndpoint)}`
           })
         }),
       )
@@ -187,7 +189,7 @@ async function main(dir, fnregex) {
           const googleEndpoint = await deployGoogle(tmpdir, googleOptions)
 
           spinnies.succeed(googleOptions.name, { 
-            text: `${chalk.rgb(20, 20, 20).bgWhite(` Google `)} ${googleEndpoint}`
+            text: `${chalk.rgb(20, 20, 20).bgWhite(` Google `)} ${chalk.bold(googleEndpoint)}`
           })
           // TODO delete file & tmpdir
 

@@ -39,6 +39,13 @@ async function isExistsAmazon(options) {
   }
 }
 
+function extractArn(stdout) {
+  // amazon CLI returns JSON, very nice 
+  const parsed = JSON.parse(stdout) // TODO fallback on per-line regex
+  const arn = parsed.FunctionArn  
+  return arn
+}
+
 /**
  * 
  * @param {*} pathToZip 
@@ -47,6 +54,8 @@ async function isExistsAmazon(options) {
  * role: string, 
  * region: string
  * }} options 
+ * @returns {string} The Lambda ARN
+
  */
 async function deployAmazon(pathToZip, options) {
   if(!options.name || !options.role) {
@@ -74,7 +83,9 @@ async function deployAmazon(pathToZip, options) {
   try {
     console.time(`Amazon-deploy-${options.name}`)
     // TODO sanitize
-    await exec(uploadCmd)
+    const { stdout } = await exec(uploadCmd)
+    const arn = extractArn(stdout)
+    return arn
   } catch (e) {
     console.log(`Errored amazon deploy: ${e}`)
     // spinnies.fail(options.path, { text: `Deploy Error for ${options.name}: ` })
