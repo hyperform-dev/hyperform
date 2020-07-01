@@ -150,7 +150,7 @@ function init(absdir) {
     const parsedCredentials = parseAwsCredentialsOrConfigFile(credentialsFileContents)
     hyperformJsonContents.amazon.aws_access_key_id = parsedCredentials.default.aws_access_key_id
     hyperformJsonContents.amazon.aws_secret_access_key = parsedCredentials.default.aws_secret_access_key
-    console.log(`Inferred AWS credentials from ${possibleCredentialsPath}`)
+    console.log(`Inferred [default] AWS credentials from ${possibleCredentialsPath}`)
   } else {
     console.log(`Could not guess AWS credentials. No AWS credentials file found in ${possibleCredentialsPath}`)
   }
@@ -166,7 +166,7 @@ function init(absdir) {
 
     const parsedConfig = parseAwsCredentialsOrConfigFile(configFileContents)
     hyperformJsonContents.amazon.aws_default_region = parsedConfig.default.region
-    console.log(`Inferred AWS region from ${possibleConfigPath}`)
+    console.log(`Inferred [default] AWS region from ${possibleConfigPath}`)
   } else {
     console.log(`Could not guess AWS region. No AWS config file found in ${possibleConfigPath}`) // TODO region will not be a single region, but smartly multiple ones (or?)
   }
@@ -176,17 +176,17 @@ function init(absdir) {
 
   if (typeof process.env.AWS_ACCESS_KEY_ID === 'string' && process.env.AWS_ACCESS_KEY_ID.trim().length > 0) {
     hyperformJsonContents.amazon.aws_access_key_id = process.env.AWS_ACCESS_KEY_ID.trim()
-    console.log('environment variable AWS_ACCESS_KEY_ID overriding credentials file')
+    console.log('Environment variable AWS_ACCESS_KEY_ID overriding value from credentials file')
   }
 
   if (typeof process.env.AWS_SECRET_ACCESS_KEY === 'string' && process.env.AWS_SECRET_ACCESS_KEY.trim().length > 0) {
     hyperformJsonContents.amazon.aws_secret_access_key = process.env.AWS_SECRET_ACCESS_KEY.trim()
-    console.log('environment variable AWS_SECRET_ACCESS_KEY overriding credentials file')
+    console.log('Environment variable AWS_SECRET_ACCESS_KEY overriding value from credentials file')
   }
 
   if (typeof process.env.AWS_DEFAULT_REGION === 'string' && process.env.AWS_DEFAULT_REGION.trim().length > 0) {
     hyperformJsonContents.amazon.aws_default_region = process.env.AWS_DEFAULT_REGION.trim()
-    console.log('environment variable AWS_DEFAULT_REGION overriding config file')
+    console.log('Environment variable AWS_DEFAULT_REGION overriding value from config file')
   }
 
   // write results to hyperform.json
