@@ -1,5 +1,7 @@
 const fs = require('fs')
 const util = require('util');
+const path = require('path')
+const os = require('os')
 const exec = util.promisify(require('child_process').exec);
 /**
  * 
@@ -7,12 +9,12 @@ const exec = util.promisify(require('child_process').exec);
  * @param {string} indexJsContents 
  */
 function setupMockJs(deployJsonContents, indexJsContents) {
-  const p = `/tmp/${Math.ceil(Math.random() * 100000 + 10000)}` // TODO lol
+  const p = path.join(os.tmpdir(), `${Math.ceil(Math.random() * 100000 + 10000)}`)
   fs.mkdirSync(p)
-  fs.writeFileSync(`${p}/deploy.json`, deployJsonContents)
-  fs.mkdirSync(`${p}/functions`)
-  fs.mkdirSync(`${p}/functions/testlambda1`)
-  fs.writeFileSync(`${p}/functions/testlambda1/index.js`, indexJsContents)
+  fs.writeFileSync(path.join(p, 'deploy.json'), deployJsonContents)
+  fs.mkdirSync(path.join(p, 'functions'))
+  fs.mkdirSync(path.join(p, 'functions', 'testlambda1'))
+  fs.writeFileSync(path.join(p, 'functions', 'testlambda1', 'index.js'), indexJsContents)
 
   return p;
 }

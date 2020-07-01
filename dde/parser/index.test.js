@@ -1,12 +1,13 @@
 const fs = require('fs')
 const path = require('path')
+const os = require('os')
 const validators = require('./index')._onlyfortesting_validators
 const { readparsevalidate } = require('./index')
 
 function setupMockJs(deployJsonContents) {
-  const p = `/tmp/${Math.ceil(Math.random() * 100000 + 10000)}` // TODO lol make unique, OS-safe
+  const p = path.join(os.tmpdir(), `${Math.ceil(Math.random() * 100000 + 10000)}`)
   fs.mkdirSync(p)
-  fs.writeFileSync(`${p}/deploy.json`, deployJsonContents)
+  fs.writeFileSync(path.join(p, 'deploy.json'), deployJsonContents)
 
   return p;
 }
