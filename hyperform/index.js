@@ -13,6 +13,7 @@ const { publishAmazon } = require('./publisher/amazon/index')
 const { deployGoogle } = require('./deployer/google/index')
 const { spinnies } = require('./printers/index')
 const { zip } = require('./zipper/index')
+const { getConstants } = require('./constants/index')
 
 function createAppendix(expectedToken) {
   return (`
@@ -137,39 +138,48 @@ async function getInfos(dir, fnregex) {
   return infos
 }
 
-async function amazonMain(info, bundledCode, bearerToken) {
+async function amazonMain(info, bundledCode, bearerToken, constants) {
   // Prepare uploadable
   const zipPath = await zip(bundledCode)
-
+  
   // for every named fn_ export, deploy the zip 
   // with correct handler
   const amazonEndpoints = await Promise.all(
-    info.exps.map(async (exp) => { // under same name
-      const amazonOptions = {
-        name: exp
+    info.exps.map(async (exp) => { 
+      const name = exp
+      const spinnieName = `amazon-${name}`
+      spinnies.add(spinnieName, {
+        text: `${chalk.rgb(20, 20, 20).bgWhite(' Amazon ')} ${name}`,
+      })
+
+      /// //////////////
+      // DEPLOY
+      /// //////////////
+
+      const amazonDeployOptions = {
+        name: name,
+        region: constants.amazon.region,
+      }
+      // deploy function
+      const amazonArn = await deployAmazon(zipPath, amazonDeployOptions)
+
+      /// //////////////
+      // PUBLISH
+      /// //////////////
+
+      const amazonPublishOptions = {
+        allowUnauthenticated: false, 
+        bearerToken: bearerToken,
+        region: constants.amazon.region,
       }
 
-      const spinnieName = `amazon-${amazonOptions.name}`
-
-      spinnies.add(spinnieName, {
-        text: `${chalk.rgb(20, 20, 20).bgWhite(' Amazon ')} ${amazonOptions.name}`,
-
-      })
-
-      // deploy function
-      const amazonArn = await deployAmazon(zipPath, amazonOptions)
-
-      // is public
-      // TODO split methods so no coincidental mixup of public and private
-      const amazonEndpoint = await publishAmazon(amazonArn, {
-        allowUnauthenticated: false,
-        bearerToken: bearerToken,
-      })
+      // TODO split methods so no coincidental mixup of public and private (?)
+      const amazonEndpoint = await publishAmazon(amazonArn, amazonPublishOptions)
 
       // TODO do somewhere else
       // TODO group by endpoint, not provider
       spinnies.succeed(spinnieName, {
-        text: `${chalk.rgb(20, 20, 20).bgWhite(' Amazon ')} ${amazonOptions.name} ${chalk.bold(amazonEndpoint)}`,
+        text: `${chalk.rgb(20, 20, 20).bgWhite(' Amazon ')} ${name} ${chalk.bold(amazonEndpoint)}`,
       })
 
       return amazonEndpoint
@@ -181,7 +191,7 @@ async function amazonMain(info, bundledCode, bearerToken) {
 
 /* Does not use bearerToken, it's already baked into bundledCode */
 
-async function googleMain(info, bundledCode, bearerToken) {
+async function googleMain(info, bundledCode, bearerToken, constants) {
   // Prepare uploadable
   const tmpdir = path.join(
     os.tmpdir(),
@@ -199,22 +209,23 @@ async function googleMain(info, bundledCode, bearerToken) {
   // with correct handler
   const googleEndpoints = await Promise.all(
     info.exps.map(async (exp) => { // under same name
-      const googleOptions = {
-        name: exp,
-        entrypoint: exp,
+      const name = exp 
+      const spinnieName = `google-${name}`
+      spinnies.add(spinnieName, {
+        text: `${chalk.rgb(20, 20, 20).bgWhite(' Google ')} ${name}`,
+      })
+      
+      /// //////////////
+      // DEPLOY
+      /// //////////////
+      const googleDeployOptions = {
+        name: name,
         stagebucket: 'jak-functions-stage-bucket',
       }
+      const googleEndpoint = await deployGoogle(tmpdir, googleDeployOptions)
 
-      const spinnieName = `google-${googleOptions.name}`
-    
-      spinnies.add(spinnieName, {
-        text: `${chalk.rgb(20, 20, 20).bgWhite(' Google ')} ${googleOptions.name}`,
-      })
-    
-      const googleEndpoint = await deployGoogle(tmpdir, googleOptions)
-    
       spinnies.succeed(spinnieName, {
-        text: `${chalk.rgb(20, 20, 20).bgWhite(' Google ')} ${googleOptions.name} ${chalk.bold(googleEndpoint)}`,
+        text: `${chalk.rgb(20, 20, 20).bgWhite(' Google ')} ${name} ${chalk.bold(googleEndpoint)}`,
       })
 
       return googleEndpoint
@@ -275,11 +286,12 @@ async function main(dir, fnregex) {
 
       // Deploy and publish
 
+      const constants = getConstants(dir)
       const [amazonEndpoints, googleEndpoints] = await Promise.all([
         /// ///////////////////
         // Amazon
         /// ///////////////////
-        amazonMain(info, bundledCode, bearerToken),
+        amazonMain(info, bundledCode, bearerToken, constants),
 
         /// ///////////////////
         // Google
@@ -287,9 +299,11 @@ async function main(dir, fnregex) {
 
         // NOTE for new functions add allUsers as invoker
         // Keep that for now so don't forget the CLI setInvoker thing may screw up --allow-unauthenticated
-        googleMain(info, bundledCode, bearerToken),
+        googleMain(info, bundledCode, bearerToken, constants),
       ])
-    
+      // TODO .catch here catches aamzonMain or GoogleMain throwing
+      // But seemingly does not propagate up to top-level boundary
+
       // just for tests
       return [...amazonEndpoints, ...googleEndpoints]
     }),
