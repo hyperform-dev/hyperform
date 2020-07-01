@@ -1,7 +1,10 @@
 ![Hyperform Banner](https://github.com/qngapparat/hyperform/blob/master/hyperform-banner.png)
 
 
-<p align="center">Lets you write unopinionated JavaScript that it can deploy to AWS Lambda or Google Cloud Functions with a click. Internally uses Webpack for bundling and transpilation.</div>
+<p align="center">A Delightful FaaS deployer<br>For AWS Lambda and Google Cloud Functions</div>
+
+
+`exports.endpointHi = () => ({ msg: "Hi" })`  👉 `$ hf deploy` 👉 `🟢 AWS Lambda endpointHi  https://ltlpjhayh9.execute-api.us-east-2.amazonaws.com # GET and POST-able`
 
 ## Install
 
