@@ -12,13 +12,12 @@ const { generateRandomBearerToken } = require('../../authorizer-gen/utils')
  */
 async function publishAmazon(lambdaArn, { allowUnauthenticated }) {
   // TODO do we need to publish 1 or N times for every lambda deploy?
-  if(allowUnauthenticated == null) {
-    throw new Error("PublishAmazon: specify second argument") // TODO HF programmer error, do not check for
+  if (allowUnauthenticated == null) {
+    throw new Error('PublishAmazon: specify second argument') // TODO HF programmer error, do not check for
   }
 
   const lambdaName = lambdaArn.split(':').slice(-1)[0]
   const apiName = `hyperform-${lambdaName}`
-
   
   let apiId 
   let apiUrl
@@ -27,30 +26,29 @@ async function publishAmazon(lambdaArn, { allowUnauthenticated }) {
     // Check if API with that name exists
     // Follows Hyperform conv: same name implies identical, for lambdas, and api endpoints etc
     const cmd1 = `aws apigatewayv2 get-apis --query 'Items[?Name==\`${apiName}\`]'`
-    const res = await exec(cmd1, { encoding: 'utf-8'})
+    const res = await exec(cmd1, { encoding: 'utf-8' })
     const stdout1 = res.stdout 
   
     // TODO one API, and these are routes? pros/cons
     const parsedStdout1 = JSON.parse(stdout1)
   
-    if(parsedStdout1.length > 0) {
+    if (parsedStdout1.length > 0) {
       // API with that name exists already
       // use that one
-      if(parsedStdout1.length !== 1) {
+      if (parsedStdout1.length !== 1) {
         throw new Error(`Hyperform convention: expect unique API for name ${apiName}, but found: ${parsedStdout1}`)
       }
       
       console.log(`Found api with name ${apiName}, reusing that`)
       apiId = parsedStdout1[0].ApiId 
       apiUrl = parsedStdout1[0].ApiEndpoint
-    } 
-    else {
+    } else {
       // API with that name does not exist yet
       // create one
       console.log(`No api with name ${apiName}, creating new one`)
       const cmd1 = `aws apigatewayv2 create-api --name ${apiName} --protocol-type HTTP --target ${lambdaArn}`
     
-      const res2 = await exec(cmd1, { encoding: 'utf-8'})
+      const res2 = await exec(cmd1, { encoding: 'utf-8' })
       const stdout2 = res2.stdout 
       const parsedStdout2 = JSON.parse(stdout2)
     
@@ -58,8 +56,6 @@ async function publishAmazon(lambdaArn, { allowUnauthenticated }) {
       apiId = parsedStdout2.ApiId
     }
   }
-
-
 
   // Add permission to that lambda to be accessed by API gateway
   // nice and easy now and has only to be done 1 (will throw on subsequent)
@@ -71,25 +67,24 @@ async function publishAmazon(lambdaArn, { allowUnauthenticated }) {
     try {
       await exec(cmd)
     //  console.log(`Authorized Gateway to access ${lambdaName}`)
-    } catch(e) {
+    } catch (e) {
       // means statement exists already - means API gateway is already auth to access that lambda
-     // console.log(`Probably already authorized to access ${lambdaName}`)
-     // surpress throw e
+      // console.log(`Probably already authorized to access ${lambdaName}`)
+      // surpress throw e
     }    
   }
-
   
-  if(allowUnauthenticated === true) {
+  if (allowUnauthenticated === true) {
     // do nothing
     // default is allow unauthenticated
     return {
       url: apiUrl, 
-      token: null
+      token: null,
     }
   }
   
   // Deploy Lambda authorizer and set it https://docs.aws.amazon.com/apigateway/latest/developerguide/apigateway-use-lambda-authorizer.html
-  if(allowUnauthenticated === false) {
+  if (allowUnauthenticated === false) {
     const authorizerName = `${lambdaName}-authorizer` // -v0
     // Generate Token that the authorizer will greenlight, and redlight everything else
     const randomBearerToken = generateRandomBearerToken()
@@ -100,13 +95,13 @@ async function publishAmazon(lambdaArn, { allowUnauthenticated }) {
 
     return {
       url: apiUrl,
-      token: randomBearerToken
+      token: randomBearerToken,
     }
   }
 
-  throw new Error("allowUnauthenticated must be true or false but is " + allowUnauthenticated)
+  throw new Error(`allowUnauthenticated must be true or false but is ${allowUnauthenticated}`)
 }
 
 module.exports = {
-  publishAmazon
+  publishAmazon,
 }

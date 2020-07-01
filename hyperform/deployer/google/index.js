@@ -15,19 +15,16 @@ const exec = util.promisify(require('child_process').exec);
  */
 
 function createDeployCommand(pathToCode, options) {
-
-
   let cmd = `gcloud functions deploy ${options.name} --region ${options.region} --trigger-http --runtime ${options.runtime} --entry-point ${options.entrypoint} --source ${pathToCode} --stage-bucket ${options.stagebucket} --allow-unauthenticated`
 
   if (options.timeout) cmd += ` --timeout ${options.timeout}`
   return cmd
-
 }
 
 function extractUrl(stdout) {
   let line = stdout.split('\n')
-    .filter(l => l && l.length > 0)
-    .filter(l => /url: /.test(l) === true)[0]
+    .filter((l) => l && l.length > 0)
+    .filter((l) => /url: /.test(l) === true)[0]
 
   line = line
     .replace('url:', '')
@@ -59,7 +56,7 @@ async function deployGoogle(pathToCode, options) {
     region: options.region || 'us-central1',
     runtime: options.runtime || 'nodejs12',
     entrypoint: options.entrypoint, // currently same as name 
-    stagebucket: options.stagebucket
+    stagebucket: options.stagebucket,
   }
 
   const uploadCmd = createDeployCommand(pathToCode, fulloptions)
@@ -69,15 +66,14 @@ async function deployGoogle(pathToCode, options) {
     // TODO get stdout, get link and display it
     const { stdout } = await exec(uploadCmd, { encoding: 'utf-8' })
     const url = extractUrl(stdout)
+    console.timeEnd(`Google-deploy-${fulloptions.name}`)
     return url
   } catch (e) {
     console.log(`Errored google deploy: ${e}`)
     throw e
   }
-  console.timeEnd(`Google-deploy-${fulloptions.name}`)
 }
 
 module.exports = {
-  deployGoogle
+  deployGoogle,
 }
-

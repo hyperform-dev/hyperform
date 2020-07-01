@@ -1,7 +1,5 @@
 const util = require('util');
 const exec = util.promisify(require('child_process').exec);
-
-const { generateRandomBearerToken } = require('./utils')
 const { deployAmazon } = require('../deployer/amazon')
 const { zip } = require('../zipper/index')
 
@@ -12,14 +10,13 @@ const { zip } = require('../zipper/index')
  * @returns {string} ARN of the created authorizer lambda
  */
 async function deployAuthorizer(authorizerName, expectedBearer) {
-
   // avoid accidentally empty bearer
   // Any request with 'Bearer' would be let through
-  if(!expectedBearer || !expectedBearer.trim()) {
-    throw new Error("deployAuthorizer: expectedBearer is required")
+  if (!expectedBearer || !expectedBearer.trim()) {
+    throw new Error('deployAuthorizer: expectedBearer is required')
   }
-                     // will mess up weird user-given Tokens but that's on the user
-                    // will lead to false negatives (still better than false positives or injections)
+  // will mess up weird user-given Tokens but that's on the user
+  // will lead to false negatives (still better than false positives or injections)
   const sanitizedExpectedBearer = encodeURI(expectedBearer)
 
   const authorizerCode = `
@@ -38,7 +35,7 @@ async function deployAuthorizer(authorizerName, expectedBearer) {
     name: authorizerName,
     role: 'arn:aws:iam::735406098573:role/lambdaexecute',
     timeout: 1, // 1 second is ample time
-    handler: 'index.handler'
+    handler: 'index.handler',
   }
   const authorizerArn = await deployAmazon(zipPath, deployOptions)
 
@@ -49,11 +46,11 @@ async function deployAuthorizer(authorizerName, expectedBearer) {
     await exec(cmd2)
     console.log(`allowed Lambda ${authorizerName} to be accessed by API gateway`)
   //  console.log(`Authorized Gateway to access ${lambdaName}`)
-  } catch(e) {
+  } catch (e) {
     // means statement exists already - means API gateway is already auth to access that lambda
-   // console.log(`Probably already authorized to access ${lambdaName}`)
-   // surpress throw e
-   console.log(`Lambda ${authorizerName} probably can already be accessed by API gateway`)
+    // console.log(`Probably already authorized to access ${lambdaName}`)
+    // surpress throw e
+    console.log(`Lambda ${authorizerName} probably can already be accessed by API gateway`)
   }
   return authorizerArn
 }
@@ -69,17 +66,15 @@ async function getRouteId(apiId, routeKey) {
 
   // aws apigatewayv2 get-routes --api-id 606g79p3j7 --query 'Items[?RouteKey==`$default`]'
 
-
-  const { stdout } = await exec(cmd, { encoding: 'utf-8'})
+  const { stdout } = await exec(cmd, { encoding: 'utf-8' })
   const parsedStdout = JSON.parse(stdout)
 
-  if(parsedStdout.length !== 1) {
+  if (parsedStdout.length !== 1) {
     throw new Error(`Could not get route id of apiId, routeKey ${apiId}, ${routeKey}: ${parsedStdout}`)
   }
   const routeId = parsedStdout[0].RouteId
   return routeId
 }
-
 
 /**
  * 
@@ -88,7 +83,6 @@ async function getRouteId(apiId, routeKey) {
  * @returns {void}
  */
 async function setAuthorizer(apiId, authorizerArn) {
-
   const authorizerName = authorizerArn.split(':').slice(-1)[0]
   const authorizerType = 'REQUEST'
   const identitySource = '$request.header.Authorization'
@@ -97,25 +91,25 @@ async function setAuthorizer(apiId, authorizerArn) {
 
   // Try to create authorizer for that API
   // succeeds => Authorizer with that name did not exist yet. Use that authorizerId going forward
-  // Fails => Authorizer already existed with that name. Get that one's authorizerId (Follow Hyperform conv: same name - assume identical)
+  // Fails => Authorizer already existed with that name. 
+  // Get that one's authorizerId (Follow Hyperform conv: same name - assume identical)
 
   const cmd = `aws apigatewayv2 create-authorizer --api-id ${apiId} --name ${authorizerName} --authorizer-type ${authorizerType} --identity-source '${identitySource}' --authorizer-uri ${authorizerUri} --authorizer-payload-format-version 2.0 --enable-simple-responses`
   let authorizerId 
 
   try {
     // Try to create authorizer
-    const  { stdout } = await exec(cmd, { encoding: 'utf-8'})
+    const { stdout } = await exec(cmd, { encoding: 'utf-8' })
     console.log(`Newly created Authorizer from Lambda ${authorizerName}`)
     console.log(stdout)
     const parsedStdout = JSON.parse(stdout)
     authorizerId = parsedStdout.AuthorizerId
-
-  } catch(e) {
+  } catch (e) {
     // authorizer already exists
     // obtain its id
     console.log(`Reusing existing authorizer ${authorizerName}`)
     const cmd2 = `aws apigatewayv2 get-authorizers --api-id ${apiId} --query 'Items[?Name==\`${authorizerName}\`]'`
-    const { stdout } = await exec(cmd2, { encoding: 'utf-8'})
+    const { stdout } = await exec(cmd2, { encoding: 'utf-8' })
     const parsedStdout = JSON.parse(stdout)
     authorizerId = parsedStdout[0].AuthorizerId
   }
@@ -124,14 +118,13 @@ async function setAuthorizer(apiId, authorizerArn) {
   // attach authorizer (may be already attached if entered catch but alas)
   const routeId = await getRouteId(apiId, routeKey)
   const cmd3 = `aws apigatewayv2 update-route --api-id ${apiId} --route-id ${routeId} --authorization-type CUSTOM --authorizer-id ${authorizerId} `
-  const { stdout } = await exec(cmd3, { encoding: 'utf-8'})
+  const { stdout } = await exec(cmd3, { encoding: 'utf-8' })
   console.log(`Attached authorizer to ${routeKey}`)
-   
 }
 
 // TODO set authorizer cache ??
 
 module.exports = {
   deployAuthorizer,
-  setAuthorizer
+  setAuthorizer,
 }

@@ -1,15 +1,15 @@
+const uuidv4 = require('uuid').v4
+const path = require('path')
+const os = require('os')
+const fsp = require('fs').promises
+const chalk = require('chalk')
 const { bundle } = require('./bundler/index')
 const { getJsFilepaths, getNamedExports } = require('./discoverer/index')
 const { deployAmazon } = require('./deployer/amazon/index')
 const { publishAmazon } = require('./publisher/amazon/index')
 const { deployGoogle } = require('./deployer/google/index')
-const uuidv4 = require('uuid').v4
-const path = require('path')
-const os = require('os')
-const fsp = require('fs').promises
 const { spinnies } = require('./printers/index')
 const { zip } = require('./zipper/index')
-const chalk = require('chalk')
 
 // in lambda : export normally, but wrap in context.succeed (idempotent)
 // in local: export normally
@@ -87,17 +87,14 @@ const appendix = `
 
 `
 
-
 /**
  * 
  * @param {string} dir 
  * @param {Regex} fnregex 
  */
 async function main(dir, fnregex) {
-
   // Top-level error boundary
   try {
-    
     // [ { p: /home/file.js, exps: ['fn_1', 'fn_2'] }, ... ]
     const infos = (await getJsFilepaths(dir))
       .map((p) => ({
@@ -127,9 +124,9 @@ async function main(dir, fnregex) {
       // add module append
       bundledCode += appendix
   
-      //////////////////////
+      /// ///////////////////
       // Amazon
-      //////////////////////
+      /// ///////////////////
       {
         // zip it
         const zipPath = await zip(bundledCode)
@@ -138,44 +135,43 @@ async function main(dir, fnregex) {
         // with correct handler
         await Promise.all(
           info.exps.map(async (exp) => { // under same name
-  
             const amazonOptions = {
               name: exp,
-             // handler is always the same
-              role: 'arn:aws:iam::735406098573:role/lambdaexecute'
+              // handler is always the same
+              role: 'arn:aws:iam::735406098573:role/lambdaexecute',
             }
   
-         //   console.log(`Amazon: Deploying ${zipPath} as ${amazonOptions.name}`)
+            //   console.log(`Amazon: Deploying ${zipPath} as ${amazonOptions.name}`)
             spinnies.add(amazonOptions.name, { 
-              text: `${chalk.rgb(20, 20, 20).bgWhite(` Amazon `)} ${amazonOptions.name}`
+              text: `${chalk.rgb(20, 20, 20).bgWhite(' Amazon ')} ${amazonOptions.name}`,
             
             })
   
             // deploy function
             const amazonArn = await deployAmazon(zipPath, amazonOptions)
-                                                               // is public
-                                                               // TODO split methods so no coincidental mixup of public and private
-            const { url, token }  = await publishAmazon(amazonArn, {
-              allowUnauthenticated: false
+            // is public
+            // TODO split methods so no coincidental mixup of public and private
+            const { url, token } = await publishAmazon(amazonArn, {
+              allowUnauthenticated: false,
             })
 
-            console.log("Token that will be needed: " + token)
+            console.log(`Token that will be needed: ${token}`)
             spinnies.succeed(amazonOptions.name, { 
-              text: `${chalk.rgb(20, 20, 20).bgWhite(` Amazon `)} ${chalk.bold(url)}`
+              text: `${chalk.rgb(20, 20, 20).bgWhite(' Amazon ')} ${chalk.bold(url)}`,
             })
           }),
         )
       }
   
-      //////////////////////
+      /// ///////////////////
       // Google
-      //////////////////////
+      /// ///////////////////
   
       {
         // create temporary directory
         const tmpdir = path.join(
           os.tmpdir(),
-          uuidv4()
+          uuidv4(),
         )
   
         await fsp.mkdir(tmpdir)
@@ -184,47 +180,39 @@ async function main(dir, fnregex) {
         await fsp.writeFile(
           path.join(tmpdir, 'index.js'),
           bundledCode,
-          { encoding: 'utf-8' }
+          { encoding: 'utf-8' },
         )
   
         // for every named fn_ export, deploy the folder 
         // with correct handler
         await Promise.all(
           info.exps.map(async (exp) => { // under same name
-  
             const googleOptions = {
               name: exp,
               entrypoint: exp,
-              stagebucket: 'jak-functions-stage-bucket'
+              stagebucket: 'jak-functions-stage-bucket',
             }
-  
       
             spinnies.add(googleOptions.name, { 
-              text: `${chalk.rgb(20, 20, 20).bgWhite(` Google `)} ${googleOptions.name}`
+              text: `${chalk.rgb(20, 20, 20).bgWhite(' Google ')} ${googleOptions.name}`,
             })
             
             const googleEndpoint = await deployGoogle(tmpdir, googleOptions)
   
             spinnies.succeed(googleOptions.name, { 
-              text: `${chalk.rgb(20, 20, 20).bgWhite(` Google `)} ${chalk.bold(googleEndpoint)}`
+              text: `${chalk.rgb(20, 20, 20).bgWhite(' Google ')} ${chalk.bold(googleEndpoint)}`,
             })
             // TODO delete file & tmpdir
-  
-  
-  
-          })
+          }),
         )
       }
-  
     })
-  } catch(e){
+  } catch (e) {
     console.error(e)
     process.exit(1) // stop spinnies etc
   }
-
 }
 
-
 module.exports = {
-  main
+  main,
 }

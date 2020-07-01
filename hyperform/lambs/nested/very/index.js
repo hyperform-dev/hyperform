@@ -1,9 +1,7 @@
-function endpoint_hellotwo(input) {
-  console.log("hello")
-  console.log("input: ", input)
-  return { a: 1 }
+function endpoint_oho(input) {
+  return { msg: 'oho2 my friend' }
 }
 
 module.exports = {
-  endpoint_hellotwo
+  endpoint_oho,
 }

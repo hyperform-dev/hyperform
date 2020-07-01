@@ -7,5 +7,5 @@ function generateRandomBearerToken() {
 }
 
 module.exports = {
-  generateRandomBearerToken
+  generateRandomBearerToken,
 }

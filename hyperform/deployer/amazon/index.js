@@ -1,10 +1,5 @@
 const util = require('util');
 const exec = util.promisify(require('child_process').exec);
-const aws = require('aws-sdk')
-const { generateRandomBearerToken } = require('../../authorizer-gen/utils')
-const apigatewayv2 = new aws.ApiGatewayV2({
-  region: 'us-east-2'
-})
 
 /**
  * 
@@ -51,7 +46,6 @@ function extractArn(stdout) {
   return arn
 }
 
-
 /**
  * 
  * @param {*} pathToZip 
@@ -65,21 +59,20 @@ function extractArn(stdout) {
  * }} options 
  * @returns {string} The Lambda ARN
 
-
  */
 async function deployAmazon(pathToZip, options) {
-  if(!options.name || !options.role) {
+  if (!options.name || !options.role) {
     throw new Error(`name, and role must be specified, but they are ${options.name}, ${options.role}`)
   }
   
   const fulloptions = {
-    name:          options.name,
-    runtime:                              'nodejs12.x',
-    timeout:       options.timeout     || 60, // also prevents 0
-    'memory-size': options.ram         || 128,
-    handler:       options.handler     || `index.${options.name}`,
-    role:          options.role, // || 'arn:aws:iam::735406098573:role/lambdaexecute',
-    region:        options.region      || 'us-east-2',
+    name: options.name,
+    runtime: 'nodejs12.x',
+    timeout: options.timeout || 60, // also prevents 0
+    'memory-size': options.ram || 128,
+    handler: options.handler || `index.${options.name}`,
+    role: options.role, // || 'arn:aws:iam::735406098573:role/lambdaexecute',
+    region: options.region || 'us-east-2',
   }
 
   // spinnies.add(options.path, { text: `Deploying ${options.name} in ${options.language}` })
@@ -105,7 +98,6 @@ async function deployAmazon(pathToZip, options) {
   console.timeEnd(`Amazon-deploy-${options.name}`)
 
   return arn
-  
 }
 
 module.exports = {

@@ -51,7 +51,7 @@ function getNamedExports(filepath) {
     const namedexpkeys = Object.keys(imp)
     return namedexpkeys
   } catch (e) {
-    console.log(`Could not determine named exports of ${filepath}. Ignoring it. ` + e)
+    console.log(`Could not determine named exports of ${filepath}. Ignoring it. ${e}`)
     // if js file isn't parseable, top level code throws, etc
     // say that it does not have named exports
     return []

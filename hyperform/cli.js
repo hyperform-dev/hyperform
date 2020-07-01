@@ -1,6 +1,6 @@
 #!/usr/bin/env node
-const { main } = require('./index')
 const path = require('path')
+const { main } = require('./index')
 
 if (process.argv.length !== 3) {
   console.log(`Usage: 
@@ -12,11 +12,10 @@ if (process.argv.length !== 3) {
 console.time = () => { }
 console.timeEnd = () => { }
 
-
 const dir = process.argv[2]
 const absdir = path.resolve(
   process.cwd(),
-  dir
+  dir,
 )
 const fnregex = /^endpoint_/
 
