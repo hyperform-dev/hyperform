@@ -246,6 +246,10 @@ async function googleMain(info, bundledCode, bearerToken, parsedHyperformJson) {
 async function main(dir, fnregex, parsedHyperformJson) {
   const infos = await getInfos(dir, fnregex)
 
+  if (infos.length === 0) {
+    console.log(`No exports found matching ${fnregex}`)
+    return 
+  }
   /*
           [
             {
