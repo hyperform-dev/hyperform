@@ -18,9 +18,8 @@ const exec = util.promisify(require('child_process').exec);
 function createDeployCommand(pathToCode, options) {
 
 
-  let cmd  = `gcloud functions deploy ${options.name} --region ${options.region} --trigger-http --runtime ${options.runtime} --entry-point ${options.entrypoint} --source ${pathToCode} --stage-bucket ${options.stagebucket} --allow-unauthenticated
-  `
-
+  let cmd  = `gcloud functions deploy ${options.name} --region ${options.region} --trigger-http --runtime ${options.runtime} --entry-point ${options.entrypoint} --source ${pathToCode} --stage-bucket ${options.stagebucket} --allow-unauthenticated`
+  
   if(options.timeout) cmd += ` --timeout ${options.timeout}`
   return cmd
 

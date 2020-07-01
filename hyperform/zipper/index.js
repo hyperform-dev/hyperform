@@ -22,11 +22,9 @@ async function zip(code) {
 
   // set up stream
   const s = new Readable();
-  s._read = () => {}; // redundant? see update below
+  s._read = () => {};
   s.push(code);
   s.push(null);
-  // It's a transform stream, so you can pipe to it
-  // zipfile.addReadStream(s, 'index.js')
   
   zipfile.outputStream.pipe(fs.createWriteStream(outpath))
   // In zip, set last-modified header to 01-01-2020
@@ -34,8 +32,8 @@ async function zip(code) {
   // that way we can skip uploading zips that haven't changed
   const options = {
     mtime: new Date(1577836),
-    // note: spare seting unix permissions with mode:
-    // indicates a different PC and does not hurt actually redeploy 
+    // note: spare setting unix permissions with mode:
+    // indicates a different PC and does not hurt to actually redeploy 
   }
 
   zipfile.addReadStream(s, 'index.js', options); // place code in index.js inside zip

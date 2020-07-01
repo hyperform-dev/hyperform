@@ -1,7 +1,5 @@
-/* eslint-disable global-require, import/no-dynamic-require */
-
 const { bundle } = require('./bundler/index')
-const { getFilePaths, getNamedExports } = require('./discoverer/index')
+const { getJsFilepaths, getNamedExports } = require('./discoverer/index')
 const { deployAmazon } = require('./deployer/amazon/index')
 const { deployGoogle } = require('./deployer/google/index')
 const uuidv4 = require('uuid').v4
@@ -10,7 +8,6 @@ const os = require('os')
 const fsp = require('fs').promises
 
 const { zip } = require('./zipper/index')
-const amazon = require('./deployer/amazon/index')
 
 // in lambda : export normally, but wrap in context.succeed (idempotent)
 // in local: export normally
@@ -84,10 +81,14 @@ const appendix = `
 `
 
 
-
+/**
+ * 
+ * @param {string} dir 
+ * @param {Regex} fnregex 
+ */
 async function main(dir, fnregex) {
   // [ { p: /home/file.js, exps: ['fn_1', 'fn_2'] }, ... ]
-  const infos = (await getFilePaths(dir, 'js'))
+  const infos = (await getJsFilepaths(dir))
     .map((p) => ({
       p: p,
       exps: getNamedExports(p),
@@ -182,4 +183,7 @@ async function main(dir, fnregex) {
   })
 }
 
-main('/home/qng/cloudkernel/hyperform/lambs', /^endpoint_/)
+
+module.exports = {
+  main
+}

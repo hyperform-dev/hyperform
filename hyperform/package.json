@@ -4,10 +4,10 @@
   "description": "",
   "main": "index.js",
   "bin": {
-    "recruiter": "./cli.js"
+    "hyperform": "./cli.js"
   },
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
+    "test": "jest",
     "lint": "eslint",
     "lintfix": "eslint --fix"
   },
@@ -15,10 +15,8 @@
   "license": "ISC",
   "dependencies": {
     "aws-sdk": "^2.792.0",
-    "chalk": "^4.1.0",
     "findit": "^2.0.0",
     "spinnies": "^0.5.1",
-    "terser": "^5.5.1",
     "uuid": "^8.3.2",
     "webpack": "^5.4.0",
     "yazl": "^2.5.1"
@@ -27,6 +25,12 @@
     "eslint": "^7.15.0",
     "eslint-config-airbnb-base": "^14.2.1",
     "eslint-plugin-import": "^2.22.1",
+    "husky": "^4.3.6",
     "webpack-cli": "^4.2.0"
+  },
+  "husky": {
+    "hooks": {
+      "pre-push": "npm run test"
+    }
   }
 }

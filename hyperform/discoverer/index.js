@@ -6,46 +6,37 @@ const BLACKLIST = [
   'node_modules',
 ]
 
-const filepathgetters = {
-  js: function (dir) {
-    // NodeJS 12+
-    if (path.isAbsolute(dir) === false) {
-      throw new Error('getFilePaths: given root must be absolute')
-    }
-    return new Promise((resolve, reject) => {
-      const fnames = []
-      const finder = findit(dir)
-    
-      finder.on('directory', (_dir, stat, stop) => {
-        const base = path.basename(_dir);
-        if (BLACKLIST.includes(base)) {
-          stop()
-        }
-      });
-    
-      finder.on('file', (file, stat) => {
-        // only return .js files
-        if (/.js$/.test(file) === true) {
-          fnames.push(file)
-        }
-      });
-    
-      finder.on('end', () => {
-        resolve(fnames)
-      })
-    
-      finder.on('error', (err) => {
-        reject(err)
-      })
-    })
-  },
-}
-
-function getFilePaths(root, lang) {
-  if (lang !== 'js') {
-    throw new Error(`UNIMPLEMENTED: getFilePaths for ${lang}`)
+function getJsFilepaths(dir) {
+  if (path.isAbsolute(dir) === false) {
+    throw new Error('getJsFilepaths: given dir must be absolute')
   }
-  return filepathgetters[lang](root)
+
+  return new Promise((resolve, reject) => {
+    const fnames = []
+    const finder = findit(dir)
+  
+    finder.on('directory', (_dir, stat, stop) => {
+      const base = path.basename(_dir);
+      if (BLACKLIST.includes(base)) {
+        stop()
+      }
+    });
+  
+    finder.on('file', (file, stat) => {
+      // only return .js files
+      if (/.js$/.test(file) === true) {
+        fnames.push(file)
+      }
+    });
+  
+    finder.on('end', () => {
+      resolve(fnames)
+    })
+  
+    finder.on('error', (err) => {
+      reject(err)
+    })
+  })
 }
 
 function getNamedExports(filepath) {
@@ -68,6 +59,6 @@ function getNamedExports(filepath) {
 }
 
 module.exports = {
-  getFilePaths,
+  getJsFilepaths,
   getNamedExports,
 }
