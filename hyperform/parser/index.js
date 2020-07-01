@@ -4,18 +4,21 @@ const path = require('path')
 const fs = require('fs')
 const schema = require('../schemas/index').hyperformJsonSchema
 
-let constants 
+let parsedHyperformJson 
 
 /**
+ * @description Returns the parsed contents of "dir"/hyperform.json
+ * @param {string} dir Directory where to look for hyperform.json
+ * @returns {*} Parsed contents of "dir"/hyperform.json
+ * @throws ENOENT if could not open hyperform.json, SyntaxError if it contains invalid JSON
  * 
- * @param {string} dir Dir to look for hyperform.json
  */
-function getConstants(dir) {
+function getParsedHyperformJson(dir) {
   if (dir == null) {
     throw new Error(`dir must be defined but is ${dir}`) // HF programmer mistake
   }
   
-  if (constants == null) {
+  if (parsedHyperformJson == null) {
     const fp = path.join(dir, 'hyperform.json')
     let json = fs.readFileSync(fp, { encoding: 'utf-8' })
     // parse it as JSON
@@ -25,12 +28,12 @@ function getConstants(dir) {
     if (error) {
       throw new Error(`${error} ${value}`)
     }
-    constants = json 
+    parsedHyperformJson = json 
   }
 
-  return constants
+  return parsedHyperformJson
 }
 
 module.exports = {
-  getConstants,
+  getParsedHyperformJson,
 }
