@@ -7,10 +7,13 @@ const { zip } = require('../zipper/index')
  * @description Deploys Authorizer lambda that greenlights requests with given expectedBearer token
  * @param {string} authorizerName For example 'myfn-authorizer'
  * @param {string} expectedBearer The 'Authorization': 'Bearer ...' token the Authorizer will accept
- * @param {string} region Desired region of the authorizer lambda
+ * @param {{region: string}} options 
  * @returns {Promise<string>} ARN of the deployed authorizer lambda
  */
-async function deployAuthorizer(authorizerName, expectedBearer, region) {
+async function deployAuthorizer(authorizerName, expectedBearer, options) {
+  if (options == null || options.region == null) { 
+    throw new Error('optionsregion is required') // TODO HF programmer mistake
+  }
   // avoid accidentally empty bearer et cetera
   if (!expectedBearer || !expectedBearer.trim()) {
     throw new Error('deployAuthorizer: expectedBearer is required')
@@ -40,7 +43,7 @@ async function deployAuthorizer(authorizerName, expectedBearer, region) {
     name: authorizerName,
     timeout: 1, // 1 second is ample time
     handler: 'index.handler',
-    region: region, // if not defined, it will use default TODO throw on not defined
+    region: options.region,  
   }
   const authorizerArn = await deployAmazon(zipPath, deployOptions)
 
@@ -134,7 +137,7 @@ async function setAuthorizer(apiId, authorizerArn) {
   // attach authorizer (may be already attached if entered catch but alas)
   const routeId = await getRouteId(apiId, routeKey)
   const cmd3 = `aws apigatewayv2 update-route --api-id ${apiId} --route-id ${routeId} --authorization-type CUSTOM --authorizer-id ${authorizerId} `
-  const { stdout } = await exec(cmd3, { encoding: 'utf-8' })
+  await exec(cmd3, { encoding: 'utf-8' })
   // attached authorizer Lambda to routeId
 }
 

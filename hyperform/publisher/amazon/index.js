@@ -62,10 +62,10 @@ async function createApi(apiName, targetlambdaArn) {
  * HTTP endpoint will return 403 or 401,
  * unless the HTTP headers contain 'Authorization: Bearer "bearerToken"'
  * @param {string} lambdaArn 
- * @param {{ allowUnauthenticated: boolean, bearerToken?: string }} param1 
+ * @param {{ region: string, allowUnauthenticated: boolean, bearerToken?: string }} options 
  * @returns {Promise<string>} HTTP endpoint URL of the Lambda
  */
-async function publishAmazon(lambdaArn, { allowUnauthenticated, bearerToken }) {
+async function publishAmazon(lambdaArn, { allowUnauthenticated, bearerToken, region }) {
   // TODO do we need to publish 1 or N times for every lambda deploy?
   if (typeof allowUnauthenticated !== 'boolean') throw new Error(`PublishAmazon: allowUnauthenticated must be true|false but is ${allowUnauthenticated}`) // TODO HF programmer error, do not check for
   if (allowUnauthenticated === false && bearerToken == null) throw new Error(`PublishAmazon: allowUnauthenticated is false but bearerToken is not specified: ${bearerToken}`)
@@ -119,7 +119,10 @@ async function publishAmazon(lambdaArn, { allowUnauthenticated, bearerToken }) {
   if (allowUnauthenticated === false) {
     const authorizerName = `${lambdaName}-authorizer` // -v0
     // create authorizer lambda
-    const authorizerArn = await deployAuthorizer(authorizerName, bearerToken)
+    const authorizerOptions = { 
+      region: region,
+    }
+    const authorizerArn = await deployAuthorizer(authorizerName, bearerToken, authorizerOptions)
     // set authorizer
     await setAuthorizer(apiId, authorizerArn)
 
