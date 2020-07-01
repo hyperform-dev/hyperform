@@ -23,6 +23,7 @@
         "no-else-return": "off",
         "camelcase": "off",
         "no-restricted-syntax": "warn",
-        "prefer-destructuring": "warn"   
+        "prefer-destructuring": "warn",
+        "no-continue": "warn"   
     }
 }
