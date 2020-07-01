@@ -7,8 +7,7 @@ const envoys = [
 ]
 
 /**
- *
- * @param {T} name 
+ * @param {*} name 
  * @param {*} input 
  */
 function envoy(name, input) {

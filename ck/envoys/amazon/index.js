@@ -10,13 +10,7 @@ const amazonEnvoy = {
   },
   envoy: function (name, input) {
     console.log(`Using Amazon envoy for ${name}`)
-    let jsonInput
-    try {
-      jsonInput = JSON.stringify(input)
-    } catch (e) {
-      console.log(`Could not JSON stringify function input: ${input}`)
-    }
-
+    const jsonInput = JSON.stringify(input)
     return (
       lambda.invoke({
         FunctionName: name,

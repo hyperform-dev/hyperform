@@ -1,7 +1,7 @@
 [
   {
     "forEachIn": "./lamb",
-    "do": "sleep 2; npm install; zip -r deploypackage.zip .",
+    "do": "sleep 2; zip -r deploypackage.zip .",
     "upload": "./deploypackage.zip",
     "config": {
       "amazon": {

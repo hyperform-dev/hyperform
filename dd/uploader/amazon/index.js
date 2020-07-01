@@ -66,6 +66,7 @@ async function runUploadAmazon(task, name, pathOfUploadable, path) {
     // TODO could be dangerous .. 
     // only do if "do" was specified?
     // user may point to irreplacable jar lol
+    // conserative solution: check if it existed before do, if not delete it afterwards
     await fsp.unlink(pathOfUploadable)
     console.log(`Cleaned up ${pathOfUploadable}`)
   } catch (e) {

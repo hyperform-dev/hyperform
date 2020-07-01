@@ -1,6 +1,7 @@
 const fs = require('fs')
 const joi = require('joi')
 const fsp = require('fs').promises
+const uuidv4 = require('uuid').v4 
 
 const readers = {
   'flow.json': (path) => {
@@ -35,6 +36,18 @@ const validators = {
   },
 }
 
+const enrichers = {
+  
+  // 'flow.json': (obj) => {
+  //   // TODO only supports sequence
+  //   const enrichedobj = { ...obj }
+  //   enrichedobj[0]
+  //   for (let i = 0; i < obj.length; i += 1) {
+  //     enrichedobj
+  //   }
+  // },
+}
+
 /**
  * 
  * @param {{presetName: string, path: string}} options 
@@ -58,7 +71,13 @@ async function readparsevalidate(options) {
   const parsed = await parsers[options.presetName](read)
   const validated = await validators[options.presetName](parsed)
 
-  return parsed
+  // enriching is optional  step
+  if (validators[options.presetName]) {
+    const enriched = await enrichers[options.presetName](parsed)
+    return enriched
+  } else {
+    return parsed
+  }
 }
 
 module.exports = { 
