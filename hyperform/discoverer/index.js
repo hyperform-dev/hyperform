@@ -7,20 +7,15 @@ const BLACKLIST = [
 ]
 
 /**
- * @description Searches "dir" and its subdirectories for files ending with .js
- * @param {string} dir 
- * @returns {Promise<string[]>} Paths to files ending with .js
+ * @description Searches "absdir" and its subdirectories for .js files
+ * @param {string} absdir An absolute path to a directory
+ * @returns {Promise<string[]>} Array of absolute file paths to .js files
  */
 // TODO do not follow symlinks (or do?)
-function getJsFilepaths(dir) {
-  // NODEJS 12 needed? TODO replace / dont do at all
-  if (path.isAbsolute(dir) === false) {
-    throw new Error('getJsFilepaths: given dir must be absolute')
-  }
-
+function getJsFilepaths(absdir) {
   return new Promise((resolve, reject) => {
     const fnames = []
-    const finder = findit(dir)
+    const finder = findit(absdir)
   
     finder.on('directory', (_dir, stat, stop) => {
       const base = path.basename(_dir);
