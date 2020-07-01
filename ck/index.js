@@ -2,6 +2,7 @@ const arg = require('arg')
 const path = require('path')
 const { readparsevalidate } = require('./parsers/index')
 const { envoy } = require('./envoys/index')
+const { Stash } = require('./stashes')
 /**
  * 
  * @returns { mode: 'init'|'deploy', root: String}
@@ -33,22 +34,27 @@ async function main() {
       path: path.join(args.root, 'flow.json'),
     })
 
-    // "stack"
-    let inp = { num: 1 }
+    const stash = new Stash()
+    stash.put('__workflow_in', { num: 1 })
 
     const sequence = parsedFlowJson
 
+    // EE LOOP
     // Currently only supports sequence of "run"-s
     for (let i = 0; i < parsedFlowJson.length; i += 1) {
-      const atomicfn = sequence[i]
-      console.log(inp)
-      const res = await envoy(atomicfn.run, inp)
-      console.log(res)
-      // function output is next function's input
-      inp = res
+      const fnDetails = sequence[i]
+      const input = stash.get(fnDetails.in)
+      console.log(input)
+      console.log(typeof input)
+      const output = await envoy(fnDetails.run, input)
+      console.log(output)
+      console.log(typeof output)
+
+      // function output is next function's input (use fn name ('run' field) as identifier)
+      stash.put(fnDetails.run, output)
     }
 
-    console.log(`FINISHED; result: ${JSON.stringify(inp)}`)
+    console.log(`FINISHED; result: ${JSON.stringify(stash.getall())}`)
   } catch (e) {
     console.log(e)
     process.exit(1)
