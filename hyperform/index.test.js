@@ -9,10 +9,6 @@ const os = require('os')
 const path = require('path')
 const fsp = require('fs').promises
 const fetch = require('node-fetch')
-const dotenv = require('dotenv')
-
-// read .env file into process.env (used below)
-dotenv.config()
 
 // allow 2 minutes
 const TIMEOUT = 2 * 60 * 1000
