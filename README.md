@@ -1,7 +1,7 @@
 ![Hyperform Banner](https://github.com/qngapparat/hyperform/blob/master/hyperform-banner.png)
 
 
-<p align="center">Unopinionated JavaScript => AWS Lambda, Google Cloud Functions</div>
+<p align="center">Lets you write unopinionated JavaScript that it can deploy to AWS Lambda or Google Cloud Functions with a click. Internally uses Webpack for bundling and transpilation.</div>
 
 ## Install
 
@@ -24,8 +24,9 @@ function echo(input) {
   }
 }
 
+// Hyperform looks for CommonJS exports that match '*endpoint*'
 module.exports = {
-  endpointEcho: echo // Hyperform looks for exports that match '*endpoint*'
+  endpointEcho: echo 
 }
 ```
 
@@ -42,8 +43,8 @@ $ hf init
 
 ```sh 
 $ hf deploy                                 # GET and POST-able
-✓  AWS Lambda                endpointEcho   https://ltlpjhayh9.execute-api.us-east-2.amazonaws.com
-✓  Google Cloud Functions    endpointEcho   https://us-central1-firstnodefunc.cloudfunctions.net/endpointEcho
+✓  AWS Lambda              endpointEcho   https://ltlpjhayh9.execute-api.us-east-2.amazonaws.com
+✓  Google Cloud Functions  endpointEcho   https://us-central1-myproj.cloudfunctions.net/endpointEcho
 ```
 
 #### Invoke 
@@ -54,7 +55,7 @@ $ hf deploy                                 # GET and POST-able
 # GET #
 #######
 
-$ curl https://us-central1-firstnodefunc.cloudfunctions.net/endpointEcho?a=1
+$ curl https://us-central1-myproj.cloudfunctions.net/endpointEcho?a=1
 > {"Hi from AWS Lambda or Google Cloud Functions!
       GET or POST body received: {\"a\":1}}"
 
@@ -66,7 +67,7 @@ $ curl \
   -X POST \
   -H "Content-Type: application/json" \ 
   -d '{"a":1}' \
-  https://us-central1-firstnodefunc.cloudfunctions.net/endpointEcho
+  https://us-central1-myproj.cloudfunctions.net/endpointEcho
 > {"Hi from AWS Lambda or Google Cloud Functions!
       GET or POST body received: {\"a\":1}}"
 ```
@@ -76,7 +77,7 @@ $ curl \
 * Hyperform deploys CommonJS exports named `*endpoint*` as functions to AWS Lambda or Google Cloud
 * Import anything. Webpack is used to bundle all dependencies.
 * Export anywhere. Your endpoints can be spread over multiple files.
-* Included per default: 'aws-sdk' and '@google/'.
+* Included per default: `aws-sdk` and `@google/`.
 * Your endpoints will receive one object: the parsed POST JSON body, or the parsed GET query string (or `{}`).
 
 
@@ -88,11 +89,6 @@ $ curl \
 const AWS = require('aws-sdk')
 const s3 = new AWS.S3()
 const bucket = 'my-todo-s3-bucket'
-
-/**
- * Endpoints should be exported using 'exports' or 'module.exports' (CommonJS)
- * Add 'endpoint' into their name.
-*/
 
 exports.endpoint_addTodo = async ({ id, text }) => {
   const todo = {
