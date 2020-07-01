@@ -1,6 +1,7 @@
 const fs = require('fs')
 const path = require('path')
 const os = require('os')
+const { log } = require('../printers/index')
 
 /**
  * @description Extracts the [default] section of an AWS .aws/config or .aws/credentials file
@@ -96,7 +97,7 @@ function parseAwsCredentialsOrConfigFile(filecontents) {
     return fields
     // 
   } catch (e) {
-    console.log(e)
+    // console.log(e)
     // non-critical, just return what we have so far
     return fields 
   }
@@ -125,7 +126,7 @@ function init(absdir) {
 
   const filedest = path.join(absdir, 'hyperform.json')
   if (fs.existsSync(filedest)) {
-    console.log('hyperform.json exists already.')
+    log('hyperform.json exists already.')
     return
   }
   
@@ -150,9 +151,9 @@ function init(absdir) {
     const parsedCredentials = parseAwsCredentialsOrConfigFile(credentialsFileContents)
     hyperformJsonContents.amazon.aws_access_key_id = parsedCredentials.default.aws_access_key_id
     hyperformJsonContents.amazon.aws_secret_access_key = parsedCredentials.default.aws_secret_access_key
-    console.log(`Inferred [default] AWS credentials from ${possibleCredentialsPath}`)
+    log(`Inferred [default] AWS credentials from ${possibleCredentialsPath}`)
   } else {
-    console.log(`Could not guess AWS credentials. No AWS credentials file found in ${possibleCredentialsPath}`)
+    log(`Could not guess AWS credentials. No AWS credentials file found in ${possibleCredentialsPath}`)
   }
 
   /// /////////////////
@@ -166,9 +167,9 @@ function init(absdir) {
 
     const parsedConfig = parseAwsCredentialsOrConfigFile(configFileContents)
     hyperformJsonContents.amazon.aws_default_region = parsedConfig.default.region
-    console.log(`Inferred [default] AWS region from ${possibleConfigPath}`)
+    log(`Inferred [default] AWS region from ${possibleConfigPath}`)
   } else {
-    console.log(`Could not guess AWS region. No AWS config file found in ${possibleConfigPath}`) // TODO region will not be a single region, but smartly multiple ones (or?)
+    log(`Could not guess AWS region. No AWS config file found in ${possibleConfigPath}`) // TODO region will not be a single region, but smartly multiple ones (or?)
   }
 
   // Then, do (1), possibly overriding values
@@ -176,17 +177,17 @@ function init(absdir) {
 
   if (typeof process.env.AWS_ACCESS_KEY_ID === 'string' && process.env.AWS_ACCESS_KEY_ID.trim().length > 0) {
     hyperformJsonContents.amazon.aws_access_key_id = process.env.AWS_ACCESS_KEY_ID.trim()
-    console.log('Environment variable AWS_ACCESS_KEY_ID overriding value from credentials file')
+    log('Environment variable AWS_ACCESS_KEY_ID set, overriding value from credentials file')
   }
 
   if (typeof process.env.AWS_SECRET_ACCESS_KEY === 'string' && process.env.AWS_SECRET_ACCESS_KEY.trim().length > 0) {
     hyperformJsonContents.amazon.aws_secret_access_key = process.env.AWS_SECRET_ACCESS_KEY.trim()
-    console.log('Environment variable AWS_SECRET_ACCESS_KEY overriding value from credentials file')
+    log('Environment variable AWS_SECRET_ACCESS_KEY set, overriding value from credentials file')
   }
 
   if (typeof process.env.AWS_DEFAULT_REGION === 'string' && process.env.AWS_DEFAULT_REGION.trim().length > 0) {
     hyperformJsonContents.amazon.aws_default_region = process.env.AWS_DEFAULT_REGION.trim()
-    console.log('Environment variable AWS_DEFAULT_REGION overriding value from config file')
+    log('Environment variable AWS_DEFAULT_REGION set, overriding value from config file')
   }
 
   // write results to hyperform.json
@@ -195,7 +196,7 @@ function init(absdir) {
     JSON.stringify(hyperformJsonContents, null, 2),
   )
 
-  console.log('Created hyperform.json') // TODO ask for defaults guide through in init etc
+  log('Created hyperform.json') // TODO ask for defaults guide through in init etc
 }
 
 module.exports = {

@@ -3,6 +3,7 @@ const { deployAmazon } = require('../deployer/amazon/index')
 const { allowApiGatewayToInvokeLambda } = require('../publisher/amazon/utils')
 const { zip } = require('../zipper/index')
 const { ensureBearerTokenSecure } = require('./utils')
+const { logdev } = require('../printers/index')
 /**
  * @description Creates or updates Authorizer lambda with name "authorizerName" 
  * that if used as Authorizer in API Gateway, will
@@ -173,7 +174,7 @@ async function setDefaultRouteAuthorizer(apiId, authorizerArn, apiRegion) {
     AuthorizationType: 'CUSTOM',
   }
   await apigatewayv2.updateRoute(updateRouteParams).promise()
-  console.log('set authorizer')
+  logdev('set authorizer')
   // done
 }
 
@@ -201,7 +202,7 @@ async function detachDefaultRouteAuthorizer(apiId, apiRegion) {
   }
 
   await apigatewayv2.updateRoute(updateRouteParams).promise()
-  console.log('detached authorizer ')
+  logdev('detached authorizer ')
 }
 // TODO set authorizer cache ??
 

@@ -2,6 +2,7 @@ const util = require('util');
 const exec = util.promisify(require('child_process').exec);
 const AWS = require('aws-sdk')
 const fsp = require('fs').promises
+const { logdev } = require('../../printers/index')
 /**
  * @description Creates a new Lambda with given function code and options
  * @param {string} pathToZip Path to the zipped Lambda code
@@ -131,7 +132,7 @@ async function createLambdaRole(roleName) {
       const getParams = {
         RoleName: roleName,
       }
-      console.log(`role with name ${roleName} already exists. getting its arn`)
+      logdev(`role with name ${roleName} already exists. getting its arn`)
       const getRes = await iam.getRole(getParams).promise()
       roleArn = getRes.Role.Arn 
     } else {
@@ -147,7 +148,7 @@ async function createLambdaRole(roleName) {
     RoleName: roleName,
   }
   await iam.attachRolePolicy(policyParams).promise()
-  console.log(`successfully attached AWSLambdaBasicExectuinRole to ${roleName}`)
+  logdev(`successfully attached AWSLambdaBasicExecutionRole to ${roleName}`)
 
   return roleArn
 }

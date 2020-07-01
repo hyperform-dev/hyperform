@@ -4,13 +4,14 @@ const fs = require('fs')
 const { main } = require('./index')
 const { init } = require('./initer/index')
 const { getParsedHyperformJson } = require('./parser/index')
+const { log, logdev } = require('./printers/index')
 // Ingest CLI arguments
 // DEV NOTE: Keep it brief and synchronious
 
 const args = process.argv.slice(2)
 
 if ((/init|deploy/.test(args[0]) === false) || (args.length > 1 && /--allow-unauthenticated/.test(args[1]) === false)) {
-  console.log(`Usage: 
+  log(`Usage: 
  $ hyperform init
  $ hyperform deploy [--allow-unauthenticated]
 `)
@@ -31,14 +32,10 @@ if (mode === 'init') {
 
 // Mode is deploy
 
-// hide timing info
-console.time = () => { }
-console.timeEnd = () => { }
-
 // try to parse hyperform.json
 const hyperformJsonExists = fs.existsSync(path.join(absdir, 'hyperform.json'))
 if (hyperformJsonExists === false) {
-  console.log(`No hyperform.json found. You can create one with:
+  log(`No hyperform.json found. You can create one with:
  $ hyperform init`)
   process.exit(1)
 }
@@ -53,6 +50,6 @@ try {
   // Main
   main(absdir, fnregex, parsedHyperformJson, allowUnauthenticated)
 } catch (e) {
-  console.log(e)
+  log(e)
   process.exit(1)
 }

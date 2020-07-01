@@ -23,6 +23,17 @@ const spinner = {
 
 const spinnies = new Spinnies({ color: 'white', succeedColor: 'white', spinner: spinner });
 
+const { log } = console
+let logdev 
+// set right logging level
+// don't show dev-level logging
+// Comment this out to see logdev
+logdev = () => { }
+// don't show timings
+// Comment this out to see timings
+console.time = () => { }
+console.timeEnd = () => { }
+
 // In testing, be silent but console.log successes and fails
 if (isInTesting() === true) {
   spinnies.add = () => { }
@@ -35,4 +46,6 @@ if (isInTesting() === true) {
 
 module.exports = {
   spinnies,
+  log,
+  logdev,
 }

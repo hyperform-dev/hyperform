@@ -5,6 +5,7 @@ const {
   createLambdaRole,
   isExistsAmazon, 
 } = require('./utils')
+const { logdev } = require('../../printers/index')
 
 /**
  * @description If Lambda "options.name" does not exist yet in "options.region", 
@@ -32,7 +33,7 @@ async function deployAmazon(pathToZip, options) {
   // check if lambda exists 
   const exists = await isExistsAmazon(existsOptions)
 
-  console.log(`isexists ${options.name} : ${exists}`)
+  logdev(`isexists ${options.name} : ${exists}`)
   // if not, create new role 
   const roleName = `hf-${options.name}`
   const roleArn = await createLambdaRole(roleName)
@@ -72,19 +73,19 @@ async function deployAmazon(pathToZip, options) {
 
   for (let i = 0; i < 4; i += 1) {
     try {
-      console.log('trying to upload to amazon')
+      logdev('trying to upload to amazon')
       arn = await upload()
-      console.log('success uploading to amazon')
+      logdev('success uploading to amazon')
       break // we're done
     } catch (e) {
       // TODO write test that enters here, reliably
       if (e.code === 'InvalidParameterValueException') {
-        console.log('amazon deploy threw InvalidParameterValueException (role not ready yet). Retrying in 3 seconds...')
+        logdev('amazon deploy threw InvalidParameterValueException (role not ready yet). Retrying in 3 seconds...')
         await sleep(3000) // wait 3 seconds
         continue
       } else {
-        console.log(`Amazon upload errorred forrreal: ${e}`)
-        console.log(JSON.stringify(e, null, 2))
+        logdev(`Amazon upload errorred: ${e}`)
+        logdev(JSON.stringify(e, null, 2))
         throw e;
       }
     }
@@ -95,7 +96,6 @@ async function deployAmazon(pathToZip, options) {
   return arn
 }
 
-// TODO where necessary
 /**
  * @description Deletes a Lambda function in a given region.
  * @param {string} name Name, ARN or partial ARN of the function

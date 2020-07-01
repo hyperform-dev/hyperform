@@ -1,6 +1,6 @@
 const util = require('util');
 const exec = util.promisify(require('child_process').exec);
-
+const { logdev } = require('../../printers/index')
 /**
  * @description Returns shell command that newly deploys or updates "options.name" GCF 
  * // TODO does Google consider changed options on subsequent deploys, or ignore them?
@@ -76,7 +76,7 @@ async function deployGoogle(pathToCode, options) {
     console.timeEnd(`Google-deploy-${fulloptions.name}`)
     return url
   } catch (e) {
-    console.log(`Errored google deploy: ${e}`)
+    logdev(`Errored google deploy: ${e}`)
     throw e
   }
 }

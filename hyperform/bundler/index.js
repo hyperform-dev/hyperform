@@ -2,6 +2,7 @@ const webpack = require('webpack')
 const path = require('path')
 const fsp = require('fs').promises
 const os = require('os')
+const { logdev } = require('../printers/index')
 
 /**
  * @description Bundles a given .js files with its dependencies using webpack
@@ -28,15 +29,16 @@ async function bundle(inpath) {
         // aws-sdk is already provided in lambda
         externals: {
           'aws-sdk': 'aws-sdk', // TODO does google include gcloud sdk? // TODO wont be true if aws code uses google sdk etc
+          // But for now, if we only support Amazon, it's fine
         },
       },
       (err, stats) => {
         if (err || stats.hasErrors()) {
-          console.log(`Bundling ${inpath} failed: `)
+          logdev(`Bundling ${inpath} failed: `)
           try {
-            console.log(stats.compilation.errors)
+            logdev(stats.compilation.errors)
           } catch (e) {
-            console.log(stats)
+            logdev(stats)
           }
           reject(err, stats)
         } else {

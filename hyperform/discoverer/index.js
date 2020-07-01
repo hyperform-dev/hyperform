@@ -1,5 +1,6 @@
 const findit = require('findit')
 const path = require('path')
+const { log } = require('../printers/index')
 
 const BLACKLIST = [
   '.git',
@@ -61,7 +62,7 @@ function getNamedExportKeys(filepath) {
   } catch (e) {
     // if js file isn't parseable, top level code throws, etc
     // ignore it
-    console.warn(`Could not determine named exports of ${filepath}. Ignoring it. ${e}`)
+    log(`Could not determine named exports of ${filepath}. Ignoring it. ${e}`)
     return []
   }
 }

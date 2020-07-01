@@ -1,7 +1,7 @@
 const util = require('util')
 const exec = util.promisify(require('child_process').exec);
 const AWS = require('aws-sdk')
-
+const { log, logdev } = require('../../printers/index')
 /**
  * @description Creates a new REGIONAL API in "region" named "apiName" that 
  * forwards requests to the "targetlambdaArn" Lambda
@@ -82,7 +82,7 @@ async function getApiDetails(apiName, apiRegion) {
   }
 
   if (matchingApis.length >= 2) {
-    console.warn(`Multiple (${matchingApis.length}) APIs found with same name ${apiName}. Using first one`)
+    log(`Multiple (${matchingApis.length}) APIs found with same name ${apiName}. Using first one`)
   }
 
   // just take first one
@@ -121,7 +121,7 @@ async function allowApiGatewayToInvokeLambda(lambdaName, region) {
     if (e.code === 'ResourceConflictException') {
       // API Gateway can already access that lambda (happens on all subsequent deploys), cool
     } else {
-      console.log('addpermission: some other error: ', e)
+      logdev(`addpermission: some other error: ${e}`)
       throw e
     }
   }    

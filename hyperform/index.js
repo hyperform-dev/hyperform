@@ -7,7 +7,7 @@ const { getInfos } = require('./discoverer/index')
 const { deployAmazon } = require('./deployer/amazon/index')
 const { publishAmazon } = require('./publisher/amazon/index')
 const { generateRandomBearerToken } = require('./authorizer-gen/utils')
-const { spinnies } = require('./printers/index')
+const { spinnies, log, logdev } = require('./printers/index')
 const { zip } = require('./zipper/index')
 const { transpile } = require('./transpiler/index')
 const { isInTesting } = require('./meta/index')
@@ -33,7 +33,7 @@ async function main(dir, fnregex, parsedHyperformJson, allowUnauthenticated) {
   */
 
   if (infos.length === 0) {
-    console.log(`No exports found matching ${fnregex}`)
+    log(`No exports found matching ${fnregex}`)
     return [] // no endpoint URLs created
   }
 
@@ -54,7 +54,7 @@ async function main(dir, fnregex, parsedHyperformJson, allowUnauthenticated) {
         /* Not the end of the world */
       }
     }
-    console.log(bearerStdout)
+    log(bearerStdout)
   }
 
   // For each file 
@@ -72,7 +72,7 @@ async function main(dir, fnregex, parsedHyperformJson, allowUnauthenticated) {
       try {
         bundledCode = await bundle(info.p)
       } catch (e) {
-        console.log(`Errored bundling ${info.p}: ${e}`)
+        log(`Errored bundling ${info.p}: ${e}`)
         return // just skip that file 
       }
       const transpiledCode = transpile(bundledCode, publishOptions)
@@ -84,7 +84,7 @@ async function main(dir, fnregex, parsedHyperformJson, allowUnauthenticated) {
       } catch (e) {
         // probably underlying issue with the zipping library or OS
         // should not happen
-        console.log(`Errored zipping ${info.p}: ${e}`)
+        log(`Errored zipping ${info.p}: ${e}`)
         return // skip that file 
       }
 
