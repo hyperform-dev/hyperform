@@ -12,19 +12,17 @@ on:
 jobs:
   build:
 
-    runs-on: ubuntu-latest
-
     strategy:
       matrix:
-        node-version: [12.x]
-        # See supported Node.js release schedule at https://nodejs.org/en/about/releases/
+        platform: [ubuntu-latest]
+    runs-on: {{ matrix.platform }}
 
     steps:
     - uses: actions/checkout@v2
-    - name: Use Node.js ${{ matrix.node-version }}
+    - name: Use Node.js 12.x
       uses: actions/setup-node@v1
       with:
-        node-version: ${{ matrix.node-version }}
+        node-version: 12.x 
     - name: Install
       run: cd hyperform; npm ci                         # beware of dashes (-) before run
     - name: Test                                        
