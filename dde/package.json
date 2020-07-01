@@ -25,8 +25,7 @@
     "uuid": "^8.3.1"
   },
   "devDependencies": {
-    "jest": "^26.6.3",
-    "mock-fs": "^4.13.0"
+    "jest": "^26.6.3"
   },
   "husky": {
     "hooks": {

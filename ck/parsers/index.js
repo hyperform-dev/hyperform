@@ -21,7 +21,7 @@ const parsers = {
 
 const validators = {
   'flow.json': (obj) => {
-    const schema = unenrichedschemas.workflow // TODO not only support sequence lol
+    const schema = unenrichedschemas.workflow 
     const { error, value } = schema.validate(obj)
     if (error) {
       throw new Error(`${error} ${value}`)
