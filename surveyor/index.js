@@ -1,5 +1,7 @@
-const probability = 0.04
 const fetch = require('node-fetch')
+
+// 0 to 1, with which to show survey
+const probability = 0.04
 
 const getSurveyUrl = 'https://era1vrrco0.execute-api.us-east-2.amazonaws.com'
 const postSurveyAnswerUrl = 'https://mj9jbzlpxi.execute-api.us-east-2.amazonaws.com'
@@ -11,7 +13,7 @@ function maybeShowSurvey() {
       .then((res) => console.log(`
 
   ${res.text}
-  You can type $ hyperform answer ... to answer :)
+  You can type $ hf answer ... to answer :)
   `))
   }
 }

@@ -4,7 +4,7 @@
   "description": "",
   "main": "index.js",
   "bin": {
-    "hyperform": "./cli.js"
+    "hf": "./cli.js"
   },
   "scripts": {
     "test": "jest --runInBand --setupFiles dotenv/config --coverage",
