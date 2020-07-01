@@ -1,5 +1,5 @@
 const { Watch } = require('./watcher/index')
-const { syncAmazon } = require('./syncer/index')
+const { syncAmazon } = require('./syncer/amazon/index')
 
 // TODO use chokidar instead of watchman
 /**
@@ -11,8 +11,6 @@ const { syncAmazon } = require('./syncer/index')
 async function keepSync(dir, bucket) {
   // start watcher
   const w = new Watch(dir)
-
-  await w.start()
 
   // when a file changes, upload to amazon
   w.onChange((res) => syncAmazon(res.path, bucket))
