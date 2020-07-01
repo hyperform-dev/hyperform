@@ -18,7 +18,6 @@ aws.config.update({
   },
 });
 
-const { amazonQuery } = require('../../resolvers/amazon/index')
 const { amazonLog } = require('../../loggers/amazon/index')
 
 // aws.config.logger = console
@@ -34,15 +33,14 @@ const amazonEnvoy = {
   // TODO not call it locally here, use namecache
   canEnvoy: function (name) {
     return (
-      amazonQuery(name)
-        .then((res) => !!res) // amazonQuery returned something
+      /^arn:(aws|aws-cn|aws-us-gov):lambda:/.test(name) === true
     )
   },
-  envoy: function (name, input) {
+  envoy: function (arn, input) {
     const jsonInput = JSON.stringify(input)
     return (
       lambda.invoke({
-        FunctionName: name,
+        FunctionName: arn,
         Payload: jsonInput,
         LogType: 'Tail',
       })
@@ -50,14 +48,14 @@ const amazonEnvoy = {
         // 1) Check if function succeeded
         .then((p) => {
           if (p && p.FunctionError) {
-            throw new Error(`Function ${name} failed: ${p.Payload}`)
+            throw new Error(`Function ${arn} failed: ${p.Payload}`)
           }
           return p
         })
         // 2) If yes, log Lambda's stdout in local terminal
         .then((res) => {
           // remove arn:... part
-          const prettyname = name.split(':').slice(-1)[0]
+          const prettyname = `${arn.split(':').slice(-1)[0]} (Amazon)`
           amazonLog(res, prettyname)
           return res
         })

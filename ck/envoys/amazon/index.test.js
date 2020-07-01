@@ -11,20 +11,12 @@ describe('amazonEnvoy', () => {
 
         expect(res).toEqual(true)
       })
-
-      test('Existing name', async () => {
-        const input = 'myinc'
-        const toBeTested = () => amazonEnvoy.canEnvoy(input)
-
-        const res = await toBeTested()
-
-        expect(res).toEqual(true)
-      })
     })
 
     describe('cases where it should not claim canEnvoy', () => {
-      test('ARN (s3 bucket)', async () => {
-        const input = 'arn:aws:s3:::this-is-a-bucket-xweoginewg'
+      test('Ambiguous name', async () => {
+        // (Keep name resolving out of canEnvoy, it should only do a simple regex )
+        const input = 'myinc'
         const toBeTested = () => amazonEnvoy.canEnvoy(input)
 
         const res = await toBeTested()
@@ -32,8 +24,8 @@ describe('amazonEnvoy', () => {
         expect(res).toEqual(false)
       })
 
-      test('Not existing name', async () => {
-        const input = 'notexisting_lambda_name'
+      test('ARN (s3 bucket)', async () => {
+        const input = 'arn:aws:s3:::this-is-a-bucket-xweoginewg'
         const toBeTested = () => amazonEnvoy.canEnvoy(input)
 
         const res = await toBeTested()

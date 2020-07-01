@@ -25,7 +25,7 @@ const lambda = new aws.Lambda({
  * @returns {Promise<name>} Promise that if fn found, resolves to it's name, or to null if not found or taking too long
  * @param {*} name 
  */
-function amazonQuery(name) {
+async function amazonQuery(name) {
   console.time(`namequery-${name}`)
 
   // NOTE don't do elaborate querying, if deployed, ready and so on
@@ -37,8 +37,8 @@ function amazonQuery(name) {
     return Promise.resolve(name)
   }
 
-  // consult cache
-  const cacheRes = sharedNamecache.get(name)
+  // consult cache (wait for it if it's being resolved by another)
+  const cacheRes = await sharedNamecache.get(name)
   if (cacheRes) {
     logdev('name: cached')
     console.timeEnd(`namequery-${name}`)
@@ -56,17 +56,20 @@ function amazonQuery(name) {
     FunctionName: name,
   }
 
-  logdev('name: asked amazon')
+  logdev('name: asking amazon')
 
+  // write promise directly into namecache that will resolve itself
+  // that way, other ones will wait for that to resolve (reuse its result), instead of asking amazon in the meantime themselves
+  
   return (
     lambda.getFunction(params).promise()
       .then((res) => res && res.Configuration && res.Configuration.FunctionArn)
       .then((arn) => {
-        sharedNamecache.put(name, arn) // remember this name resolves to this arn for later
+        // Don't write into cache directly   sharedNamecache.put(name, arn) // remember this name resolves to this arn for later
         console.timeEnd(`namequery-${name}`)
         return arn
       })
-      .catch(() => null) // if not found on amazon, no big deal, just return something falsy
+      .catch(() => null) // if not found on amazon, no big deal, just return something falsy. KEEP THIS!
   ) 
 }
 
