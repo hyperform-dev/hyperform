@@ -1,6 +1,6 @@
 exports.handler = (event, context) => {
-  console.log('consolelogging from lambda')
+  console.log('oerignweg')
   context.succeed({
-    a: 2,
+    a: 1,
   })
 }
