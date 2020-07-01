@@ -2,6 +2,7 @@ const joi = require('joi')
 const fs = require('fs')
 const fsp = require('fs').promises
 const { spinnies } = require('../printer/index')
+const { unenrichedschemas } = require('../schemas/unenriched/index')
 // TODO make slimmer
 // 1)
 const readers = {
@@ -38,19 +39,7 @@ const parsers = {
 // 3)
 const validators = {
   'deploy.json': (obj) => {
-    const schema = joi.array().items(
-      joi.object({
-        forEachIn: joi.string().required(),
-        do: joi.string(),
-        upload: joi.string().required(),
-        config: joi.object({
-          amazon: joi.object({
-            role: joi.string().required(),
-            timeout: joi.number(),
-          }),
-        }).required(),
-      }),
-    )
+    const schema = unenrichedschemas.deployJson
 
     const { error, value } = schema.validate(obj)
     if (error) {

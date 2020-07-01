@@ -9,6 +9,9 @@ const task = joi.object({
       role: joi.string().required(),
       timeout: joi.number(),
       language: joi.string().valid('js', 'java'),
+      handler: joi.string()
+        .when('language', { is: 'java', then: joi.required() })
+      ,
     }),
   }).required(),
 

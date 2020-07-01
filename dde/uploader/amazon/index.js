@@ -11,13 +11,11 @@ const DEFAULTRUNTIMES = {
 }
 const DEFAULTHANDLERS = {
   js: 'index.handler',
-  java: 'example.Main::handleRequest',
 }
 
 async function isExistsAmazon(functionName) {
-  // TODO cancel after 5ish seconds 
   try { // TODO sanitize
-    await exec(`aws lambda wait function-exists --function-name ${functionName}`)
+    await exec(`aws lambda get-function --function-name ${functionName}`)
     return true
   } catch (e) {
     return false
@@ -25,10 +23,9 @@ async function isExistsAmazon(functionName) {
 }
 
 function generateDeployCommand(options) {
-  // TODO if handler given, derive language from that instead?? YES that way when inferlanguage goes crazy user can override NO may not be unique 
   const runtime = options.task.config.amazon.runtime || DEFAULTRUNTIMES[options.language]
   const handler = options.task.config.amazon.handler || DEFAULTHANDLERS[options.language]
-
+  
   let cmd = `aws lambda create-function --function-name ${options.name} --runtime ${runtime} --role ${options.task.config.amazon.role} --handler ${handler} --zip-file fileb://${options.pathOfUploadable}`
   if (options.task.config.timeout) cmd += ` --timeout ${options.task.config.timeout} `
 
@@ -54,11 +51,6 @@ async function runUploadAmazon(options) {
   const uploadCmd = (exists === true) 
     ? generateUpdateCommand(options)
     : generateDeployCommand(options)
-
-  // TODO TEMP notify user
-  if (options.language === 'java' && !options.task.config.amazon.handler) {
-    console.log(`Strongly suggest you define the Java entry point (handler) in deploy.json. Using the default: ${DEFAULTHANDLERS.java}`)
-  }
 
   // deploy/upload
   try {

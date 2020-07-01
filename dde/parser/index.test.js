@@ -14,6 +14,7 @@ describe('validators', () => {
                 role: 'arn:aws:lambda:us-east-2:735406098573:role:woegnwoeg',
                 timeout: 60,
                 language: 'js',
+                handler: 'xxxx',
               },
             },
           },
@@ -43,6 +44,24 @@ describe('validators', () => {
 
         expect(toBeTested)
           .not 
+          .toThrow()
+      })
+
+      test('missing handler in js (allowed)', async () => {
+        const input = {
+          forEachIn: 'javalambdas',
+          upload: 'target/out1.0.0.jar',
+          config: {
+            amazon: {
+              role: 'arn:aws:lambda:us-east-2:735406098573:role:woegnwoeg',
+              language: 'js',
+            },
+          },
+        }
+        
+        const toBeTested = () => validators['deploy.json'](input)
+
+        expect(toBeTested)
           .toThrow()
       })
     })
@@ -130,6 +149,24 @@ describe('validators', () => {
             },
           },
         ]
+        
+        const toBeTested = () => validators['deploy.json'](input)
+
+        expect(toBeTested)
+          .toThrow()
+      })
+
+      test('missing handler in java (disallowed)', async () => {
+        const input = {
+          forEachIn: 'javalambdas',
+          upload: 'target/out1.0.0.jar',
+          config: {
+            amazon: {
+              role: 'arn:aws:lambda:us-east-2:735406098573:role:woegnwoeg',
+              language: 'java',
+            },
+          },
+        }
         
         const toBeTested = () => validators['deploy.json'](input)
 
