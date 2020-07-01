@@ -1,11 +1,21 @@
 const fsp = require('fs').promises
 const path = require('path');
+const dree = require('dree')
 
-const WHITELIST = [
+const DREEWHITELIST = [
   'js',
   'java',
 ]
 
+const WHITELISTMATCH = /js|java/
+
+const DREEBLACKLIST = [
+  /node_modules/,
+  /target/,
+  /\.github/,
+  /\.git/,
+  /build/,
+]
 // TODO wont work well with java due to nested dir structure
 
 /**
@@ -14,26 +24,24 @@ const WHITELIST = [
  * @returns {string} 'js' | 'java' or throws
  */
 async function inferLanguageFromDir(dir) {
-  // get list of filenames (top level)
-  let filenames = await fsp.readdir(dir, { withFileTypes: true })
-  filenames = filenames
-    .filter((p) => p.isFile() === true)
-    .map((p) => p.name)
-
-  // only keep their extensions ('file.txt' => 'txt')
-  let fileexts = filenames
-    .map((fname) => path.extname(fname)) // extract file extension 
-    .map((ext) => ext.replace(/\./g, '')) // remove dots
-    .filter((ext) => ext.length)
-    .map((ext) => ext.toLowerCase())
-
-  // Only keep proglang-related extensions (conveniently which we support deployment for)
-  fileexts = fileexts 
-    .filter((ext) => WHITELIST.includes(ext))
+  // do a tree with depth 5 of the lambda directory
+  const tree = await dree.parseAsync(dir, {
+    depth: 5,
+    extensions: DREEWHITELIST,
+    exclude: DREEBLACKLIST,
+    excludeEmptyDirectories: true,
+    showHidden: false,
+    symbolicLinks: false,
+  })
+  // get array of found prog-language related file extensions (js, java)
+  const exts = tree
+    .split('\n')
+    .map((l) => l && typeof l === 'string' && l.match(WHITELISTMATCH))
+    .filter((l) => l) // filter out empty strings, nulls, ...
 
   // count ocurrences of each extension
   // eg { md: 1, js: 5, json: 2 }
-  const occurences = fileexts.reduce((acc, curr) => {
+  const occurences = exts.reduce((acc, curr) => {
     const prevOccur = acc[curr] || 0
     return {
       ...acc,
