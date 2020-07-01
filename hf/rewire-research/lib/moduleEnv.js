@@ -52,7 +52,7 @@ function load(targetModule) {
     currentModule = targetModule;
 
     registerExtensions();
-    targetModule.load(targetModule.id);
+    targetModule.load(targetModule.id); // this causes the loop
 
     // This is only necessary if nothing has been required within the module
     reset();
