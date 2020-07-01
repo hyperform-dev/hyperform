@@ -1,4 +1,11 @@
-[
-  { "run": "reqawssdk"},
-  { "run": "mypulls3"}
+[  
+      { "run": "myreturnrand"},
+      { "run": "myconsolelog"},
+      { "run": "myreturnrand"},
+      { "run": "myconsolelog"},
+      { "run": "myreturnrand"},
+      { "run": "myconsolelog"},
+      { "run": "myreturnrand"},
+      { "run": "myconsolelog"},
+      { "run": "myreturnrand"}
 ]

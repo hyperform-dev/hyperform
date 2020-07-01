@@ -13,6 +13,12 @@ function reqawssdk(event) {
   console.log(a)
 }
 
+function myreturnrand() {
+  return {
+    num: Math.ceil(Math.random() * 100),
+  }
+}
+
 async function mypulls3(event) {
   const bucket = 'jak-bridge-typical'
   const key = '/home/qng/tm/file.txt'
@@ -32,4 +38,5 @@ module.exports = {
   myconsolelog,
   reqawssdk,
   mypulls3,
+  myreturnrand,
 }
