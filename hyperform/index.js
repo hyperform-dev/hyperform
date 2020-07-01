@@ -11,6 +11,7 @@ const { spinnies, log, logdev } = require('./printers/index')
 const { zip } = require('./zipper/index')
 const { transpile } = require('./transpiler/index')
 const { isInTesting } = require('./meta/index')
+const schema = require('./schemas/index').hyperformJsonSchema
 
 /**
  * 
@@ -31,6 +32,12 @@ async function main(dir, fnregex, parsedHyperformJson, allowUnauthenticated) {
       }
     ]
   */
+
+  // verify parsedHyperformJson (again)
+  const { error, value } = schema.validate(parsedHyperformJson)
+  if (error) {
+    throw new Error(`${error} ${value}`)
+  }
 
   if (infos.length === 0) {
     log(`No exports found matching ${fnregex}`)
