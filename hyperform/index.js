@@ -43,20 +43,19 @@ async function main(dir, fnregex, parsedHyperformJson, allowUnauthenticated) {
   }
   if (allowUnauthenticated === false) {
     publishOptions.expectedBearer = generateRandomBearerToken()
-  }
-  
-  // Print bearer token in console
-  // and copy to clipboard if not in testing
-  let bearerStdout = `Authorization: Bearer ${chalk.bold(publishOptions.expectedBearer)}`
-  if (isInTesting() === false) {
-    try {
-      await clipboardy.write(publishOptions.expectedBearer)
-      bearerStdout += ` ${chalk.rgb(175, 175, 175)('(Copied)')}`
-    } catch (e) {
-      /* Not the end of the world */
+    // Print bearer token in console
+    // and copy to clipboard if not in testing
+    let bearerStdout = `Authorization: Bearer ${chalk.bold(publishOptions.expectedBearer)}`
+    if (isInTesting() === false) {
+      try {
+        await clipboardy.write(publishOptions.expectedBearer)
+        bearerStdout += ` ${chalk.rgb(175, 175, 175)('(Copied)')}`
+      } catch (e) {
+        /* Not the end of the world */
+      }
     }
+    console.log(bearerStdout)
   }
-  console.log(bearerStdout)
 
   // For each file 
   //   bundle
