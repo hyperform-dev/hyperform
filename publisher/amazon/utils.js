@@ -24,12 +24,22 @@ async function createApi(apiName, targetlambdaArn, apiRegion) {
     region: apiRegion, 
   })
 
+  // @see https://docs.aws.amazon.com/AWSJavaScriptSDK/latest/AWS/ApiGatewayV2.html#createApi-property
   const createApiParams = {
     Name: apiName,
     ProtocolType: 'HTTP',
     // TODO regional is default, but how the to set to EDGE later on?
     // EndpointType: 'REGIONAL', // invalid field
     Target: targetlambdaArn,
+    CorsConfiguration: {
+      AllowMethods: [
+        'POST',
+        'GET',
+      ],
+      AllowOrigins: [
+        '*',
+      ],
+    },
   }
 
   const createApiRes = await apigatewayv2.createApi(createApiParams).promise()
