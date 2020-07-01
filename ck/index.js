@@ -89,28 +89,3 @@ class Cloudkernel {
 module.exports = {
   Cloudkernel,
 }
-
-// /**
-//  * Exposed API
-//  * @param {*} flow 
-//  * @param {*} input 
-//  * @param {{ recruit?: string }} options `recruit` optional path to where functions lie. Those matching names with flow will be deployed / uploaded before workflow begins
-//  */
-// async function main(flow, input, options) {
-//   // TODO check how this does with multiple invok etc
-
-// TODO only expose cloudkernel here, do everything else in CLI, in server (recruit, ...)
-//   const myclk = new Cloudkernel(flow)
-  
-//   if (options && options.recruit) {
-//     const whitelist = getAllFunctionNames(flow)
-//     const root = options.recruit
-//     await recruiter(root, LANG, whitelist)
-//   }
-//   const res = await myclk.run(input)
-//   return res
-// }
-
-// module.exports = {
-//   main,
-// }
