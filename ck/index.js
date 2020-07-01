@@ -6,13 +6,15 @@ const { enrich } = require('./enrichers/index')
 const { sharedStash } = require('./stashes')
 const { build } = require('./nodebuilders/index')
 const { initProject } = require('./initer/index')
+const { spinnies } = require('./printers/index')
+
 /**
  * 
  * @returns { mode: 'init'|'deploy', root: String}
  */
 function parseCliArgs() {
   const args = arg({
-    '--input': String,
+    '--in': String,
   })
 
   // Defaults
@@ -30,16 +32,16 @@ function parseCliArgs() {
   }
 
   // User wants to run the workflow
-  if (args['--input'] == null) {
-    throw new Error('Please specify --input "...JSON...". ')
+  if (args['--in'] == null) {
+    throw new Error('Please specify input with --in "...JSON...". ')
   }
 
   // Try to parse CLI input as JSON
   let parsedInput // TODO what's void? Null? Empty object: we don't care, stash does not care either
   try {
-    parsedInput = JSON.parse(args['--input'])
+    parsedInput = JSON.parse(args['--in'])
   } catch (e) {
-    console.log('--input "...JSON..." is invalid JSON')
+    console.log('--in "...JSON..." is invalid JSON')
     throw e
   }
 
