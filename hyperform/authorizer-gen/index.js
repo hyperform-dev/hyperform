@@ -7,7 +7,7 @@ const { zip } = require('../zipper/index')
  * 
  * @param {string} authorizerName For example 'myfn-authorizer'
  * @param {string} expectedBearer 'Authorization': 'Bearer {expectedBearer}' 
- * @returns {string} ARN of the created authorizer lambda
+ * @returns {string} ARN of the deployed authorizer lambda
  */
 async function deployAuthorizer(authorizerName, expectedBearer) {
   // avoid accidentally empty bearer
@@ -56,7 +56,6 @@ async function deployAuthorizer(authorizerName, expectedBearer) {
 }
 
 /**
- * 
  * @param {string} apiId 
  * @param {string} routeKey For example '$default'
  * @returns {string} RouteId of the route
@@ -64,13 +63,11 @@ async function deployAuthorizer(authorizerName, expectedBearer) {
 async function getRouteId(apiId, routeKey) {
   const cmd = `aws apigatewayv2 get-routes --api-id ${apiId} --query 'Items[?RouteKey==\`${routeKey}\`]'`
 
-  // aws apigatewayv2 get-routes --api-id 606g79p3j7 --query 'Items[?RouteKey==`$default`]'
-
   const { stdout } = await exec(cmd, { encoding: 'utf-8' })
   const parsedStdout = JSON.parse(stdout)
 
   if (parsedStdout.length !== 1) {
-    throw new Error(`Could not get route id of apiId, routeKey ${apiId}, ${routeKey}: ${parsedStdout}`)
+    throw new Error(`Could not get RouteId of apiId, routeKey ${apiId}, ${routeKey}: ${parsedStdout}`)
   }
   const routeId = parsedStdout[0].RouteId
   return routeId
@@ -79,15 +76,20 @@ async function getRouteId(apiId, routeKey) {
 /**
  * 
  * @param {string} apiId 
- * @param {string} authorizerArn 
+ * @param {string} authorizerArn ARN of Lambda that should be the authorizer
  * @returns {void}
  */
 async function setAuthorizer(apiId, authorizerArn) {
+  // ARN format: https://docs.aws.amazon.com/general/latest/gr/aws-arns-and-namespaces.html
+  // region is the fourth field
+  const authorizerRegion = authorizerArn.split(':')[3] 
+  // name is the last field
   const authorizerName = authorizerArn.split(':').slice(-1)[0]
+
   const authorizerType = 'REQUEST'
   const identitySource = '$request.header.Authorization'
 
-  const authorizerUri = `arn:aws:apigateway:us-east-2:lambda:path/2015-03-31/functions/arn:aws:lambda:us-east-2:735406098573:function:${authorizerName}/invocations`
+  const authorizerUri = `arn:aws:apigateway:${authorizerRegion}:lambda:path/2015-03-31/functions/${authorizerArn}/invocations`
 
   // Try to create authorizer for that API
   // succeeds => Authorizer with that name did not exist yet. Use that authorizerId going forward
@@ -119,7 +121,7 @@ async function setAuthorizer(apiId, authorizerArn) {
   const routeId = await getRouteId(apiId, routeKey)
   const cmd3 = `aws apigatewayv2 update-route --api-id ${apiId} --route-id ${routeId} --authorization-type CUSTOM --authorizer-id ${authorizerId} `
   const { stdout } = await exec(cmd3, { encoding: 'utf-8' })
-  // console.log(`Attached authorizer to ${routeKey}`)
+  // attached authorizer Lambda to routeId
 }
 
 // TODO set authorizer cache ??

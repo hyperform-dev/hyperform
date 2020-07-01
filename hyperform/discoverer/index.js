@@ -6,6 +6,12 @@ const BLACKLIST = [
   'node_modules',
 ]
 
+/**
+ * Searches <dir> and its subdirectories for .js files
+ * @param {string} dir 
+ * @returns {string[]} Paths to .js files
+ */
+// TODO do not follow symlinks (or do?)
 function getJsFilepaths(dir) {
   if (path.isAbsolute(dir) === false) {
     throw new Error('getJsFilepaths: given dir must be absolute')
@@ -39,8 +45,14 @@ function getJsFilepaths(dir) {
   })
 }
 
-function getNamedExports(filepath) {
-  // TODO hides that code is run but actually runs it lol, find a way to get exports without running code
+/**
+ * Evaluates a .js file to get its named export keys 
+ * @param {string} filepath Path of .js file
+ * @returns {string[]} Array of named export keys
+ */
+function getNamedExportKeys(filepath) {
+  // hides that code is run but actually runs it lol
+  // TODOfind a way to get exports without running code
   try {
     const imp = (() => 
       // console.log = () => {}
@@ -51,14 +63,14 @@ function getNamedExports(filepath) {
     const namedexpkeys = Object.keys(imp)
     return namedexpkeys
   } catch (e) {
-    console.log(`Could not determine named exports of ${filepath}. Ignoring it. ${e}`)
     // if js file isn't parseable, top level code throws, etc
-    // say that it does not have named exports
+    // ignore it
+    console.warn(`Could not determine named exports of ${filepath}. Ignoring it. ${e}`)
     return []
   }
 }
 
 module.exports = {
   getJsFilepaths,
-  getNamedExports,
+  getNamedExportKeys,
 }

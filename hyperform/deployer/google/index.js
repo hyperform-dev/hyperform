@@ -9,11 +9,11 @@ const exec = util.promisify(require('child_process').exec);
  * region: string,
  * runtime: string,
  * entrypoint: string,
- * stagebucket: string
- * 
+ * stagebucket: string,
+ * timeout?: Number
  * }} options 
+ * @returns {string} 
  */
-
 function createDeployCommand(pathToCode, options) {
   let cmd = `gcloud functions deploy ${options.name} --region ${options.region} --trigger-http --runtime ${options.runtime} --entry-point ${options.entrypoint} --source ${pathToCode} --stage-bucket ${options.stagebucket} --allow-unauthenticated`
 
@@ -21,6 +21,11 @@ function createDeployCommand(pathToCode, options) {
   return cmd
 }
 
+/**
+ * Extracts the endpoint URL from the stdout of gcloud deploy
+ * @param {string} stdout 
+ * @returns {string} The endpoint URL
+ */
 function extractUrl(stdout) {
   let line = stdout.split('\n')
     .filter((l) => l && l.length > 0)
@@ -41,9 +46,8 @@ function extractUrl(stdout) {
  * stagebucket: string,
  * region?: string,
  * runtime?: string,
- * 
  * }} options 
- * @returns { string } The public endpoint URL
+ * @returns { string } The endpoint URL
  */
 async function deployGoogle(pathToCode, options) {
   // TODO make more things required lol
@@ -55,7 +59,7 @@ async function deployGoogle(pathToCode, options) {
     name: options.name,
     region: options.region || 'us-central1',
     runtime: options.runtime || 'nodejs12',
-    entrypoint: options.entrypoint, // currently same as name 
+    entrypoint: options.entrypoint, // currently identical to name 
     stagebucket: options.stagebucket,
   }
 

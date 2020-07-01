@@ -6,17 +6,13 @@ const fsp = require('fs').promises
 const chalk = require('chalk')
 const clipboardy = require('clipboardy')
 const { bundle } = require('./bundler/index')
-const { getJsFilepaths, getNamedExports } = require('./discoverer/index')
+const { getJsFilepaths, getNamedExportKeys } = require('./discoverer/index')
 const { deployAmazon } = require('./deployer/amazon/index')
 const { generateRandomBearerToken } = require('./authorizer-gen/utils')
 const { publishAmazon } = require('./publisher/amazon/index')
 const { deployGoogle } = require('./deployer/google/index')
 const { spinnies } = require('./printers/index')
 const { zip } = require('./zipper/index')
-// in lambda : export normally, but wrap in context.succeed (idempotent)
-// in local: export normally
-
-// TODO all this
 
 function createAppendix(expectedToken) {
   return (`
@@ -103,7 +99,7 @@ async function getInfos(dir, fnregex) {
   const infos = (await getJsFilepaths(dir))
     .map((p) => ({
       p: p,
-      exps: getNamedExports(p),
+      exps: getNamedExportKeys(p),
     }))
     // skip files that don't have named exports
     .filter(({ exps }) => exps != null && exps.length > 0)
@@ -134,12 +130,11 @@ async function amazonMain(info, bundledCode, bearerToken) {
     info.exps.map(async (exp) => { // under same name
       const amazonOptions = {
         name: exp,
-        // handler is always the same
         role: 'arn:aws:iam::735406098573:role/lambdaexecute',
       }
     
       const spinnieName = `amazon-${amazonOptions.name}`
-      //   console.log(`Amazon: Deploying ${zipPath} as ${amazonOptions.name}`)
+
       spinnies.add(spinnieName, {
         text: `${chalk.rgb(20, 20, 20).bgWhite(' Amazon ')} ${amazonOptions.name}`,
     
@@ -155,8 +150,9 @@ async function amazonMain(info, bundledCode, bearerToken) {
       })
       
       // TODO do somewhere else
+      // TODO group by endpoint, not provider
       spinnies.succeed(spinnieName, {
-        text: `${chalk.rgb(20, 20, 20).bgWhite(' Amazon ')} ${chalk.bold(amazonEndpoint)}`,
+        text: `${chalk.rgb(20, 20, 20).bgWhite(' Amazon ')} ${amazonOptions.name} ${chalk.bold(amazonEndpoint)}`,
       })
     }),
   )
@@ -197,7 +193,7 @@ async function googleMain(info, bundledCode, bearerToken) {
       const googleEndpoint = await deployGoogle(tmpdir, googleOptions)
     
       spinnies.succeed(spinnieName, {
-        text: `${chalk.rgb(20, 20, 20).bgWhite(' Google ')} ${chalk.bold(googleEndpoint)}`,
+        text: `${chalk.rgb(20, 20, 20).bgWhite(' Google ')} ${googleOptions.name} ${chalk.bold(googleEndpoint)}`,
       })
       // TODO do somewhere else
       // TODO delete file & tmpdir
@@ -213,7 +209,6 @@ async function googleMain(info, bundledCode, bearerToken) {
 async function main(dir, fnregex) {
   // Top-level error boundary
   try {
-    // Scout <dir> and its subdirectories for .js files with exports whose name matches <fnregex>
     const infos = await getInfos(dir, fnregex)
 
     /*
@@ -224,7 +219,7 @@ async function main(dir, fnregex) {
             }
           ]
       */
-    // read, transpile, bundle, deploy each p as exps
+    // read, transpile, bundle, deploy each info
     await Promise.all(
       infos.map(async (info) => {
         // bundle file
@@ -241,18 +236,18 @@ async function main(dir, fnregex) {
 
         // TODO mach parallel und do spinnies woanders (eh besser), sollte auch wrapping lösen
         // nicht wichtig
-        
-        // Print token to console
-        //   Try to copy token to clipboard
-        let msg = `Authorization: Bearer ${chalk.bold(bearerToken)}`
+
+        // Try to copy token to clipboard
+        let tokenMsg = `Authorization: Bearer ${chalk.bold(bearerToken)}`
         try {
           await clipboardy.write(bearerToken)
           // success
-          msg += ` ${chalk.rgb(175, 175, 175)('(Copied)')}`
+          tokenMsg += ` ${chalk.rgb(175, 175, 175)('(Copied)')}`
         } catch (e) {
-          // fail - don't print 'Copied'
+          // fail - not the end of the world
         }
-        console.log(msg)
+        // Print token to console
+        console.log(tokenMsg)
         
         // Deploy and publish
         

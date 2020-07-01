@@ -2,58 +2,89 @@ const util = require('util');
 const exec = util.promisify(require('child_process').exec);
 const { deployAuthorizer, setAuthorizer } = require('../../authorizer-gen/index')
 // TODO handle regional / edge / read up on how edge works
-// TODO don't create 
+
 /**
- * * Takes Lambda ARN and makes it public with API gateway
+ * Gets name and URL of an API gateway API, if it exists.
+ * @param {string} apiName Name of the API gateway API
+ * @returns {{apiId: string, apiUrl: string}?} Details of the API, or null
+ */
+async function getApiDetails(apiName) {
+  // Check if API with that name exists
+  // Follows Hyperform conv: same name implies identical, for lambdas, and api endpoints etc
+  const cmd = `aws apigatewayv2 get-apis --query 'Items[?Name==\`${apiName}\`]'`
+  const res = await exec(cmd, { encoding: 'utf-8' })
+  const { stdout } = res 
+  
+  const parsedStdout = JSON.parse(stdout)
+  
+  if (parsedStdout.length > 0) {
+    // API with that name exists already
+    // use that one
+    if (parsedStdout.length !== 1) {
+      // Against HF convention but does not impact us anywhere really so just tolerate it
+      console.warn(`Multiple (${parsedStdout.length}) APIs found with same name ${apiName}. Using first one`)
+    }
+
+    return {
+      apiId: parsedStdout[0].ApiId,
+      apiUrl: parsedStdout[0].ApiEndpoint,
+    }
+  } else {
+    return null
+  }
+}
+
+/**
+ * Creates API that is linked to a Lambda
+ * @param {string} apiName Name of API
+ * @param {string} targetlambdaArn ARN of Lambda that should be linked
+ * @returns {{apiId: string, apiUrl: string}} Id and URL of the endpoint
+ */
+async function createApi(apiName, targetlambdaArn) {
+  const cmd = `aws apigatewayv2 create-api --name ${apiName} --protocol-type HTTP --target ${targetlambdaArn}`
+    
+  const { stdout } = await exec(cmd, { encoding: 'utf-8' })
+  const parsedStdout = JSON.parse(stdout)
+
+  return {
+    apiId: parsedStdout.ApiId,
+    apiUrl: parsedStdout.ApiUrl,
+  }
+}
+
+/**
+ * Takes Lambda ARN and makes it public with API gateway
  * @param {string} lambdaArn 
  * @param {{ allowUnauthenticated: boolean, bearerToken?: string }} param1 
  * @returns {string} HTTP endpoint of the lambda
  */
 async function publishAmazon(lambdaArn, { allowUnauthenticated, bearerToken }) {
   // TODO do we need to publish 1 or N times for every lambda deploy?
-  if (allowUnauthenticated == null) {
-    throw new Error('PublishAmazon: specify second argument') // TODO HF programmer error, do not check for
-  }
+  if (typeof allowUnauthenticated !== 'boolean') throw new Error(`PublishAmazon: allowUnauthenticated must be true|false but is ${allowUnauthenticated}`) // TODO HF programmer error, do not check for
+  if (allowUnauthenticated === false && bearerToken == null) throw new Error(`PublishAmazon: allowUnauthenticated is false but bearerToken is not specified: ${bearerToken}`)
+  if (typeof bearerToken !== 'string') throw new Error(`bearerToken must be string but is: ${bearerToken}`)
 
   const lambdaName = lambdaArn.split(':').slice(-1)[0]
   const apiName = `hyperform-${lambdaName}`
   
   let apiId 
   let apiUrl
+  
+  // Check if API with that name exists
+  // Follows Hyperform convention: same name implies identical
+  const apiDetails = await getApiDetails(apiName)
 
-  {
-    // Check if API with that name exists
-    // Follows Hyperform conv: same name implies identical, for lambdas, and api endpoints etc
-    const cmd1 = `aws apigatewayv2 get-apis --query 'Items[?Name==\`${apiName}\`]'`
-    const res = await exec(cmd1, { encoding: 'utf-8' })
-    const stdout1 = res.stdout 
-  
-    // TODO one API, and these are routes? pros/cons
-    const parsedStdout1 = JSON.parse(stdout1)
-  
-    if (parsedStdout1.length > 0) {
-      // API with that name exists already
-      // use that one
-      if (parsedStdout1.length !== 1) {
-        throw new Error(`Hyperform convention: expect unique API for name ${apiName}, but found: ${parsedStdout1}`)
-      }
-      
-      //  console.log(`Found api with name ${apiName}, reusing that`)
-      apiId = parsedStdout1[0].ApiId 
-      apiUrl = parsedStdout1[0].ApiEndpoint
-    } else {
-      // API with that name does not exist yet
-      // create one
-    //  console.log(`No api with name ${apiName}, creating new one`)
-      const cmd1 = `aws apigatewayv2 create-api --name ${apiName} --protocol-type HTTP --target ${lambdaArn}`
-    
-      const res2 = await exec(cmd1, { encoding: 'utf-8' })
-      const stdout2 = res2.stdout 
-      const parsedStdout2 = JSON.parse(stdout2)
-    
-      apiUrl = parsedStdout2.ApiEndpoint
-      apiId = parsedStdout2.ApiId
-    }
+  // exists
+  // use it
+  if (apiDetails != null && apiDetails.apiId != null && apiDetails.apiUrl != null) {
+    apiId = apiDetails.apiId
+    apiUrl = apiDetails.apiUrl
+    // does not exist
+    // create one
+  } else {
+    const createRes = await createApi(apiName, lambdaArn)
+    apiId = createRes.apiId
+    apiUrl = createRes.apiUrl
   }
 
   // Add permission to that lambda to be accessed by API gateway
@@ -65,11 +96,8 @@ async function publishAmazon(lambdaArn, { allowUnauthenticated, bearerToken }) {
   
     try {
       await exec(cmd)
-    //  console.log(`Authorized Gateway to access ${lambdaName}`)
     } catch (e) {
       // means statement exists already - means API gateway is already auth to access that lambda
-      // console.log(`Probably already authorized to access ${lambdaName}`)
-      // surpress throw e
     }    
   }
   
@@ -81,9 +109,6 @@ async function publishAmazon(lambdaArn, { allowUnauthenticated, bearerToken }) {
   
   // Deploy Lambda authorizer and set it https://docs.aws.amazon.com/apigateway/latest/developerguide/apigateway-use-lambda-authorizer.html
   if (allowUnauthenticated === false) {
-    if (bearerToken == null) {
-      throw new Error(`allowunauthenticated false but bearerToken is ${bearerToken}`) // TODO this would be a HF programmer error
-    }
     const authorizerName = `${lambdaName}-authorizer` // -v0
     // create authorizer lambda
     const authorizerArn = await deployAuthorizer(authorizerName, bearerToken)
@@ -93,6 +118,7 @@ async function publishAmazon(lambdaArn, { allowUnauthenticated, bearerToken }) {
     return apiUrl
   }
 
+  // good form
   throw new Error(`allowUnauthenticated must be true or false but is ${allowUnauthenticated}`)
 }
 

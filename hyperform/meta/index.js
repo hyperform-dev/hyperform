@@ -1,5 +1,6 @@
 /**
  * Detects whether jest is running this code
+ * @returns {boolean} 
  */
 function isInTesting() {
   if (process.env.JEST_WORKER_ID != null) {
