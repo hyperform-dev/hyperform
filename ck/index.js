@@ -1,7 +1,7 @@
 const arg = require('arg')
 const path = require('path')
 const { readparsevalidate } = require('./parsers/index')
-const { enrichvalidate } = require('./enrichers/index')
+const { enrich } = require('./enrichers/index')
 const { sharedStash } = require('./stashes')
 const { build } = require('./nodebuilders/index')
 /**
@@ -35,10 +35,10 @@ async function main() {
       path: path.join(args.root, 'flow.json'),
     })
 
-    const enrichedFlowJson = await enrichvalidate({
-      presetName: 'flow.json',
-      obj: parsedFlowJson,
-    })
+    console.log(parsedFlowJson)
+    process.exit()
+    
+    const enrichedFlowJson = await enrich(parsedFlowJson)
 
     sharedStash.put('__workflow_in', { num: 1 })
 

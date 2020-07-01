@@ -22,7 +22,7 @@ function amazonQuery(name) {
     const timeoutHandle = setTimeout(() => {
       queryproc.kill('SIGINT')
       reject(new Error(`FN probably does not exist, Amazon Name resolving took too long, canceled: ${name}`))
-    }, 2000);
+    }, 5000);
     
     // If we receive a positive / negative answer before that time limit:
     queryproc.on('close', (code) => {

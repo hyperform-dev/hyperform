@@ -1,6 +1,5 @@
 const { amazonEnvoy } = require('./amazon/index')
-const { firstOf } = require('../utils/index')
-// will pick the one that says canEnvoy() = true the fastest
+
 const envoys = [
   amazonEnvoy,
 ]
@@ -20,12 +19,12 @@ async function envoy(name, input) {
     throw new Error(`No envoy found for ${name}`)
   }
 
-  // indexOf of the first one that canEnvoy
   const selectedenvoy = envoys[canEnvoyAnswers.indexOf(true)]
-  console.log('Selected envoy index: ', canEnvoyAnswers.indexOf(true))
-  // USE THAT ENVOY TO CALL CLOUD FN
+  // Call cloud fn
+  console.time(`envoy-${name}`)
   const response = await selectedenvoy.envoy(name, input)
-  // return its output
+  console.timeEnd(`envoy-${name}`)
+
   return response
 }
 

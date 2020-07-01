@@ -1,7 +1,5 @@
 const fs = require('fs')
-const joi = require('joi')
 const fsp = require('fs').promises
-const uuidv4 = require('uuid').v4 
 
 const { unenrichedschemas } = require('../schemas')
 
@@ -23,8 +21,7 @@ const parsers = {
 
 const validators = {
   'flow.json': (obj) => {
-    const schema = unenrichedschemas.sequence // TODO not only support sequence lol
-
+    const schema = unenrichedschemas.workflow // TODO not only support sequence lol
     const { error, value } = schema.validate(obj)
     if (error) {
       throw new Error(`${error} ${value}`)

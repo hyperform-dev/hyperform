@@ -1,6 +1,4 @@
 /* eslint-disable arrow-body-style, no-use-before-define */
-const joi = require('joi')
-
 const { enrichedschemas } = require('../schemas')
 const { envoy } = require('../envoys/index')
 const { sharedStash } = require('../stashes')
@@ -19,11 +17,7 @@ const nodebuilders = {
     canBuild: (obj) => {
       const schema = enrichedschemas.atomic
       const { error } = schema.validate(obj)
-      if (error) {
-        return false
-      } else {
-        return true
-      }
+      return !error
     },
     build: (obj) => function (input) {
       return envoy(obj.run, input)
@@ -50,7 +44,7 @@ const nodebuilders = {
         if (!obj.length) {
           return undefined
         }
-        // TODO retrieve also first input from stash (?) 
+
         let inp
         let outp
         for (let i = 0; i < builtMembers.length; i += 1) {
@@ -85,39 +79,11 @@ function detectnodetype(obj) {
 function build(obj) {
   // find out which builder to use
   const nodetype = detectnodetype(obj)
-  if (!nodebuilders[nodetype]) {
-    throw new Error(`Could not build unknown nodetype ${nodetype}`)
-  }
-  // use that builder from above
+  // build the node function
   return nodebuilders[nodetype].build(obj)
 }
 
-/// /////////////////////////////////////////////////////
-
-// const arr = [
-//   {
-//     run: 'arn:aws:lambda:us-east-2:735406098573:function:myinc',
-//     id: 'arn:aws:lambda:us-east-2:735406098573:function:myinc',
-//     in: 'innn',
-//   },
-//   {
-//     run: 'arn:aws:lambda:us-east-2:735406098573:function:myincinc',
-//     id: 'arn:aws:lambda:us-east-2:735406098573:function:myincinc',
-//     in: 'arn:aws:lambda:us-east-2:735406098573:function:myinc',
-//   },
-// ]
-
-// async function main() {
-//   sharedStash.put('innn', { num: 1 })
-
-//   const fn = await build(arr)
-//   const res = await fn()
-//   // console.log(sharedStash.get('arn:aws:lambda:us-east-2:735406098573:function:myincinc'))
-// }
-
-// main()
-
 module.exports = {
-  detectnodetype,
+  _onlyfortesting_detectnodetype: detectnodetype,
   build,
 }
