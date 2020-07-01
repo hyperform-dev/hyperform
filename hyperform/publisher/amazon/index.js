@@ -1,16 +1,15 @@
 const util = require('util');
 const exec = util.promisify(require('child_process').exec);
 const { deployAuthorizer, setAuthorizer } = require('../../authorizer-gen/index')
-const { generateRandomBearerToken } = require('../../authorizer-gen/utils')
 // TODO handle regional / edge / read up on how edge works
 // TODO don't create 
 /**
  * * Takes Lambda ARN and makes it public with API gateway
  * @param {string} lambdaArn 
- * @param {{ allowUnauthenticated: boolean }} param1 
- * @returns {{ url: string, token?: string }} url: HTTP endpoint of lambda, token: if allowUnauthenticated is false, the Authentication: Bearer {TOKEN} that will be needed to call the Lambda
+ * @param {{ allowUnauthenticated: boolean, bearerToken?: string }} param1 
+ * @returns {string} HTTP endpoint of the lambda
  */
-async function publishAmazon(lambdaArn, { allowUnauthenticated }) {
+async function publishAmazon(lambdaArn, { allowUnauthenticated, bearerToken }) {
   // TODO do we need to publish 1 or N times for every lambda deploy?
   if (allowUnauthenticated == null) {
     throw new Error('PublishAmazon: specify second argument') // TODO HF programmer error, do not check for
@@ -77,26 +76,21 @@ async function publishAmazon(lambdaArn, { allowUnauthenticated }) {
   if (allowUnauthenticated === true) {
     // do nothing
     // default is allow unauthenticated
-    return {
-      url: apiUrl, 
-      token: null,
-    }
+    return apiUrl
   }
   
   // Deploy Lambda authorizer and set it https://docs.aws.amazon.com/apigateway/latest/developerguide/apigateway-use-lambda-authorizer.html
   if (allowUnauthenticated === false) {
+    if (bearerToken == null) {
+      throw new Error(`allowunauthenticated false but bearerToken is ${bearerToken}`) // TODO this would be a HF programmer error
+    }
     const authorizerName = `${lambdaName}-authorizer` // -v0
-    // Generate Token that the authorizer will greenlight, and redlight everything else
-    const randomBearerToken = generateRandomBearerToken()
     // create authorizer lambda
-    const authorizerArn = await deployAuthorizer(authorizerName, randomBearerToken)
+    const authorizerArn = await deployAuthorizer(authorizerName, bearerToken)
     // set authorizer
     await setAuthorizer(apiId, authorizerArn)
 
-    return {
-      url: apiUrl,
-      token: randomBearerToken,
-    }
+    return apiUrl
   }
 
   throw new Error(`allowUnauthenticated must be true or false but is ${allowUnauthenticated}`)

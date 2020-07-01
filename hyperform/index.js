@@ -8,6 +8,7 @@ const clipboardy = require('clipboardy')
 const { bundle } = require('./bundler/index')
 const { getJsFilepaths, getNamedExports } = require('./discoverer/index')
 const { deployAmazon } = require('./deployer/amazon/index')
+const { generateRandomBearerToken } = require('./authorizer-gen/utils')
 const { publishAmazon } = require('./publisher/amazon/index')
 const { deployGoogle } = require('./deployer/google/index')
 const { spinnies } = require('./printers/index')
@@ -17,10 +18,12 @@ const { zip } = require('./zipper/index')
 
 // TODO all this
 
-const appendix = `
+function createAppendix(expectedToken) {
+  return (`
 
-;module.exports = (() => {
-
+  ;module.exports = (() => {
+  
+   
   // for lambda, wrap all exports in context.succeed
   /**
    * 
@@ -49,7 +52,7 @@ const appendix = `
       } 
       if(platform === 'google') {
         wrappedfunc = async function handler(req, resp) {
-          if (!req.headers.authorization || req.headers.authorization !== 'Bearer abcde') {
+          if (!req.headers.authorization || req.headers.authorization !== 'Bearer ${expectedToken}') {
             // unauthorized, exit
             return resp.sendStatus(403)
           }
@@ -84,9 +87,11 @@ const appendix = `
 
   return curr; // Export unchanged (local, fallback)
 
-})();
-
-`
+  
+  })();
+  
+  `)
+} 
 
 /**
  * Scouts <dir> and its subdirectories for .js files with exports whose name matches <fnregex>
@@ -119,7 +124,7 @@ async function getInfos(dir, fnregex) {
   return infos
 }
 
-async function amazonMain(info, bundledCode) {
+async function amazonMain(info, bundledCode, bearerToken) {
   // Prepare uploadable
   const zipPath = await zip(bundledCode)
 
@@ -144,30 +149,22 @@ async function amazonMain(info, bundledCode) {
       const amazonArn = await deployAmazon(zipPath, amazonOptions)
       // is public
       // TODO split methods so no coincidental mixup of public and private
-      const { url, token } = await publishAmazon(amazonArn, {
+      const amazonEndpoint = await publishAmazon(amazonArn, {
         allowUnauthenticated: false,
+        bearerToken: bearerToken,
       })
       
       // TODO do somewhere else
-      // Print token to console
-      //   Try to paste token to clipboard
-      let msg = `Authorization: Bearer ${chalk.bold(token)}`
-      try {
-        await clipboardy.write(token)
-        // success
-        msg += ` ${chalk.rgb(175, 175, 175)('(Copied)')}`
-      } catch (e) {
-        // fail - don't print 'Copied'
-      }
-      console.log(msg)
       spinnies.succeed(spinnieName, {
-        text: `${chalk.rgb(20, 20, 20).bgWhite(' Amazon ')} ${chalk.bold(url)}`,
+        text: `${chalk.rgb(20, 20, 20).bgWhite(' Amazon ')} ${chalk.bold(amazonEndpoint)}`,
       })
     }),
   )
 }
 
-async function googleMain(info, bundledCode) {
+/* Does not use bearerToken, it's already baked into bundledCode */
+
+async function googleMain(info, bundledCode, bearerToken) {
   // Prepare uploadable
   const tmpdir = path.join(
     os.tmpdir(),
@@ -234,24 +231,44 @@ async function main(dir, fnregex) {
         let bundledCode = await bundle(info.p)
       
         // add module append
+        // use one token for all endpoints (derweil)
+        // TODO generate token from terminal seed 
+        const bearerToken = generateRandomBearerToken(/* TODO ?SEED */)
+        // Hardcode expected token into function (for Google)
+        const appendix = createAppendix(bearerToken)
+       
         bundledCode += appendix
 
+        // TODO mach parallel und do spinnies woanders (eh besser), sollte auch wrapping lösen
+        // nicht wichtig
+        
+        // Print token to console
+        //   Try to copy token to clipboard
+        let msg = `Authorization: Bearer ${chalk.bold(bearerToken)}`
+        try {
+          await clipboardy.write(bearerToken)
+          // success
+          msg += ` ${chalk.rgb(175, 175, 175)('(Copied)')}`
+        } catch (e) {
+          // fail - don't print 'Copied'
+        }
+        console.log(msg)
+        
         // Deploy and publish
         
         /// ///////////////////
         // Amazon
         /// ///////////////////
-
-        // TODO mach parallel und do spinnies woanders (eh besser), sollte auch wrapping lösen
-        // nicht wichtig tho
-
-        await amazonMain(info, bundledCode)
-          
+        
+        await amazonMain(info, bundledCode, bearerToken)
+        
         /// ///////////////////
         // Google
         /// ///////////////////
-
-        await googleMain(info, bundledCode)
+        
+        // NOTE for new functions add allUsers as invoker
+        // Keep that for now so don't forget the CLI setInvoker thing may screw up --allow-unauthenticated
+        await googleMain(info, bundledCode, bearerToken)
       }),
     )
   } catch (e) {

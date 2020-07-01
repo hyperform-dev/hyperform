@@ -5,6 +5,9 @@
  * @param {*} [exp] 
  */
 module.exports = () => {
+  // START PASTE
+
+
   // for lambda, wrap all exports in context.succeed
   /**
    * 
@@ -33,7 +36,7 @@ module.exports = () => {
       } 
       if(platform === 'google') {
         wrappedfunc = async function handler(req, resp) {
-          if (!req.headers.authorization || req.headers.authorization !== 'Bearer abcde') {
+          if (!req.headers.authorization || req.headers.authorization !== 'Bearer ${expectedToken}') {
             // unauthorized, exit
             return resp.sendStatus(403)
           }
@@ -67,5 +70,8 @@ module.exports = () => {
   }
 
   return curr; // Export unchanged (local, fallback)
+
+
+  // END PASTE
 }
 
