@@ -1,6 +1,9 @@
 const aws = require('aws-sdk')
 const { amazonQuery } = require('../../nameresolvers/amazon/index')
+const { amazonLog } = require('../../loggers/amazon/index')
 
+// aws.config.logger = console
+// TODO not only one region; do name resolving at the start, not here
 const lambda = new aws.Lambda({
   region: 'us-east-2',
 })
@@ -20,12 +23,18 @@ const amazonEnvoy = {
       lambda.invoke({
         FunctionName: name,
         Payload: jsonInput,
+        LogType: 'Tail',
       })
         .promise()
+        .then((res) => {
+          // Log Lambda's stdout in local terminal
+          amazonLog(res)
+          return res
+        })
         .then((p) => p.Payload)
         .then((p) => JSON.parse(p))
         .then((p) => {
-          if (p.errorType && p.errorType === 'Error') {
+          if (p && p.errorType && p.errorType === 'Error') {
             throw new Error(p.errorMessage)
           }
           return p
