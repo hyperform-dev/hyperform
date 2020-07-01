@@ -24,7 +24,8 @@ async function main() {
     // parse cli args
     const args = arg({
       '--in': String,
-      '--silent': Boolean,
+      '--verbose': Boolean,
+      '-v': '--verbose',
     })
 
     // he just wants to init

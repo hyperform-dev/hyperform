@@ -47,20 +47,22 @@ function getAllFunctionNames(parsedFlowJson) {
 
 const args = arg({
   '--in': String,
-  '--silent': Boolean,
+  '--verbose': Boolean,
+  '-v': '--verbose',
 })
 
 const { log } = console
 let logdev 
-// if silent
-if (args['--silent'] === true) {
+
+// set right logging level
+if (args['--verbose'] === true) {
+  logdev = console.log
+} else {
   // don't show dev-level logging
   logdev = () => { }
   // don't show timings
   console.time = () => { }
   console.timeEnd = () => { }
-} else {
-  logdev = console.log
 }
 
 module.exports = {
