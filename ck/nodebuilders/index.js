@@ -1,7 +1,6 @@
 /* eslint-disable arrow-body-style, no-use-before-define */
 const { enrichedschemas } = require('../schemas/enriched/index')
 const { envoy } = require('../envoys/index')
-const { sharedStash } = require('../stashes')
 // This file is about building an internal representation,
 // not to be confused with "building & deploying"
 
@@ -19,11 +18,11 @@ const nodebuilders = {
       const { error } = schema.validate(obj)
       return !error
     },
-    build: async (obj) => {
+    build: async (obj, stash, namecache) => {
       return async function () {
-        const inp = sharedStash.get(obj.in)
-        const outp = await envoy(obj.run, inp)
-        sharedStash.put(obj.run, outp)
+        const inp = stash.get(obj.in)
+        const outp = await envoy(obj.run, inp, namecache)
+        stash.put(obj.run, outp)
       }
     },
   },
@@ -34,10 +33,10 @@ const nodebuilders = {
       const { error } = schema.validate(obj)
       return !error
     },
-    build: async (obj) => {
+    build: async (obj, stash, namecache) => {
       // Build each member fn in the sequence
       // Note: Seems to runaway if not immediately .all'ed
-      const builtMembers = await Promise.all(obj.map((o) => build(o)))
+      const builtMembers = await Promise.all(obj.map((o) => build(o, stash, namecache)))
       return async function () {
         // Run one after the other
         // Data transfer is handled automatically over shmem (sharedStash)
@@ -53,9 +52,9 @@ const nodebuilders = {
       const { error } = schema.validate(obj)
       return !error
     },
-    build: async (obj) => {
+    build: async (obj, stash, namecache) => {
       // Note: Seems to runaway if not immediately .all'ed
-      const builtSections = await Promise.all(obj.doParallel.map((sec) => build(sec)))
+      const builtSections = await Promise.all(obj.doParallel.map((sec) => build(sec, stash, namecache)))
 
       return async function () {
         // Run them in parallel, wait for all to complete
@@ -79,13 +78,15 @@ function detectnodetype(obj) {
  * Takes any type of node, and recursively turns them into invocable functions that return promises.
  * // TODO recursively lol
  * @param {*} obj 
+ * @param {*} stash
+ * @param {*} namecache
  * @returns {Promise<overalloutval>}
  */
-function build(obj) {
+function build(obj, stash, namecache) {
   // find out which builder to use
   const nodetype = detectnodetype(obj)
   // build the node function
-  return nodebuilders[nodetype].build(obj)
+  return nodebuilders[nodetype].build(obj, stash, namecache)
 }
 
 module.exports = {

@@ -30,4 +30,5 @@ const sharedNamecache = new Namecache()
 
 module.exports = {
   sharedNamecache,
+  Namecache,
 }

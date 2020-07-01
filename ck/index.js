@@ -1,67 +1,29 @@
-#!/usr/bin/env node
-
-const arg = require('arg')
-const path = require('path')
-const { readparsevalidate } = require('./parsers/index')
+const { validate } = require('./parsers/index')
 const { enrich } = require('./enrichers/index')
-const { sharedStash } = require('./stashes')
 const { build } = require('./nodebuilders/index')
-const { initProject } = require('./initer/index')
 const { getAllFunctionNames } = require('./utils/index')
 const { resolveName } = require('./resolvers/index')
-const { log } = require('./utils/index')
-const { recruiter } = require('../recruiter/index')
+const { Namecache } = require('./namecache/index')
+const { Stash } = require('./stashes/index')
 const { spinnies } = require('./printers/index')
+const { validateOutput } = require('./utils/index')
 // TODO enforce ck is run in project root
 // TODO (prob already done, since it checks for flow)
 
 const LANG = 'js'
 
-async function main() {
-  // Top level error boundary of ck
-  console.time('all')
-  try {
-    // force user to invoke clk in directory with flow.json (akin to pip, npm)
-    const root = process.cwd()
-    
-    // parse cli args
-    const args = arg({
-      '--in': String,
-      '--verbose': Boolean,
-      '-v': '--verbose',
-    })
-
-    // he just wants to init
-    if (args._ && args._.includes('init')) {
-      initProject(root)
-      process.exit(0)
+class Cloudkernel {
+  constructor(flow) {
+    if (!flow) {
+      throw new Error('Cloudkernel constructor wasnt passed a flow')
     }
+    // validate according to flow.json preset
+    validate(flow, 'flow.json') // TODO don't allow empty flows
+    this.flow = flow 
+    this.namecache = new Namecache() 
+    this.stash = new Stash()
 
-    // he wants to run the workflow
-
-    if (args['--in'] == null) {
-      throw new Error('Please specify input with --in "{ ... } / [ ... ]" ')
-    }
-
-    // try to parse CLI input as json
-    let parsedInput
-    try {
-      parsedInput = JSON.parse(args['--in'])
-    } catch (e) {
-      log('--in "...JSON..." is invalid JSON')
-      throw e
-    }
-
-    // parse flow.json in current directory
-    const parsedFlowJson = await readparsevalidate({
-      presetName: 'flow.json',
-      path: path.join(root, 'flow.json'),
-    })
-
-    const allFunctionNames = getAllFunctionNames(parsedFlowJson)
-
-    // TODO write promise into namecache to not resolve same multiple times etc...
-    // TODO generally handle better when same function is in flow.json a lot
+    const allFunctionNames = getAllFunctionNames(flow)
     
     // "heat up" namecache
     // in the background, resolve ambiguous function names to exact URI's (arns...)
@@ -70,39 +32,72 @@ async function main() {
       .forEach((fname) => {
         // don't await, we don't care about the result
         // just kick it off and let it run in the background
-        resolveName(fname)
+        resolveName(fname, this.namecache)
       })
 
     // deploy/update functions that are found in (1) flow.json and (2) in the current directory
-    const localfnpath = path.join(root, '..', 'recruiter', 'tm')
-    await recruiter(localfnpath, LANG, allFunctionNames)
+    // TODO do somewhere else
+    // const localfnpath = path.join(root, '..', 'recruiter', 'tm')
+    // await recruiter(localfnpath, LANG, allFunctionNames)
 
+    // infer data flow from control flow
     // add some fields for internal representation
-    const [enrichedFlowJson, outputkey] = await enrich(
-      parsedFlowJson,
+    const [enrichedFlow, outputKey] = enrich(
+      flow,
       { in: '__workflow_in' },
     )
 
-    // put WF input on stash
-    sharedStash.put('__workflow_in', parsedInput)
+    this.enrichedFlow = enrichedFlow 
+    this.outputKey = outputKey
+  }
 
-    const lastKey = outputkey
+  async run(input) {
+    // validate input 
+    validateOutput(input, 'input')
+
+    // put WF input on stash
+    this.stash.put('__workflow_in', input)
+
+    console.time('wf')
     // build top-level function
-    const wf = await build(enrichedFlowJson)
+    const wf = await build(this.enrichedFlow, this.stash, this.namecache)
     // run WF
     await wf()
-
-    console.timeEnd('all')
+    console.timeEnd('wf')
 
     // get WF output from shash
-    const result = sharedStash.get(lastKey)
+    const result = this.stash.get(this.outputKey)
     spinnies.stopAll()
-    log(result)
-    //
-  } catch (e) {
-    log(e)
-    process.exit(1)
+    // log(result)
+    return result
   }
 }
 
-main()
+module.exports = {
+  Cloudkernel,
+}
+
+// /**
+//  * Exposed API
+//  * @param {*} flow 
+//  * @param {*} input 
+//  * @param {{ recruit?: string }} options `recruit` optional path to where functions lie. Those matching names with flow will be deployed / uploaded before workflow begins
+//  */
+// async function main(flow, input, options) {
+//   // TODO check how this does with multiple invok etc
+
+// TODO only expose cloudkernel here, do everything else in CLI, in server (recruit, ...)
+//   const myclk = new Cloudkernel(flow)
+  
+//   if (options && options.recruit) {
+//     const whitelist = getAllFunctionNames(flow)
+//     const root = options.recruit
+//     await recruiter(root, LANG, whitelist)
+//   }
+//   const res = await myclk.run(input)
+//   return res
+// }
+
+// module.exports = {
+//   main,
+// }

@@ -25,6 +25,10 @@ const deployJson = [
 const flowJsonStr = JSON.stringify(flowJson, null, 2)
 const deployJsonStr = JSON.stringify(deployJson, null, 2)
 
+/**
+ * 
+ * @param {*} root 
+ */
 function initProject(root) {
   if (fs.existsSync(path.join(root, 'flow.json'))) {
     log('flow.json already exists')

@@ -43,4 +43,5 @@ const sharedStash = new Stash()
 
 module.exports = {
   sharedStash,
+  Stash,
 }

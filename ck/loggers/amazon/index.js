@@ -4,7 +4,6 @@ const { log } = require('../../utils/index')
  * Logs a Lambda's stdout in the local terminal, after it has completed
  * @param {*} envoyRes What comes back from the lambda, parsed
  */
-
 function extractStdout(logline) {
   if (!logline || !logline.trim()) {
     return ''
@@ -25,6 +24,11 @@ function extractStdout(logline) {
   return logline
 }
 
+/**
+ * 
+ * @param {*} envoyRes 
+ * @param {*} name 
+ */
 function amazonLog(envoyRes, name) {
   if (envoyRes && envoyRes.LogResult) {
     // base-64 decode it

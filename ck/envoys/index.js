@@ -9,6 +9,48 @@ const envoys = [
   amazonEnvoy,
 ]
 
+/**
+ * @param {*} name 
+ * @param {*} input 
+ * @param {*} namecache
+ */
+async function envoy(name, input, namecache) { 
+  // resolve to uri (specific provider...)
+  // also writes it to namecache for further use
+  const uri = await resolveName(name, namecache)
+  // find right envoy for uri format (ARN,...)
+  const canEnvoyAnswers = envoys.map((evy) => evy.canEnvoy(uri))
+
+  if (canEnvoyAnswers.includes(true) === false) {
+    throw new Error(`No envoy found for ${uri}`)
+  }
+
+  // pick first one
+  const selectedenvoy = envoys[canEnvoyAnswers.indexOf(true)]
+  // Call cloud fn
+  const uid = uuidv4()
+  console.time(`envoy-${uid}`)
+  
+  // reuse spinner if it exists for fn (just add a +1)
+  addEnvoySpinnie(name)
+
+  let response 
+  try {
+    // ENVOY
+    response = await selectedenvoy.envoy(uri, input)
+    removeEnvoySpinnie(name)
+  } catch (e) {
+    spinnies.fail(uri, { text: uri })
+    throw e
+  }
+  console.timeEnd(`envoy-${uid}`)
+
+  // Ensure it's an object, etc...
+  validateOutput(response, uri)
+
+  return response
+}
+
 // adds or increases spinnie
 function addEnvoySpinnie(name) {
   try {
@@ -50,47 +92,6 @@ function removeEnvoySpinnie(name) {
   } catch (e) {
     log(`Failed to remove spinner for ${name}, someone probably removed it in the meantime`)
   }
-}
-
-/**
- * @param {*} name 
- * @param {*} input 
- */
-async function envoy(name, input) { 
-  // resolve to uri (specific provider...)
-  // also writes it to namecache for further use
-  const uri = await resolveName(name)
-  // find right envoy for uri format (ARN,...)
-  const canEnvoyAnswers = envoys.map((evy) => evy.canEnvoy(uri))
-
-  if (canEnvoyAnswers.includes(true) === false) {
-    throw new Error(`No envoy found for ${uri}`)
-  }
-
-  // pick first one
-  const selectedenvoy = envoys[canEnvoyAnswers.indexOf(true)]
-  // Call cloud fn
-  const uid = uuidv4()
-  console.time(`envoy-${uid}`)
-  
-  // reuse spinner if it exists for fn (just add a +1)
-  addEnvoySpinnie(name)
-
-  let response 
-  try {
-    // ENVOY
-    response = await selectedenvoy.envoy(uri, input)
-    removeEnvoySpinnie(name)
-  } catch (e) {
-    spinnies.fail(uri, { text: uri })
-    throw e
-  }
-  console.timeEnd(`envoy-${uid}`)
-
-  // Ensure it's an object, etc...
-  validateOutput(response, uri)
-
-  return response
 }
 
 module.exports = {

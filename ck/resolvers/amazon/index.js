@@ -14,7 +14,6 @@ aws.config.update({
   },
 });
 
-const { sharedNamecache } = require('../../namecache/index')
 const { logdev } = require('../../utils/index')
 
 const lambda = new aws.Lambda({
@@ -25,7 +24,7 @@ const lambda = new aws.Lambda({
  * @returns {Promise<name>} Promise that if fn found, resolves to it's name, or to null if not found or taking too long
  * @param {*} name 
  */
-async function amazonQuery(name) {
+async function amazonQuery(name, namecache) {
   console.time(`namequery-${name}`)
 
   // NOTE don't do elaborate querying, if deployed, ready and so on
@@ -38,7 +37,7 @@ async function amazonQuery(name) {
   }
 
   // consult cache (wait for it if it's being resolved by another)
-  const cacheRes = await sharedNamecache.get(name)
+  const cacheRes = await namecache.get(name)
   if (cacheRes) {
     logdev('name: cached')
     console.timeEnd(`namequery-${name}`)

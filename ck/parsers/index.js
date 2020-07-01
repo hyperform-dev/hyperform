@@ -24,9 +24,36 @@ const validators = {
     const schema = unenrichedschemas.workflow 
     const { error, value } = schema.validate(obj)
     if (error) {
-      throw new Error(`${error} ${value}`)
+      throw new Error(`Passed flow is invalid: ${error} ${value}`)
     }
   },
+}
+
+/**
+ * 
+ * @param {*} obj 
+ * @param {*} presetName 
+ */
+function validate(obj, presetName) {
+  if (!validators[presetName]) {
+    throw new Error(`UNIMEPLEMENTED: validator for preset ${presetName}`)
+  }
+  // validate it
+  validators[presetName](obj)
+} 
+
+/**
+ * 
+ * @param {*} filepath 
+ * @param {*} presetName 
+ */
+async function readparse(filepath, presetName) {
+  let result 
+  // read it
+  result = await readers[presetName](filepath)
+  // parse it
+  result = parsers[presetName](result)
+  return result
 }
 
 /**
@@ -63,4 +90,6 @@ async function readparsevalidate(options) {
 module.exports = { 
   readparsevalidate, 
   _onlyfortesting_unenrichedvalidators: validators,
+  validate,
+  readparse,
 }
