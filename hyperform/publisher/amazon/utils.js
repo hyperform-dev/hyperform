@@ -7,20 +7,21 @@ const AWS = require('aws-sdk')
  * forwards requests to the "targetlambdaArn" Lambda
  * @param {string} apiName Name of API
  * @param {string} targetlambdaArn ARN of Lambda where requests should be forwarded to
- * @param {string} region 
+ * @param {string} apiRegion 
  * @returns {Promise<{apiId: string, apiUrl: string}>} Id and URL of the endpoint
  * // TODO throws on existing? 
  */
-async function createApi(apiName, targetlambdaArn, region) {
+async function createApi(apiName, targetlambdaArn, apiRegion) {
   const apigatewayv2 = new AWS.ApiGatewayV2({
     apiVersion: '2018-11-29',
-    region: region, 
+    region: apiRegion, 
   })
 
   const createApiParams = {
     Name: apiName,
     ProtocolType: 'HTTP',
-    EndpointType: 'REGIONAL',
+    // TODO regional is default, but how the to set to EDGE later on?
+    // EndpointType: 'REGIONAL', // invalid field
     Target: targetlambdaArn,
   }
 
@@ -32,6 +33,23 @@ async function createApi(apiName, targetlambdaArn, region) {
   }
   
   return res 
+}
+
+/**
+ * 
+ * @param {string} apiId 
+ * @param {string} apiRegion 
+ * @returns {Promise<void>}
+ */
+async function deleteApi(apiId, apiRegion) {
+  const apigatewayv2 = new AWS.ApiGatewayV2({
+    apiVersion: '2018-11-29',
+    region: apiRegion, 
+  })
+  const deleteApiParams = {
+    ApiId: apiId,
+  }
+  await apigatewayv2.deleteApi(deleteApiParams).promise()
 }
 
 /**
@@ -101,6 +119,7 @@ async function allowApiGatewayToInvokeLambda(lambdaName, region) {
 
 module.exports = {
   createApi,
+  _only_for_testing_deleteApi: deleteApi,
   allowApiGatewayToInvokeLambda,
   getApiDetails,
 }
