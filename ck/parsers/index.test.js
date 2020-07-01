@@ -39,6 +39,35 @@ describe('validators', () => {
           .not 
           .toThrow()
       })
+
+      test('with in field', async () => {
+        const input = [
+          { run: 'function1', in: 'abcde' },
+          { run: 'arn:aws:iam::735406098573:role/lambdaexecute' },
+          { run: 'google.com' }, // URLs are allowed
+        ]
+        
+        const toBeTested = () => validators['flow.json'](input)
+
+        expect(toBeTested)
+          .not 
+          .toThrow()
+      })
+    })
+
+    describe('it rejects incorrect schemas', () => {
+      test('with empty in field', async () => {
+        const input = [
+          { run: 'function1', in: '' },
+          { run: 'arn:aws:iam::735406098573:role/lambdaexecute' },
+          { run: 'google.com' }, // URLs are allowed
+        ]
+        
+        const toBeTested = () => validators['flow.json'](input)
+
+        expect(toBeTested)
+          .toThrow()
+      })
     })
   })
 })
