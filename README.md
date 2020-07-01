@@ -7,8 +7,7 @@ npm i -g jest
 ```
 ```
 'ESLint' by Dirk Baeumer
-'Jest' by Orta
 ```
 
+* Don't use a background Jest runner (in VSCode et cetera), otherwise Google tests will fail as 'Operation already in progress'
 
-Notes: disabling spinnies and console.log, console.time drastically decreases time-to-complete, esp with large parallel things.
