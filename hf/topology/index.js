@@ -6,8 +6,8 @@
 const { extractRegion } = require('./extractors/index')
 
 const regionsToIdx = {
-  'amazon/us-east-1': 0,
-  'amazon/us-east-2': 1,
+  'us-east-1': 0,
+  'us-east-2': 1,
 }
 
 const topology = [
@@ -17,13 +17,15 @@ const topology = [
 
 ]
 
+const regions = Object.keys(regionsToIdx)
+
 /**
  * 
- * @param {string} from provider + / + region (eg amazon/us-east-2)
- * @param {string} to provider + / + region (eg amazon/us-east-2)
+ * @param {string} from arn
+ * @param {string} to arn
  */
 function getCost(from, to) {
-  // convert arn etc... to `provider/region`
+  // convert arn  to region
   const fromKey = extractRegion(from) 
   const toKey = extractRegion(to)
 
@@ -40,6 +42,7 @@ function getCost(from, to) {
 
 module.exports = {
   getCost,
+  regions,
   __only_for_testing_topology: topology,
   __only_for_testing_regionsToIdx: regionsToIdx,
   regionsToIdx,

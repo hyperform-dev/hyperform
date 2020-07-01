@@ -26,39 +26,39 @@ describe('topology', () => {
     })
   })
 
-  describe('some popular regions exist', () => {
-    test('amazon/us-east-2', () => {
-      const { getCost } = require('./index')
-      const region = 'amazon/us-east-2'
-      const toBeTested = () => getCost(region, region)
+  // describe('some popular regions exist', () => {
+  //   test('amazon/us-east-2', () => {
+  //     const { getCost } = require('./index')
+  //     const region = 'amazon/us-east-2'
+  //     const toBeTested = () => getCost(region, region)
 
-      expect(toBeTested).not.toThrow()
-    })
-  })
+  //     expect(toBeTested).not.toThrow()
+  //   })
+  // })
 
-  describe('throws on unknown region or provider', () => {
-    test('amazon/us-space-1', () => {
-      const { getCost } = require('./index')
-      const region = 'amazon/us-space-1'
-      const toBeTested = () => getCost(region, region)
+  // describe('throws on unknown region or provider', () => {
+  //   test('amazon/us-space-1', () => {
+  //     const { getCost } = require('./index')
+  //     const region = 'amazon/us-space-1'
+  //     const toBeTested = () => getCost(region, region)
 
-      expect(toBeTested).toThrow()
-    })
+  //     expect(toBeTested).toThrow()
+  //   })
 
-    test('rapture/under-sea-1', () => {
-      const { getCost } = require('./index')
-      const region = 'rapture/under-sea-1'
-      const toBeTested = () => getCost(region, region)
+  //   test('rapture/under-sea-1', () => {
+  //     const { getCost } = require('./index')
+  //     const region = 'rapture/under-sea-1'
+  //     const toBeTested = () => getCost(region, region)
 
-      expect(toBeTested).toThrow()
-    })
+  //     expect(toBeTested).toThrow()
+  //   })
 
-    test('rapture/us-east-2', () => {
-      const { getCost } = require('./index')
-      const region = 'rapture/us-east-2'
-      const toBeTested = () => getCost(region, region)
+  //   test('rapture/us-east-2', () => {
+  //     const { getCost } = require('./index')
+  //     const region = 'rapture/us-east-2'
+  //     const toBeTested = () => getCost(region, region)
 
-      expect(toBeTested).toThrow()
-    })
-  })
+  //     expect(toBeTested).toThrow()
+  //   })
+  // })
 })
