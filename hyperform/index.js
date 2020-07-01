@@ -1,6 +1,7 @@
 const { bundle } = require('./bundler/index')
 const { getJsFilepaths, getNamedExports } = require('./discoverer/index')
-const { deployAmazon, publishAmazon } = require('./deployer/amazon/index')
+const { deployAmazon } = require('./deployer/amazon/index')
+const { publishAmazon } = require('./publisher/amazon/index')
 const { deployGoogle } = require('./deployer/google/index')
 const uuidv4 = require('uuid').v4
 const path = require('path')
@@ -150,13 +151,17 @@ async function main(dir, fnregex) {
             
             })
   
+            // deploy function
             const amazonArn = await deployAmazon(zipPath, amazonOptions)
                                                                // is public
                                                                // TODO split methods so no coincidental mixup of public and private
-            const amazonEndpoint  = await publishAmazon(amazonArn, true)
+            const { url, token }  = await publishAmazon(amazonArn, {
+              allowUnauthenticated: false
+            })
 
+            console.log("Token that will be needed: " + token)
             spinnies.succeed(amazonOptions.name, { 
-              text: `${chalk.rgb(20, 20, 20).bgWhite(` Amazon `)} ${chalk.bold(amazonEndpoint)}`
+              text: `${chalk.rgb(20, 20, 20).bgWhite(` Amazon `)} ${chalk.bold(url)}`
             })
           }),
         )

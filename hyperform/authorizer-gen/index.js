@@ -2,7 +2,7 @@ const util = require('util');
 const exec = util.promisify(require('child_process').exec);
 
 const { generateRandomBearerToken } = require('./utils')
-const { deployAmazon, publishAmazon } = require('../deployer/amazon')
+const { deployAmazon } = require('../deployer/amazon')
 const { zip } = require('../zipper/index')
 
 /**
@@ -12,7 +12,6 @@ const { zip } = require('../zipper/index')
  * @returns {string} ARN of the created authorizer lambda
  */
 async function deployAuthorizer(authorizerName, expectedBearer) {
-
 
   // avoid accidentally empty bearer
   // Any request with 'Bearer' would be let through
@@ -48,13 +47,13 @@ async function deployAuthorizer(authorizerName, expectedBearer) {
 
   try {
     await exec(cmd2)
-    console.log(`allowed ${authorizerName} to be accessed by API gateway`)
+    console.log(`allowed Lambda ${authorizerName} to be accessed by API gateway`)
   //  console.log(`Authorized Gateway to access ${lambdaName}`)
   } catch(e) {
     // means statement exists already - means API gateway is already auth to access that lambda
    // console.log(`Probably already authorized to access ${lambdaName}`)
    // surpress throw e
-   console.log(`${authorizerName} probably can already be accessed by API gateway`)
+   console.log(`Lambda ${authorizerName} probably can already be accessed by API gateway`)
   }
   return authorizerArn
 }
@@ -86,6 +85,7 @@ async function getRouteId(apiId, routeKey) {
  * 
  * @param {string} apiId 
  * @param {string} authorizerArn 
+ * @returns {void}
  */
 async function setAuthorizer(apiId, authorizerArn) {
 
@@ -100,13 +100,13 @@ async function setAuthorizer(apiId, authorizerArn) {
   // Fails => Authorizer already existed with that name. Get that one's authorizerId (Follow Hyperform conv: same name - assume identical)
 
   const cmd = `aws apigatewayv2 create-authorizer --api-id ${apiId} --name ${authorizerName} --authorizer-type ${authorizerType} --identity-source '${identitySource}' --authorizer-uri ${authorizerUri} --authorizer-payload-format-version 2.0 --enable-simple-responses`
-
   let authorizerId 
 
   try {
     // Try to create authorizer
     const  { stdout } = await exec(cmd, { encoding: 'utf-8'})
-    console.log(`Newly created Authorizer ${authorizerName}`)
+    console.log(`Newly created Authorizer from Lambda ${authorizerName}`)
+    console.log(stdout)
     const parsedStdout = JSON.parse(stdout)
     authorizerId = parsedStdout.AuthorizerId
 
@@ -135,4 +135,3 @@ module.exports = {
   deployAuthorizer,
   setAuthorizer
 }
-

@@ -1,6 +1,7 @@
 const util = require('util');
 const exec = util.promisify(require('child_process').exec);
 const aws = require('aws-sdk')
+const { generateRandomBearerToken } = require('../../authorizer-gen/utils')
 const apigatewayv2 = new aws.ApiGatewayV2({
   region: 'us-east-2'
 })
@@ -48,73 +49,6 @@ function extractArn(stdout) {
   const parsed = JSON.parse(stdout) // TODO fallback on per-line regex
   const arn = parsed.FunctionArn  
   return arn
-}
-
-
-
-
-
-// TODO handle regional / edge / read up on how edge works
-// TODO don't create 
-/**
- * * Takes Lambda ARN and makes it public with API gateway
- * @returns {string} HTTP endpoint of lambda
- * @param {string} lambdaArn 
- */
-
- // TODO do we need to publish 1 or N times for every lambda deploy?
-async function publishAmazon(lambdaArn, { allowUnauthenticated }) {
-  if(allowUnauthenticated == null) {
-    throw new Error("PublishAmazon: specify second argument") // TODO HF programmer error, do not check for
-  }
-
-
-  const lambdaName = lambdaArn.split(':').slice(-1)[0]
-  const apiName = `hyperform-${lambdaName}`
-
-  // TODO Check if API exists, if so do nothing
-  // should Follows Hyperform conv: same name implies identical, for lambdas, and api endpoints etc
-  
-  //  const existsCmd = `aws apigatewayv2 get-api --api-id ${xx}` 
-  // TODO query
-  // aws apigatewayv2 get-apis --query 'items[?name==`first-http-api`]'
-  
-
-  // can be run multiple times, produces new URLs(not ideal)
-  const cmd1 = `aws apigatewayv2 create-api --name ${apiName} --protocol-type HTTP --target ${lambdaArn}`
-
-  let { stdout } = await exec(cmd1, { encoding: 'utf-8'})
-  let parsedstdout = JSON.parse(stdout)
-
-  const apiUrl = parsedstdout.ApiEndpoint
-  const apiId = parsedstdout.ApiId
-
-
-
-  // add permission to that lambda to be accessed by API gateway
-  // nice and easy now and has only to be done 1 (will throw on subsequent)
-  // später gleich, statt N dupe APIs 1 API, kann man spezifisch der api access der lambda erlauben
-
-  const cmd2 = `aws lambda add-permission --function-name ${lambdaName} --action lambda:InvokeFunction --statement-id hyperform-statement-${lambdaName} --principal apigateway.amazonaws.com`
-
-  try {
-    await exec(cmd2)
-  //  console.log(`Authorized Gateway to access ${lambdaName}`)
-  } catch(e) {
-    // means statement exists already - means API gateway is already auth to access that lambda
-   // console.log(`Probably already authorized to access ${lambdaName}`)
-   // surpress throw e
-  }
-
-
-  // if allowUnauthenticated == true, do nothing
-  // if false, 
-
-  // (1) deploy Lambda Authorizer https://docs.aws.amazon.com/apigateway/latest/developerguide/apigateway-use-lambda-authorizer.html
-
-  // (a) 
-
-  return apiUrl
 }
 
 
@@ -176,5 +110,4 @@ async function deployAmazon(pathToZip, options) {
 
 module.exports = {
   deployAmazon,
-  publishAmazon
 }
