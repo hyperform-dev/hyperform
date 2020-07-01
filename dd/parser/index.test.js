@@ -10,8 +10,10 @@ describe('validators', () => {
             do: 'mvn install;',
             upload: 'target/out1.0.0.jar',
             config: {
-              role: 'arn:aws:lambda:us-east-2:735406098573:role:woegnwoeg',
-              timeout: 60,
+              amazon: {
+                role: 'arn:aws:lambda:us-east-2:735406098573:role:woegnwoeg',
+                timeout: 60,
+              },
             },
           },
         ]
@@ -29,7 +31,9 @@ describe('validators', () => {
             forEachIn: 'javalambdas',
             upload: 'target/out1.0.0.jar',
             config: {
-              role: 'arn:aws:lambda:us-east-2:735406098573:role:woegnwoeg',
+              amazon: {
+                role: 'arn:aws:lambda:us-east-2:735406098573:role:woegnwoeg',
+              },
             },
           },
         ]
@@ -48,7 +52,9 @@ describe('validators', () => {
           forEachIn: 'javalambdas',
           upload: 'target/out1.0.0.jar',
           config: {
-            role: 'arn:aws:lambda:us-east-2:735406098573:role:woegnwoeg',
+            amazon: {
+              role: 'arn:aws:lambda:us-east-2:735406098573:role:woegnwoeg',
+            },
           },
         }
         
@@ -64,6 +70,9 @@ describe('validators', () => {
             forEachIn: 'javalambdas',
             upload: 'target/out1.0.0.jar',
             config: {
+              amazon: {
+                
+              },
             },
           },
         ]
@@ -95,7 +104,28 @@ describe('validators', () => {
             upload: 'target/out1.0.0.jar',
             role: 'arnxxxxxxxxxxxxxxxxxxxxxx',
             config: { 
+              amazon: {
+                role: 'arnxxxxxxxxxxxxxxxxxxxxxx',
+              },
+            },
+          },
+        ]
+        
+        const toBeTested = () => validators['deploy.json'](input)
+
+        expect(toBeTested)
+          .toThrow()
+      })
+
+      test('mid-level role', async () => {
+        const input = [
+          {
+            forEachIn: 'javalambdas',
+            upload: 'target/out1.0.0.jar',
+            config: { 
               role: 'arnxxxxxxxxxxxxxxxxxxxxxx',
+              amazon: {
+              },
             },
           },
         ]

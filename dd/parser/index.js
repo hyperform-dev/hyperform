@@ -44,8 +44,10 @@ const validators = {
         do: joi.string(),
         upload: joi.string().required(),
         config: joi.object({
-          role: joi.string().required(),
-          timeout: joi.number(),
+          amazon: joi.object({
+            role: joi.string().required(),
+            timeout: joi.number(),
+          }),
         }).required(),
       }),
     )

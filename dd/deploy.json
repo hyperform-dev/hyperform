@@ -1,10 +1,12 @@
 [
   {
     "forEachIn": "./lamb",
-    "do": "zip -r deploypackage.zip .",
+    "do": "sleep 2; npm install; zip -r deploypackage.zip .",
     "upload": "./deploypackage.zip",
     "config": {
-      "role": "arn:aws:iam::735406098573:role/lambdaexecute"
+      "amazon": {
+        "role": "arn:aws:iam::735406098573:role/lambdaexecute"
+      }
     }
   }
 ]

@@ -4,7 +4,7 @@ const fsp = require('fs').promises
 const fs = require('fs')
 const { readparsevalidate } = require('./parser')
 const { runDo } = require('./doer')
-const { runUploadAmazon } = require('./uploader/amazon')
+const { runUpload } = require('./uploader')
 const { spinnies } = require('./printer')
 /**
  * @returns { mode: 'init'|'deploy', root: String}
@@ -67,8 +67,9 @@ async function processTask(args, task, provider = 'amazon') {
       return (
         // Put all major steps here
         runDo(p, task.do, fnFolderNames[idx])
-          .then(() => runUploadAmazon(task, fnFolderNames[idx], uploadablePath, p))
-          .catch(() => {
+          .then(() => runUpload(task, fnFolderNames[idx], uploadablePath, p))
+          .catch((e) => {
+            console.log(e)
           /* 
           This is the catch if the ASYNCHRONIUS code in runDo or runUpload throws
           Do nothing as we still can do the other tasks.
@@ -95,7 +96,8 @@ async function main() {
     // For each element in deploy.json (a task), "do" and "upload"
     const proms = parsedJson
       .map((task) => processTask(args, task, 'amazon')
-        .catch(() => {
+        .catch((e) => {
+          console.log(e)
           /* This is the catch if the SYNCHRONIOUS code in processTasks throws
           Do nothing as we still can do the other tasks.
           The user is notified in processTasks.
@@ -105,6 +107,7 @@ async function main() {
     // wait for all to complete
     await Promise.all(proms)
   } catch (e) {
+    console.log(e)
     process.exit(1)
   }
 }
