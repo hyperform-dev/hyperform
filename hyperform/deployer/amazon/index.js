@@ -46,6 +46,15 @@ function extractArn(stdout) {
   return arn
 }
 
+/*
+
+API GATEWAY CALL: 
+
+aws lambda add-permission --function-name arn:aws:lambda:us-east-2:735406098573:function:endpoint_hello --statement-id statement-id-guid --action lambda:InvokeFunction --source-arn arn:aws:execute-api:us-east-2:735406098573:vca3i8138h/*/GET/* --principal apigateway.amazonaws.com
+
+
+*/
+
 /**
  * 
  * @param {*} pathToZip 
@@ -55,6 +64,7 @@ function extractArn(stdout) {
  * region: string
  * }} options 
  * @returns {string} The Lambda ARN
+
 
  */
 async function deployAmazon(pathToZip, options) {
