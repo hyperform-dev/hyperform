@@ -276,4 +276,34 @@ describe('Hyperform class', () => {
       expect(toBeTested).toThrow()
     })
   })
+
+  describe('concurrent', () => {
+    test('concurrent runs do not interfere (crude)', async () => {
+      const hf = new Hyperform()
+     
+      const input1 = { a: 1 }
+      const expectedOutput1 = { a: 1, aa: 1 }
+      
+      const input2 = { a: 2 }
+      const expectedOutput2 = { a: 2, aa: 2 }
+
+      hf.b({
+        aa: (prev) => new Promise((resolve) => {
+          setTimeout(() => {
+            resolve(prev.a)
+          }, 100);
+        }),
+      })
+
+      // run both at the same time
+
+      const res1res2 = await Promise.all([
+        hf.r(input1),
+        hf.r(input2),
+      ])
+
+      expect(res1res2[0]).toStrictEqual(expectedOutput1)
+      expect(res1res2[1]).toStrictEqual(expectedOutput2)
+    })
+  })
 })
