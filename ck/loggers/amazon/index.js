@@ -18,11 +18,11 @@ function extractStdout(logline) {
   }
 
   const l = logline.split('INFO') 
-  if (l) {
+  if (l.length === 2) {
     return l[1] // stdout appears after 'INFO'
-  }
+  } 
   // fallback: just print whole line (rather print too much that to little)
-  return l
+  return logline
 }
 
 function amazonLog(envoyRes, name) {
@@ -35,7 +35,7 @@ function amazonLog(envoyRes, name) {
       .split('\n')
       .map((l) => l && l.trim()) // trim lines
       .map((l) => extractStdout(l)) // get real stdout
-      .filter((l) => l.length)
+      .filter((l) => l && l.length)
       .map((l) => l.replace(/^\t/, '')) // trim leading tab (aws style) user had it
 
     // print it ( TODO lol )
