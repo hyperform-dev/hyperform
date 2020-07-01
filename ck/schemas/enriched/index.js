@@ -8,7 +8,7 @@ const func = joi.array().items(
       joi.string(),
       joi.array(),
     ).required(),
-  //  id: joi.string().required(),
+    id: joi.string().required(),
   }),
   // sequence
   joi.link('..'),
@@ -26,7 +26,7 @@ const flat_atomic = joi.object({
     joi.string(),
     joi.array(),
   ).required(),
-//  id: joi.string().required(),
+  id: joi.string().required(),
 })
 
 const flat_sequence = joi.array() 

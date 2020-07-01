@@ -22,7 +22,7 @@ const nodebuilders = {
       return async function () {
         const inp = stash.get(obj.in)
         const outp = await envoy(obj.run, inp, namecache)
-        stash.put(obj.run, outp)
+        stash.put(obj.id, outp)
       }
     },
   },

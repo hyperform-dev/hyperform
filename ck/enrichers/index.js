@@ -1,5 +1,5 @@
+const uuidv4 = require('uuid').v4
 const { unenrichedschemas } = require('../schemas/unenriched/index')
-
 // TODO write tests
 // NOTE THE SLIGHTLY DIFFERENT SEMANTICS TO NODEBUILDERS!
 // Especially enrich's return values
@@ -17,8 +17,8 @@ const flowJsonEnrichers = {
     enrich: (obj, env) => {
       const newobj = { ...obj }
       newobj.in = env.in
-
-      return [newobj, newobj.run]
+      newobj.id = `${newobj.run}-${uuidv4()}`
+      return [newobj, newobj.id]
     },
   },
   sequence: {
