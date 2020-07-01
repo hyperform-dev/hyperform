@@ -15,7 +15,7 @@ async function uploadFileS3(options) {
     Body: filecontents,
   }
 
-  return s3.upload(params).promise()
+  return s3.upload(params).promise().then(() => console.log(`Uploaded ${options.filepath}`))
 }
 
 // async function downloadFileS3(key) {

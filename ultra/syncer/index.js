@@ -1,5 +1,5 @@
 const { uploadFileS3 } = require('./amazon/index')
-const { downloadFileS3 } = require('./amazon/index')
+// const { downloadFileS3 } = require('./amazon/index')
 // On File change, syncs file to S3 folder 
 
 // TODO make platform agnostic
