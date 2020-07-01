@@ -83,3 +83,10 @@ n: 2000
 kick-off all: 875.825ms
 compl all: 22242.991ms
 ```
+
+
+## Bundling
+
+(Without recruiter, production)
+
+19. Nov: `233K Nov 19 14:23 bundle.js`
