@@ -185,9 +185,9 @@ function init(absdir) {
     log('Environment variable AWS_SECRET_ACCESS_KEY set, overriding value from credentials file')
   }
 
-  if (typeof process.env.AWS_DEFAULT_REGION === 'string' && process.env.AWS_DEFAULT_REGION.trim().length > 0) {
-    hyperformJsonContents.amazon.aws_default_region = process.env.AWS_DEFAULT_REGION.trim()
-    log('Environment variable AWS_DEFAULT_REGION set, overriding value from config file')
+  if (typeof process.env.AWS_REGION === 'string' && process.env.AWS_REGION.trim().length > 0) {
+    hyperformJsonContents.amazon.aws_default_region = process.env.AWS_REGION.trim()
+    log('Environment variable AWS_REGION set, overriding value from config file')
   }
 
   // write results to hyperform.json

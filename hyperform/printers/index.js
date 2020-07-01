@@ -27,7 +27,10 @@ const { log } = console
 let logdev 
 // set right logging level
 // don't show dev-level logging
-// Comment this out to see logdev
+// Show logdev
+// logdev = console.log 
+
+// Don't show logdev
 logdev = () => { }
 // don't show timings
 // Comment this out to see timings

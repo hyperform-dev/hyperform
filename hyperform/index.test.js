@@ -57,7 +57,7 @@ describe('System tests (takes 1-2 minutes)', () => {
           amazon: {
             aws_access_key_id: process.env.AWS_ACCESS_KEY_ID,
             aws_secret_access_key: process.env.AWS_SECRET_ACCESS_KEY, 
-            aws_default_region: process.env.AWS_DEFAULT_REGION, 
+            aws_default_region: process.env.AWS_REGION, 
           },
         }
         const allowUnauthenticated = false

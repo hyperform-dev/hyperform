@@ -7,9 +7,15 @@ const schema = require('../schemas/index').hyperformJsonSchema
 let parsedHyperformJson 
 
 /**
- * @description Parses and validates "dir"/hyperform.json
+ * @description Parses v,alidates, and returns contents of "dir"/hyperform.json
  * @param {string} dir Directory where to look for hyperform.json
- * @returns {*} Parsed contents of "dir"/hyperform.json
+ * @returns {{
+ * amazon:  {
+ *  aws_access_key_id: string?,
+ *  aws_secret_access_key: string?,
+ *  aws_default_region: string?
+ * }
+ * }} 
  * @throws ENOENT if could not open hyperform.json, SyntaxError if it contains invalid JSON
  * 
  */

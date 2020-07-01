@@ -2,6 +2,13 @@ const util = require('util')
 const exec = util.promisify(require('child_process').exec);
 const AWS = require('aws-sdk')
 const { log, logdev } = require('../../printers/index')
+
+AWS.config.update({
+  accessKeyId: process.env.AWS_ACCESS_KEY_ID,
+  secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
+  region: process.env.AWS_REGION, 
+})
+
 /**
  * @description Creates a new REGIONAL API in "region" named "apiName" that 
  * forwards requests to the "targetlambdaArn" Lambda

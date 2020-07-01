@@ -3,6 +3,13 @@ const exec = util.promisify(require('child_process').exec);
 const AWS = require('aws-sdk')
 const fsp = require('fs').promises
 const { logdev } = require('../../printers/index')
+
+AWS.config.update({
+  accessKeyId: process.env.AWS_ACCESS_KEY_ID,
+  secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
+  region: process.env.AWS_REGION, 
+})
+
 /**
  * @description Creates a new Lambda with given function code and options
  * @param {string} pathToZip Path to the zipped Lambda code

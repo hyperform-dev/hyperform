@@ -4,6 +4,13 @@ const { allowApiGatewayToInvokeLambda } = require('../publisher/amazon/utils')
 const { zip } = require('../zipper/index')
 const { ensureBearerTokenSecure } = require('./utils')
 const { logdev } = require('../printers/index')
+
+AWS.config.update({
+  accessKeyId: process.env.AWS_ACCESS_KEY_ID,
+  secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
+  region: process.env.AWS_REGION, 
+})
+
 /**
  * @description Creates or updates Authorizer lambda with name "authorizerName" 
  * that if used as Authorizer in API Gateway, will
