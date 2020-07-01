@@ -7,9 +7,9 @@ const BLACKLIST = [
 ]
 
 /**
- * Searches <dir> and its subdirectories for .js files
+ * @description Searches "dir" and its subdirectories for files ending with .js
  * @param {string} dir 
- * @returns {string[]} Paths to .js files
+ * @returns {Promise<string[]>} Paths to files ending with .js
  */
 // TODO do not follow symlinks (or do?)
 function getJsFilepaths(dir) {
@@ -46,8 +46,8 @@ function getJsFilepaths(dir) {
 }
 
 /**
- * Evaluates a .js file to get its named export keys 
- * @param {string} filepath Path of .js file
+ * @description Evaluates a .js file to get its named export keys 
+ * @param {string} filepath Path to .js file
  * @returns {string[]} Array of named export keys
  */
 function getNamedExportKeys(filepath) {

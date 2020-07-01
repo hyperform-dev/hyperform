@@ -4,9 +4,9 @@ const fsp = require('fs').promises
 const os = require('os')
 
 /**
- * Bundles a given .js files with its dependencies using webpack
- * @param {string} inpath Path of entry .js file
- * @returns {string} The bundled code
+ * @description Bundles a given .js files with its dependencies using webpack
+ * @param {string} inpath Path to entry .js file
+ * @returns {Promise<string>} The bundled code
  */
 async function bundle(inpath) {
   // create out dir (silly webpack)

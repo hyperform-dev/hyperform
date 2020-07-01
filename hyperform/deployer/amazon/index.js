@@ -3,6 +3,7 @@ const exec = util.promisify(require('child_process').exec);
 
 /**
  * 
+ * @description Returns shell command that updates <options.name>'s Lambda's code
  * @param {string} pathToZip 
  * @param {{
  * name: string
@@ -17,16 +18,16 @@ function createUpdateCommand(pathToZip, options) {
 }
 
 /**
- * 
+ * @description Returns shell command that newly deploys <options.name> Lambda
  * @param {string} pathToZip 
  * @param {{
   * name: string,
   * runtime: string,
-  * timeout: number,
   * handler: string,
   * role: string,
-  * region: string
-  * }} options 
+  * timeout?: number,
+  * region?: string
+  * }} options "timeout" default is 3 seconds. "region" default is the AWS CLI Default region.
   * @returns {string}
   */
 function createDeployCommand(pathToZip, options) {
@@ -38,12 +39,12 @@ function createDeployCommand(pathToZip, options) {
 }
 
 /**
- * Checks whether a Lambda name exists in a region
+ * @description Checks whether a Lambda exists in a given region
  * @param {{
  * name: string,
  * region: string
  * }} options 
- * @returns {boolean}
+ * @returns {Promise<boolean>}
  */
 async function isExistsAmazon(options) {
   let cmd = `aws lambda get-function --function-name ${options.name}`
@@ -58,8 +59,9 @@ async function isExistsAmazon(options) {
 }
 
 /**
- * 
- * @param {string} stdout stdout of successful "aws lambda create-function" or "aws lambda update-function" 
+ * @description Extracts the Lambda ARN from the STDOUT of "aws lambda create-function" 
+ * or "aws lambda update-function-code"
+ * @param {string} stdout 
  * @returns {string} The Lambda ARN
  */
 function extractArn(stdout) {
@@ -70,8 +72,10 @@ function extractArn(stdout) {
 }
 
 /**
- * 
- * @param {*} pathToZip 
+ * @description If Lambda "options.name" does not exist yet in "options.region", 
+ * it deploys a new Lambda with given code ("pathToZip") and "options". 
+ * If Lambda exists, it just updates its code with "pathToZip", and ignores "options"
+ * @param {*} pathToZip Path to the zipped Lambda code
  * @param {{
  * name: string, 
  * role: string, 
@@ -80,7 +84,7 @@ function extractArn(stdout) {
  * ram?: number,
  * handler?: string
  * }} options 
- * @returns {string} The Lambda ARN
+ * @returns {Promise<string>} The Lambda ARN
  */
 async function deployAmazon(pathToZip, options) {
   if (!options.name || !options.role) {
@@ -96,16 +100,15 @@ async function deployAmazon(pathToZip, options) {
     role: options.role, // || 'arn:aws:iam::735406098573:role/lambdaexecute',
     region: options.region || 'us-east-2',
   }
-
-  // spinnies.add(options.path, { text: `Deploying ${options.name} in ${options.language}` })
-  // check if lambda has been deployed before
+ 
+  // check if lambda exists already
   const exists = await isExistsAmazon(fulloptions)
-  // piece together terminal command to deploy
+  // create shell command
   const uploadCmd = exists === true 
     ? createUpdateCommand(pathToZip, fulloptions)
     : createDeployCommand(pathToZip, fulloptions)
 
-  // deploy/upload
+  // run shell command to deploy/update
   let arn 
   try {
     console.time(`Amazon-deploy-${options.name}`)

@@ -4,9 +4,11 @@ const { deployAuthorizer, setAuthorizer } = require('../../authorizer-gen/index'
 // TODO handle regional / edge / read up on how edge works
 
 /**
- * Gets name and URL of an API gateway API, if it exists.
- * @param {string} apiName Name of the API gateway API
- * @returns {{apiId: string, apiUrl: string}?} Details of the API, or null
+ * @description Returns ApiId and ApiEndpoint of the a API gateway API with the name "apiName".
+ * If multiple APIs exist with that name, it warns, and uses the first one in the received list.
+ * If none exist, returns null
+ * @param {string} apiName 
+ * @returns {Promise<{apiId: string, apiUrl: string}>} Details of the API, or null
  */
 async function getApiDetails(apiName) {
   // Check if API with that name exists
@@ -35,10 +37,12 @@ async function getApiDetails(apiName) {
 }
 
 /**
- * Creates API that is linked to a Lambda
+ * @description Creates a new API named "apiName" that 
+ * forwards requests to the "targetlambdaArn" Lambda
  * @param {string} apiName Name of API
- * @param {string} targetlambdaArn ARN of Lambda that should be linked
- * @returns {{apiId: string, apiUrl: string}} Id and URL of the endpoint
+ * @param {string} targetlambdaArn ARN of Lambda where requests should be forwarded to
+ * @returns {Promise<{apiId: string, apiUrl: string}>} Id and URL of the endpoint
+ * // TODO throws on existing? 
  */
 async function createApi(apiName, targetlambdaArn) {
   const cmd = `aws apigatewayv2 create-api --name ${apiName} --protocol-type HTTP --target ${targetlambdaArn}`
@@ -53,10 +57,13 @@ async function createApi(apiName, targetlambdaArn) {
 }
 
 /**
- * Takes Lambda ARN and makes it public with API gateway
+ * @description Creates a public HTTP endpoint that forwards request to a given Lambda.
+ * If allowUnauthenticated is false, the resulting 
+ * HTTP endpoint will return 403 or 401,
+ * unless the HTTP headers contain 'Authorization: Bearer "bearerToken"'
  * @param {string} lambdaArn 
  * @param {{ allowUnauthenticated: boolean, bearerToken?: string }} param1 
- * @returns {string} HTTP endpoint of the lambda
+ * @returns {Promise<string>} HTTP endpoint URL of the Lambda
  */
 async function publishAmazon(lambdaArn, { allowUnauthenticated, bearerToken }) {
   // TODO do we need to publish 1 or N times for every lambda deploy?

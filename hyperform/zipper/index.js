@@ -7,9 +7,9 @@ const { Readable } = require('stream')
 
 const yazl = require('yazl')
 /**
- * Zips given code as 'index.js' to deploypackage.zip
- * @returns {string} path to the created zip
+ * @description Creates a .zip that contains a single file, 'index.js' with given code in it
  * @param {string} code index.js code
+ * @returns {Promise<string>} Path to the created .zip
  */
 async function zip(code) {
   const uid = `${Math.ceil(Math.random() * 10000)}`

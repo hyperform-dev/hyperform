@@ -2,7 +2,8 @@ const util = require('util');
 const exec = util.promisify(require('child_process').exec);
 
 /**
- * 
+ * @description Returns shell command that newly deploys or updates "options.name" GCF 
+ * // TODO does Google consider changed options on subsequent deploys, or ignore them?
  * @param {string} pathToCode 
  * @param {{
  * name: string,
@@ -22,7 +23,7 @@ function createDeployCommand(pathToCode, options) {
 }
 
 /**
- * Extracts the endpoint URL from the stdout of gcloud deploy
+ * @description Extracts the endpoint URL from the STDOUT of "gcloud deploy"
  * @param {string} stdout 
  * @returns {string} The endpoint URL
  */
@@ -38,7 +39,8 @@ function extractUrl(stdout) {
 }
 
 /**
- * 
+ * @description Creates or updates "options.name" GCF with given code
+ * // TODO does Google consider changed options on subsequent deploys, or ignore them?
  * @param {string} pathToCode 
  * @param {{
  * name: string,
@@ -47,7 +49,7 @@ function extractUrl(stdout) {
  * region?: string,
  * runtime?: string,
  * }} options 
- * @returns { string } The endpoint URL
+ * @returns {Promise<string>} The endpoint URL
  */
 async function deployGoogle(pathToCode, options) {
   // TODO make more things required lol
@@ -67,7 +69,6 @@ async function deployGoogle(pathToCode, options) {
 
   try {
     console.time(`Google-deploy-${fulloptions.name}`)
-    // TODO get stdout, get link and display it
     const { stdout } = await exec(uploadCmd, { encoding: 'utf-8' })
     const url = extractUrl(stdout)
     console.timeEnd(`Google-deploy-${fulloptions.name}`)

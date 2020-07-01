@@ -1,5 +1,5 @@
 /**
- * Detects whether jest is running this code
+ * @description Detects whether jest is running this code
  * @returns {boolean} 
  */
 function isInTesting() {
