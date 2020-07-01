@@ -14,15 +14,15 @@ jobs:
 
     strategy:
       matrix:
-        platform: [ubuntu-latest]
+        platform: [ubuntu-latest, windows-latest, macos-latest]
     runs-on: ${{ matrix.platform }}
 
     steps:
     - uses: actions/checkout@v2
-    - name: Use Node.js 12.x
+    - name: Use Node.js 10.x
       uses: actions/setup-node@v1
       with:
-        node-version: 12.x 
+        node-version: 10.x 
     - name: Install
       run: npm ci                         # beware of dashes (-) before run
     - name: Test                                        
