@@ -1,3 +1,5 @@
+#!/usr/bin/env node
+
 const arg = require('arg')
 const path = require('path')
 const { readparsevalidate } = require('./parsers/index')
