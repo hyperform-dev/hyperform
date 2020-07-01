@@ -10,9 +10,11 @@ const { initProject } = require('./initer/index')
 const { getAllFunctionNames } = require('./utils/index')
 const { resolveName } = require('./resolvers/index')
 const { log } = require('./utils/index')
-
+const { recruiter } = require('../recruiter/index')
 // TODO enforce ck is run in project root
 // TODO (prob already done, since it checks for flow)
+
+const LANG = 'js'
 
 async function main() {
   // Top level error boundary of ck
@@ -55,15 +57,20 @@ async function main() {
       path: path.join(root, 'flow.json'),
     })
 
+    const allFunctionNames = getAllFunctionNames(parsedFlowJson)
     // "heat up" namecache
     // in the background, resolve ambiguous function names to exact URI's (arns...)
     // writes to the namecache
-    getAllFunctionNames(parsedFlowJson)
+    allFunctionNames
       .forEach((fname) => {
         // don't await, we don't care about the result
         // just kick it off and let it run in the background
         resolveName(fname)
       })
+
+    // deploy/update functions that are found in (1) flow.json and (2) in the current directory
+    const localfnpath = path.join(root, '..', 'recruiter', 'tm')
+    await recruiter(localfnpath, LANG, allFunctionNames)
 
     // add some fields for internal representation
     const [enrichedFlowJson, outputkey] = await enrich(
