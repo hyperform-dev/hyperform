@@ -43,6 +43,8 @@ async function bundle(inpath) {
           // return the bundle code
           fsp.readFile(outpath, { encoding: 'utf8' })
             .then((code) => resolve(code))
+          // TODO clean up file 
+          // TODO do in-memory 
         }
       },
     )
