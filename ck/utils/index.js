@@ -52,8 +52,13 @@ const args = arg({
 
 const { log } = console
 let logdev 
+// if silent
 if (args['--silent'] === true) {
+  // don't show dev-level logging
   logdev = () => { }
+  // don't show timings
+  console.time = () => { }
+  console.timeEnd = () => { }
 } else {
   logdev = console.log
 }
