@@ -14,6 +14,7 @@
   "dependencies": {
     "compressing": "^1.5.1",
     "findit": "^2.0.0",
+    "spinnies": "^0.5.1",
     "webpack": "^5.4.0"
   }
 }
