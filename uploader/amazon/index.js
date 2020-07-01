@@ -26,5 +26,3 @@
 //   uploadAmazon,
 // }
 
-// uploadAmazon('/tmp/zipped-t69Psg/deploypackage.zip', 'jak-bridge-typical', 'deploypppppp.zip')
-//   .then(console.log)
