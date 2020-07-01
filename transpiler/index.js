@@ -24,15 +24,15 @@ const { ensureBearerTokenSecure } = require('../authorizer-gen/utils')
 /**
  * 
  * @param {string} bundleCode 
- * @param {{allowUnauthenticated: boolean, expectedBearer: string}} options 
+ * @param {{needAuth: boolean, expectedBearer: string}} options 
  */
 function transpile(bundleCode, options) {
-  if (options.allowUnauthenticated === false && !options.expectedBearer) {
-    throw new Error(`expectedBearer must be defined when allowUnauthenticated is false but is ${options.expectedBearer}`) // TODO HF programmer mistake
+  if (options.needAuth === true && !options.expectedBearer) {
+    throw new Error(`expectedBearer must be defined when needAuth is true but is ${options.expectedBearer}`) // TODO HF programmer mistake
   }
 
   let googleBearerCheckCode = ''
-  if (options.allowUnauthenticated === false) {
+  if (options.needAuth === true) {
     // done at a few places but better safe than sorry
     ensureBearerTokenSecure(options.expectedBearer)
     googleBearerCheckCode = `
@@ -49,9 +49,11 @@ function transpile(bundleCode, options) {
 ;module.exports = (() => {
 
   /**
-  * This is the Hyperform wrapper
-  * Plain-text for better readability
-  */
+    * This is the Hyperform wrapper
+    * Plain-text for better readability
+    */
+  global.alreadyWrappedNames = [];
+
   function wrapExs(me, platform) {
     const newmoduleexports = { ...me };
     const expkeys = Object.keys(me);
@@ -59,15 +61,22 @@ function transpile(bundleCode, options) {
       const expkey = expkeys[i];
       const userfunc = newmoduleexports[expkey];
       // it should be idempotent
-      if (userfunc.hyperform_wrapped === true) {
+      // TODO fix code so this doesn't happen
+      if (global.alreadyWrappedNames.includes(expkey)) {
         continue;
       }
+      global.alreadyWrappedNames.push(expkey);
       let wrappedfunc;
       if (platform === 'amazon') {
         wrappedfunc = async function handler(input, context) {
           console.log('from API gateway received inp: ', JSON.stringify(input));
           let event = {};
-          if (input.body) {
+          // check for GET query string
+          if (input.queryStringParameters != null) {
+            event = input.queryStringParameters;
+          }
+          // check for POST body
+          else if (input.body != null) {
             event = (input.isBase64Encoded === true)
               ? Buffer.from(input.body, 'base64').toString('utf-8')
               : input.body;
@@ -79,7 +88,7 @@ function transpile(bundleCode, options) {
               event = Object.fromEntries(new URLSearchParams(event));
             }
           } else {
-            console.log("Warn: No 'body' field found in input."); // visible in CloudWatch and on Google
+            console.log("Warn: No query string, or 'body' field found in input."); // visible in CloudWatch and on Google
           }
           const res = await userfunc(event); // TODO add context.fail?
           context.succeed(res);
@@ -88,12 +97,12 @@ function transpile(bundleCode, options) {
       if (platform === 'google') {
         wrappedfunc = async function handler(req, resp) {
           ${googleBearerCheckCode}
-          const input = JSON.parse(JSON.stringify(req.body));
+          //            GET          POST
+          const input = req.query || JSON.parse(JSON.stringify(req.body));
           const output = await userfunc(input);
           resp.json(output);
         };
       }
-      wrappedfunc.hyperform_wrapped = true;
       newmoduleexports[expkey] = wrappedfunc;
     }
     return newmoduleexports;
@@ -102,16 +111,14 @@ function transpile(bundleCode, options) {
   const isInAmazon = !!(process.env.LAMBDA_TASK_ROOT || process.env.AWS_EXECUTION_ENV);
   const isInGoogle = (/google/.test(process.env._) === true);
   if (isInAmazon === true) {
-    const newmpexp = wrapExs(curr, 'amazon');
-    return newmpexp;
+    return wrapExs(curr, 'amazon');
   }
   if (isInGoogle === true) {
-    const newmexp = wrapExs(curr, 'google');
-    return newmexp;
+    return wrapExs(curr, 'google');
   }
   return curr; // Export unchanged (local, fallback)
 
- 
+
 })();
 `
 

@@ -7,68 +7,75 @@
 module.exports = () => {
   // START PASTE
 
-    /**
+  /**
     * This is the Hyperform wrapper
     * Plain-text for better readability
     */
-    function wrapExs(me, platform) {
-      const newmoduleexports = { ...me };
-      const expkeys = Object.keys(me);
-      for (let i = 0; i < expkeys.length; i += 1) {
-        const expkey = expkeys[i];
-        const userfunc = newmoduleexports[expkey];
-        // it should be idempotent
-        if (userfunc.hyperform_wrapped === true) {
-          continue;
-        }
-        let wrappedfunc;
-        if (platform === 'amazon') {
-          wrappedfunc = async function handler(input, context) {
-            console.log('from API gateway received inp: ', JSON.stringify(input));
-            let event = {};
-            if (input.body) {
-              event = (input.isBase64Encoded === true)
-                ? Buffer.from(input.body, 'base64').toString('utf-8')
-                : input.body;
-              // try to parse as JSON first
-              try {
-                event = JSON.parse(event);
-              } catch (e) {
-                // try to parse as query string second
-                event = Object.fromEntries(new URLSearchParams(event));
-              }
-            } else {
-              console.log("Warn: No 'body' field found in input."); // visible in CloudWatch and on Google
-            }
-            const res = await userfunc(event); // TODO add context.fail?
-            context.succeed(res);
-          };
-        }
-        if (platform === 'google') {
-          wrappedfunc = async function handler(req, resp) {
-            ${ googleBearerCheckCode }
-            const input = JSON.parse(JSON.stringify(req.body));
-            const output = await userfunc(input);
-            resp.json(output);
-          };
-        }
-        wrappedfunc.hyperform_wrapped = true;
-        newmoduleexports[expkey] = wrappedfunc;
+  global.alreadyWrappedNames = [];
+
+  function wrapExs(me, platform) {
+    const newmoduleexports = { ...me };
+    const expkeys = Object.keys(me);
+    for (let i = 0; i < expkeys.length; i += 1) {
+      const expkey = expkeys[i];
+      const userfunc = newmoduleexports[expkey];
+      // it should be idempotent
+      // TODO fix code so this doesn't happen
+      if (global.alreadyWrappedNames.includes(expkey)) {
+        continue;
       }
-      return newmoduleexports;
+      global.alreadyWrappedNames.push(expkey);
+      let wrappedfunc;
+      if (platform === 'amazon') {
+        wrappedfunc = async function handler(input, context) {
+          console.log('from API gateway received inp: ', JSON.stringify(input));
+          let event = {};
+          // check for GET query string
+          if (input.queryStringParameters != null) {
+            event = input.queryStringParameters;
+          }
+          // check for POST body
+          else if (input.body != null) {
+            event = (input.isBase64Encoded === true)
+              ? Buffer.from(input.body, 'base64').toString('utf-8')
+              : input.body;
+            // try to parse as JSON first
+            try {
+              event = JSON.parse(event);
+            } catch (e) {
+              // try to parse as query string second
+              event = Object.fromEntries(new URLSearchParams(event));
+            }
+          } else {
+            console.log("Warn: No query string, or 'body' field found in input."); // visible in CloudWatch and on Google
+          }
+          const res = await userfunc(event); // TODO add context.fail?
+          context.succeed(res);
+        };
+      }
+      if (platform === 'google') {
+        wrappedfunc = async function handler(req, resp) {
+          ${ googleBearerCheckCode }
+          //            GET          POST
+          const input = req.query || JSON.parse(JSON.stringify(req.body));
+          const output = await userfunc(input);
+          resp.json(output);
+        };
+      }
+      newmoduleexports[expkey] = wrappedfunc;
     }
-    const curr = { ...exports, ...module.exports };
-    const isInAmazon = !!(process.env.LAMBDA_TASK_ROOT || process.env.AWS_EXECUTION_ENV);
-    const isInGoogle = (/google/.test(process.env._) === true);
-    if (isInAmazon === true) {
-      const newmpexp = wrapExs(curr, 'amazon');
-      return newmpexp;
-    }
-    if (isInGoogle === true) {
-      const newmexp = wrapExs(curr, 'google');
-      return newmexp;
-    }
-    return curr; // Export unchanged (local, fallback)
+    return newmoduleexports;
+  }
+  const curr = { ...exports, ...module.exports };
+  const isInAmazon = !!(process.env.LAMBDA_TASK_ROOT || process.env.AWS_EXECUTION_ENV);
+  const isInGoogle = (/google/.test(process.env._) === true);
+  if (isInAmazon === true) {
+    return wrapExs(curr, 'amazon');
+  }
+  if (isInGoogle === true) {
+    return wrapExs(curr, 'google');
+  }
+  return curr; // Export unchanged (local, fallback)
 
   // END PASTE
 };
