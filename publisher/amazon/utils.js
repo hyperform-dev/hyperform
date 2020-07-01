@@ -28,15 +28,15 @@ async function createApi(apiName, apiRegion) {
     // TODO regional is default, but how the to set to EDGE later on?
     // EndpointType: 'REGIONAL', // invalid field
     // Target: targetlambdaArn, // TODO
-    // CorsConfiguration: {
-    //   AllowMethods: [
-    //     'POST',
-    //     'GET',
-    //   ],
-    //   AllowOrigins: [
-    //     '*',
-    //   ],
-    // },
+    CorsConfiguration: {
+      AllowMethods: [
+        'POST',
+        'GET',
+      ],
+      AllowOrigins: [
+        '*',
+      ],
+    },
   }
 
   const createApiRes = await apigatewayv2.createApi(createApiParams).promise()
@@ -139,6 +139,7 @@ async function getGETPOSTRoutesAt(apiId, apiRegion, routePath) {
  * If only one of GET or POST routes exist (user likely deleted one of them),
  * it updates that one. 
  * Otherwise, it creates new both GET, POST routes.
+ *  Use createDefaultAutodeployStage too when creating, so that changes are made public
  * @param {*} apiId 
  * @param {*} apiRegion 
  * @param {*} routePath '/endpoint-1' for example
