@@ -1,20 +1,32 @@
-function a() {
-  console.log('a')
-}
 
-function b() {
-  a()
-  console.log('b')
-}
+////////////////////////////////
+////////////////////////////////
+////////////////////////////////
 
-function fn_c() {
-  console.log('fn_c')
-}
+// // NOV-0
 
-module.exports = {
-  a,
-  b,
-  fn_c,
-}
+// function fn_() {
+//   console.log('fn_')
+// }
 
-// webpack includes all in that file.. nice
+// function a() {
+//   console.log('a')
+//   b()
+// }
+
+// function b() {
+//   console.log('b')
+//   fn_()
+// }
+
+
+// module.exports = {
+//   a,
+//   b,
+//   fn_
+// }
+
+
+/////////////////////////////////////////////
+
+
