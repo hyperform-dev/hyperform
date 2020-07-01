@@ -20,6 +20,7 @@ const nodebuilders = {
       return !error
     },
     build: async (obj) => {
+      console.log('building atomic')
       return async function () {
         const inp = sharedStash.get(obj.in)
         const outp = await envoy(obj.run, inp)
@@ -35,38 +36,54 @@ const nodebuilders = {
       return !error
     },
     build: async (obj) => {
-      const builtMembers = obj.map((o) => build(o))
-      await Promise.all(builtMembers)
-      
+      console.log('building sequence')
+      // Build each member fn in the sequence
+      // Note: Seems to runaway if not immediately .all'ed
+      const builtMembers = await Promise.all(obj.map((o) => build(o)))
       return async function () {
-        // Build each member fn in the sequence
         // Run one after the other
         // Data transfer is handled automatically over shmem (sharedStash)
-        for (let i = 0; i < obj.length; i += 1) {
+        for (let i = 0; i < builtMembers.length; i += 1) {
           await builtMembers[i]()
         }
       }
     },
   },
-  // doParallel: async (obj) => {
-  //   // build each member in doParallel
-  //   const builtMembers = obj.doParallel.map((o) => build(o))
-  //   await Promise.all(builtMembers)
+  doParallel: {
+    canBuild: (obj) => {
+      const schema = enrichedschemas.flat_doParallel
+      const { error } = schema.validate(obj)
+      return !error
+    },
+    build: async (obj) => {
+      // Note: Seems to runaway if not immediately .all'ed
+      const builtSections = await Promise.all(obj.doParallel.map((sec) => build(sec)))
 
-  //   // return a function that runs these member functions in parallel, 
-  //   // completes when all are done
-  //   return async function () {
-  //     if (!obj.doParallel.length) {
-  //       return undefined
+      return async function () {
+        // Run them in parallel, wait for all to complete
+        const proms = builtSections.map((fn) => fn())
+        await Promise.all(proms)
+      }
+    },
+  },
+
+  // doParallel: {
+  //   canBuild: (obj) => {
+  //     const schema = enrichedschemas.flat_doParallel 
+  //     const { error } = schema.validate(obj)
+  //     return !error
+  //   },
+  //   build: async (obj) => {
+  //     // build each section 
+  //     const builtSections = obj.doParallel.map((sec) => build(sec))
+  //     await Promise.all(builtSections)
+
+  //     return async function () {
+  //       // Run them in parallel, wait for all to complete
+  //       const proms = builtSections.map((fn) => fn())
+  //       await Promise.all(proms)
   //     }
-
-  //     const proms = builtMembers.map((fn) => {
-
-  //     })
-  //     await Promise.all(
-  //       obj.doParallel.map((n) => build(node)),
-  //     )
-  //   }
+  //   },
   // },
 }
 
@@ -76,7 +93,7 @@ function detectnodetype(obj) {
       return nodetype
     }
   }
-  throw new Error(`No builder claimed responsibility (canBuild) for ${obj}`)
+  throw new Error(`No builder claimed responsibility (canBuild) for ${JSON.stringify(obj)}`)
 }
 
 /**
@@ -89,14 +106,26 @@ function build(obj) {
   // find out which builder to use
   const nodetype = detectnodetype(obj)
   // build the node function
+  console.log('BUILDING ', nodetype)
   return nodebuilders[nodetype].build(obj)
 }
 
 // async function main() {
 //   sharedStash.put('inn', { num: 1 })
-//   const fn = await build({ run: 'arn:aws:lambda:us-east-2:735406098573:function:myinc', in: 'inn' })
+//   const fn = await build([
+//     {
+//       doParallel: [
+//         { run: 'arn:aws:lambda:us-east-2:735406098573:function:myinc', in: 'inn' },
+//         { run: 'arn:aws:lambda:us-east-2:735406098573:function:myincinc', in: 'inn' },
+//       ],
+//     },
+//   ])
+//   console.log('tyoef', typeof fn)
 //   await fn()
-//   console.log(sharedStash.get('arn:aws:lambda:us-east-2:735406098573:function:myinc'))
+//   console.log(sharedStash.getall())
+//   // await fn()
+//   // console.log(sharedStash.getall())
+//   // console.log(sharedStash.get('arn:aws:lambda:us-east-2:735406098573:function:myinc'))
 // }
 
 // main()
