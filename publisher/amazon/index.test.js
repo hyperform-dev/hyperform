@@ -39,6 +39,6 @@ describe('utils', () => {
       // Clean up: Delete API
 
       await deleteApi(res.apiId, APIREGION)
-    })
+    }, 10000)
   })
 })
