@@ -1,39 +1,82 @@
 const uuidv4 = require('uuid').v4
-const { unenrichedschemas } = require('../schemas/index')
+const { unenrichedschemas } = require('../schemas/unenriched/index')
+
+// NOTE THE SLIGHTLY DIFFERENT SEMANTICS TO NODEBUILDERS!
+// Especially enrich's return values
 
 const flowJsonEnrichers = {
-  sequence: {
+  atomic: {
     canEnrich: (obj) => {
-      const schema = unenrichedschemas.sequence
+      const schema = unenrichedschemas.flat_atomic
       const { error } = schema.validate(obj)
       return !error
     },
-    enrich: (arr) => {
+    /**
+     * @returns {[enriched, outputkey]} key the output of that construct will be saved under
+     */
+    enrich: (obj, env) => {
+      const newobj = { ...obj }
+      newobj.in = env.in
+
+      return [newobj, newobj.run]
+    },
+  },
+  sequence: {
+    canEnrich: (obj) => {
+      // TODO too overeager since sequence is any arrray?
+      const schema = unenrichedschemas.flat_sequence
+      const { error } = schema.validate(obj)
+      return !error
+    },
+    enrich: (arr, env) => {
       const newarr = [...arr]
-      // Id fields
-      for (let i = 0; i < newarr.length; i += 1) {
-        if (!newarr[i].id) {
-          newarr[i].id = `${newarr[i].run}-${uuidv4()}`
-        }
+
+      if (!newarr.length) {
+        return [newarr, null] // TODO convention: use null as void  do that everywhere
       }
 
-      // In fields
-      // assumes it's only atomic fns
-      newarr[0].in = '__workflow_in'
+      // first member receives sequence's in
+      const [fstMemberEnriched, fstMemberOutputkey] = enrich(newarr[0], { in: env.in })
+      newarr[0] = fstMemberEnriched 
+
+      let outputKey = fstMemberOutputkey
+      let enriched
+      // chain functions, by setting each "in" to the predecessor's outputkey
       for (let i = 1; i < newarr.length; i += 1) {
-        if (newarr[i].in == null) {
-          newarr[i].in = newarr[i - 1].id
-        }
+        // enrich member
+        const res = enrich(newarr[i], { in: outputKey });
+        // remember outputkey for next member's in
+        [newarr[i], outputKey] = res
+      }
+      
+      return [newarr, outputKey]
+    },
+  },
+  doParallel: {
+    canEnrich: (obj) => {
+      const schema = unenrichedschemas.flat_doParallel
+      const { error } = schema.validate(obj)
+      return !error
+    },
+    enrich: (obj, env) => {
+      if (!obj.doParallel.length) {
+        return [obj, null]
       }
 
-      return newarr
+      const newobj = { ...obj }
+      let outputKey 
+      // cannot be written shorter
+      [newobj.doParallel, outputKey] = enrich(newobj.doParallel, { in: env.in })
+      return [newobj, outputKey]
     },
   },
 }
 
 function detectnodetype(obj) {
+  console.log('CHECKING', obj)
   for (const [nodetype, v] of Object.entries(flowJsonEnrichers)) {
     if (v.canEnrich(obj) === true) {
+      console.log('TYPE', nodetype)
       return nodetype
     }
   }
@@ -43,11 +86,12 @@ function detectnodetype(obj) {
 /**
  * Takes any type of node, and recursively enriches it
  * @param {*} obj 
- * @returns {Promise<*>}
+ * @param {{in: string}} env Optional info for enriching this object
+ * @returns {[enriched: Object, outputKey: string]}
  */
-function enrich(obj) {
+function enrich(obj, env) {
   const nodetype = detectnodetype(obj)
-  return flowJsonEnrichers[nodetype].enrich(obj)
+  return flowJsonEnrichers[nodetype].enrich(obj, env)
 }
 
 module.exports = {

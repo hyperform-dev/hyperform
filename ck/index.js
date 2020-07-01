@@ -35,11 +35,10 @@ async function main() {
       path: path.join(args.root, 'flow.json'),
     })
 
-    console.log(parsedFlowJson)
+    const [enrichedFlowJson, outputkey] = await enrich(parsedFlowJson, { in: '__workflow_in' })
+    console.log(JSON.stringify(enrichedFlowJson, null, 2), outputkey)
     process.exit()
     
-    const enrichedFlowJson = await enrich(parsedFlowJson)
-
     sharedStash.put('__workflow_in', { num: 1 })
 
     // TODO overhaul lol

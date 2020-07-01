@@ -1,4 +1,13 @@
 [
   { "run": "arn:aws:lambda:us-east-2:735406098573:function:myinc" },
-  { "run": "myincinc" }
+  {
+    "doParallel": [
+      {
+        "doParallel": [
+  { "run": "arn:aws:lambda:us-east-2:735406098573:function:myincinc" }
+
+        ]
+      }
+    ]
+  }
 ]
