@@ -124,5 +124,44 @@ aws_secret_access_key =XXXXXXXXXX+tgppEZPzdN/XXXXlXXXXX/XXXXXXX
     })
   })
 
+  describe('init', () => {
+    // TODO create mock .aws and see if fields are extracted correctly
+    test('runs, and output has expected structure', async () => {
+      const os = require('os')
+      const uuidv4 = require('uuid').v4 
+      const fs = require('fs')
+      const path = require('path')
+      const { init } = require('./index')
+      // init will write hyperform.json here
+      const absdir = path.join(os.tmpdir(), uuidv4())
+      fs.mkdirSync(absdir)
+
+      let err 
+      try {
+        init(absdir)
+      }catch(e) {
+        err = e
+      }
+
+      // it didn't throw
+      expect(err).not.toBeDefined()
+
+      // it wrote hyperform.json
+      const hyperformJsonPath = path.join(absdir, 'hyperform.json')
+      expect(fs.existsSync(hyperformJsonPath)).toBe(true)
+
+
+      // hyperform.json has the expected structure
+      let hyperformJson = fs.readFileSync(hyperformJsonPath)
+      hyperformJson = JSON.parse(hyperformJson)
+
+      expect(hyperformJson.amazon).toBeDefined()
+      expect(hyperformJson.amazon.aws_access_key_id).toBeDefined()
+      expect(hyperformJson.amazon.aws_secret_access_key).toBeDefined()
+      expect(hyperformJson.amazon.region).toBeDefined()
+      
+    })
+  })
+
   
 })
