@@ -115,7 +115,7 @@ function init(absdir) {
   const filedest = path.join(absdir, 'hyperform.json')
   if (fs.existsSync(filedest)) {
     console.log('hyperform.json exists already.')
-    process.exit(1)
+    return
   }
 
   {
@@ -158,4 +158,6 @@ function init(absdir) {
 
 module.exports = {
   init,
+  _only_for_testing_getDefaultSectionString: getDefaultSectionString,
+  _only_for_testing_parseAwsCredentialsOrConfigFile: parseAwsCredentialsOrConfigFile
 }
