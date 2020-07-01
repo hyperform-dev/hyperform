@@ -1,15 +1,69 @@
 /* eslint-disable global-require */
-const zipper = require('../../zipper/index')
 
-// Omit tests for sub functions
-// Those, eg. terminal command generators, will be replaced anyway with SDKs
+const LAMBDANAME = 'jest-reserved-returna1'
+const LAMBDAREGION = 'us-east-2'
+
+afterAll(async () => {
+  const { deleteAmazon } = require('./index')
+  await deleteAmazon(LAMBDANAME, LAMBDAREGION)
+}) 
+
+// Helpers 
+const arnRegex = /arn:(aws[a-zA-Z-]*)?:lambda:[a-z]{2}((-gov)|(-iso(b?)))?-[a-z]+-\d{1}:\d{12}:function:[a-zA-Z0-9-_]+(:(\$LATEST|[a-zA-Z0-9-_]+))?/
+const isArn = (str) => (typeof str === 'string') && (arnRegex.test(str) === true)
 
 describe('deployer', () => {
   describe('amazon', () => {
     describe('deployAmazon', () => {
-      // TODO test if lambda does not exist, clean up lambda afterwards
-            
-      // allow 15 seconds
+      test('completes if Lambda does not exist, and returns ARN', async () => {
+        const { deleteAmazon, deployAmazon } = require('./index.js')
+        const { zip } = require('../../zipper/index')
+
+        /// //////////////////////////////////////////////
+        // Setup: delete function if it exists already
+
+        try {
+          await deleteAmazon(LAMBDANAME, LAMBDAREGION)
+          // deleted function
+        } catch (e) {
+          if (e.code === 'ResourceNotFoundException') {
+            // does not exist in the first place, nice
+          } else {
+            throw e
+          }
+        }
+
+        /// //////////////////////////////////////////////
+        // Setup: create code zip
+
+        const code = `module.exports = { ${LAMBDANAME}: () => ({a: 1}) }`
+ 
+        const zipPath = await zip(code)
+ 
+        /// ////////////////////////////////////////////////////
+ 
+        const options = {
+          name: LAMBDANAME,
+          region: LAMBDAREGION,
+        }
+ 
+        let err 
+        let lambdaArn 
+        try {
+          lambdaArn = await deployAmazon(zipPath, options)
+        } catch (e) {
+          err = e
+        }
+ 
+        // it completed
+        expect(err).not.toBeDefined()
+ 
+        // it's an ARN
+        expect(isArn(lambdaArn)).toBe(true)
+
+        // TODO
+      }, 15 * 1000)
+
       test('completes if Lambda already exists, and returns ARN', async () => {
         const { deployAmazon } = require('./index')
         const { zip } = require('../../zipper/index')
@@ -17,18 +71,21 @@ describe('deployer', () => {
         /// //////////////////////////////////////////////
         // Setup: create code zip
 
-        const name = 'jest-reserved-returna1'
-        const region = 'us-east-2'
-        const code = `module.exports = { ${name}: () => ({a: 1}) }`
+        const code = `module.exports = { ${LAMBDANAME}: () => ({a: 1}) }`
 
         const zipPath = await zip(code)
 
-        /// ////////////////////////////////////////////////////
+        /// //////////////////////////////////////////////
+        // Setup: Deploy first time
 
         const options = {
-          name: name,
-          region: region,
+          name: LAMBDANAME,
+          region: LAMBDAREGION,
         }
+        await deployAmazon(zipPath, options)
+
+        /// ////////////////////////////////////////////////////
+        // Deploy second time
 
         let err 
         let lambdaArn 
@@ -42,10 +99,8 @@ describe('deployer', () => {
         expect(err).not.toBeDefined()
 
         // it's an ARN
-        expect(typeof lambdaArn).toBe('string')
-        const arnRegex = /arn:(aws[a-zA-Z-]*)?:lambda:[a-z]{2}((-gov)|(-iso(b?)))?-[a-z]+-\d{1}:\d{12}:function:[a-zA-Z0-9-_]+(:(\$LATEST|[a-zA-Z0-9-_]+))?/
-        expect(arnRegex.test(lambdaArn)).toBe(true)
-      }, 15 * 1000)
+        expect(isArn(lambdaArn)).toBe(true)
+      }, 30 * 1000)
     })
 
     // TODO more tests for the other methods
