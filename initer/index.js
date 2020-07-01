@@ -120,7 +120,12 @@ function init(absdir) {
     amazon: {
       aws_access_key_id: '',
       aws_secret_access_key: '',
-      aws_default_region: '', // TODO will be made redundant when hyperform deploys multi-region
+      aws_default_region: '', // TODO
+    },
+    google: {
+      gc_project: '',
+      gc_client_email: '',
+      gc_private_key: '',
     },
   }
 
