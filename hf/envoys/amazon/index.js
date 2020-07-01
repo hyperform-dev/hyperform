@@ -1,12 +1,14 @@
+/* eslint-disable arrow-body-style */
+
 const aws = require('aws-sdk')
 // reuse TCP HTTPS connection to amazon
 const https = require('https');
-
+// at some point, tweak these
 const agent = new https.Agent({
   keepAlive: true, 
   // Infinitity is read as 50 sockets
   maxSockets: Infinity,
-  
+
 });
 
 aws.config.update({
@@ -18,23 +20,29 @@ aws.config.update({
   },
 });
 
-// TODO lol
-const lambda = new aws.Lambda({
-  region: 'us-east-2',
-})
+const { extractRegion } = require('../../topology/helpers/index')
+const { regions } = require('../../topology/index')
+
+// Creating lambda is insanely fast
+// lambda: 0.385ms
+// lambda: 0.339ms
+// lambda: 0.383ms
+// Just do that every envoy to reduce complexity
 
 // Envoys should resolve to output obj if successful, or throw an error if not
 const amazonEnvoy = {
-  // TODO not call it locally here, use namecache
   canEnvoy: function (name) {
     return (
       /^arn:(aws|aws-cn|aws-us-gov):lambda:/.test(name) === true
     )
   },
   envoy: function (arn, input) {
-    const uid = `${Math.ceil(Math.random() * 10000)}`
-    console.time(`amazonEnvoy ${arn} ${uid}`)
+    const region = extractRegion(arn)
+    const lambda = new aws.Lambda({ region })
+
     const jsonInput = JSON.stringify(input)
+    const uid = `${Math.ceil(Math.random() * 1000)}`
+    console.time(`envoy ${uid}`)
     return (
       lambda.invoke({
         FunctionName: arn,
@@ -47,7 +55,8 @@ const amazonEnvoy = {
           if (p && p.FunctionError) {
             throw new Error(`Function ${arn} failed: ${p.Payload}`)
           }
-          console.timeEnd(`amazonEnvoy ${arn} ${uid}`)
+          console.timeEnd(`envoy ${uid}`)
+
           return p
         })
         // TODO maybe reinstantiate

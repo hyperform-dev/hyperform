@@ -36,23 +36,26 @@ function isFunction(val) {
 
 // Set terminal logging level
 
-const args = arg({
-  '--verbose': Boolean,
-  '-v': '--verbose',
-})
-
+const logdev = console.log 
 const { log } = console
-let logdev 
 
-if (args['--verbose'] === true) {
-  logdev = console.log
-} else {
-  // don't show dev-level logging
-  logdev = () => { }
-  // don't show timings
-  console.time = () => { }
-  console.timeEnd = () => { }
-}
+// const args = arg({
+//   '--verbose': Boolean,
+//   '-v': '--verbose',
+// })
+
+// const { log } = console
+// let logdev 
+
+// if (args['--verbose'] === true) {
+//   logdev = console.log
+// } else {
+//   // don't show dev-level logging
+//   logdev = () => { }
+//   // don't show timings
+//   console.time = () => { }
+//   console.timeEnd = () => { }
+// }
 
 module.exports = {
   isObject,

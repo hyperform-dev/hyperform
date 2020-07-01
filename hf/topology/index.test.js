@@ -9,14 +9,14 @@ describe('topology', () => {
     } 
   })
 
-  describe('getCost', () => {
+  describe('roundtripCost', () => {
     test('same region is cost 0', () => {
-      const { getCost } = require('./index')
+      const { roundtripCost } = require('./index')
 
       const fn1 = 'arn:aws:lambda:us-east-2:735406098573:function:myinc'
       const fn2 = 'arn:aws:lambda:us-east-2:735406098573:function:myincinc'
 
-      const toBeTested = () => getCost(fn1, fn2)
+      const toBeTested = () => roundtripCost(fn1, fn2)
       const res = toBeTested()
       expect(res).toBe(0)
     })
@@ -24,9 +24,9 @@ describe('topology', () => {
 
   // describe('some popular regions exist', () => {
   //   test('amazon/us-east-2', () => {
-  //     const { getCost } = require('./index')
+  //     const { roundtripCost } = require('./index')
   //     const region = 'amazon/us-east-2'
-  //     const toBeTested = () => getCost(region, region)
+  //     const toBeTested = () => roundtripCost(region, region)
 
   //     expect(toBeTested).not.toThrow()
   //   })
@@ -34,25 +34,25 @@ describe('topology', () => {
 
   // describe('throws on unknown region or provider', () => {
   //   test('amazon/us-space-1', () => {
-  //     const { getCost } = require('./index')
+  //     const { roundtripCost } = require('./index')
   //     const region = 'amazon/us-space-1'
-  //     const toBeTested = () => getCost(region, region)
+  //     const toBeTested = () => roundtripCost(region, region)
 
   //     expect(toBeTested).toThrow()
   //   })
 
   //   test('rapture/under-sea-1', () => {
-  //     const { getCost } = require('./index')
+  //     const { roundtripCost } = require('./index')
   //     const region = 'rapture/under-sea-1'
-  //     const toBeTested = () => getCost(region, region)
+  //     const toBeTested = () => roundtripCost(region, region)
 
   //     expect(toBeTested).toThrow()
   //   })
 
   //   test('rapture/us-east-2', () => {
-  //     const { getCost } = require('./index')
+  //     const { roundtripCost } = require('./index')
   //     const region = 'rapture/us-east-2'
-  //     const toBeTested = () => getCost(region, region)
+  //     const toBeTested = () => roundtripCost(region, region)
 
   //     expect(toBeTested).toThrow()
   //   })
