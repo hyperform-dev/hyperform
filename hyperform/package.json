@@ -1,5 +1,5 @@
 {
-  "name": "recruiter",
+  "name": "hyperform",
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
@@ -8,7 +8,8 @@
   },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "minify": "terser --compress --mangle -o template-bundle.js template.js"
+    "lint": "eslint",
+    "lintfix": "eslint --fix"
   },
   "author": "",
   "license": "ISC",
@@ -20,5 +21,11 @@
     "terser": "^5.5.1",
     "webpack": "^5.4.0",
     "yazl": "^2.5.1"
+  },
+  "devDependencies": {
+    "eslint": "^7.15.0",
+    "eslint-config-airbnb-base": "^14.2.1",
+    "eslint-plugin-import": "^2.22.1",
+    "webpack-cli": "^4.2.0"
   }
 }

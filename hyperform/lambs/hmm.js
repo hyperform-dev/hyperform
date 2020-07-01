@@ -13,8 +13,9 @@ async function fn_myinc({ num }) {
   }
 }
 
-module.exports = require('../template')({
+module.exports = {
   a,
   b,
   fn_myinc
-})
+}
+
