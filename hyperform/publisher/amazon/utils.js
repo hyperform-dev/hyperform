@@ -53,9 +53,10 @@ async function deleteApi(apiId, apiRegion) {
 }
 
 /**
- * @description Returns ApiId and ApiEndpoint of a regional API gateway API with the name "apiName" 
- * in "apiRegion".
- * If multiple APIs exist with that name, it warns, and uses the first one in the received list.
+ * @description Returns ApiId and ApiEndpoint of a regional API gateway API
+ *  with the name "apiName", in "apiRegion".
+ * If multiple APIs exist with that name, it warns, and uses the first one in the received list. 
+ * If none exist, it returns null.
  * @param {string} apiName 
  * @param {string} apiRegion
  * @returns {Promise<{apiId: string, apiUrl: string}>} Details of the API, or null
@@ -76,7 +77,8 @@ async function getApiDetails(apiName, apiRegion) {
 
   const matchingApis = res.Items.filter((item) => item.Name === apiName)
   if (matchingApis.length === 0) {
-    throw new Error(`Could not get api details of name, region ${apiName} ${apiRegion}`)
+    // none exist
+    return null 
   }
 
   if (matchingApis.length >= 2) {
