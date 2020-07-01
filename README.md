@@ -1,6 +1,6 @@
 ![Hyperform Banner](https://github.com/qngapparat/hyperform/blob/master/hyperform/hyperform-banner.png)
 
-![Hyperform Banner](https://github.com/qngapparat/hyperform/blob/master/hyperform/hyperform_5x.gif)
+<!-- ![Hyperform GIF](https://github.com/qngapparat/hyperform/blob/master/hyperform/hyperform_5x.gif) -->
 
 
 <!-- Requires Node >= 12.19.0
