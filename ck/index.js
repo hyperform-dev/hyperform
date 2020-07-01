@@ -9,12 +9,10 @@ const { build } = require('./nodebuilders/index')
 const { initProject } = require('./initer/index')
 const { getAllFunctionNames } = require('./utils/index')
 const { resolveName } = require('./resolvers/index')
+const { log } = require('./utils/index')
 
 // TODO enforce ck is run in project root
 // TODO (prob already done, since it checks for flow)
-
-// our terminal logger
-const { log } = console
 
 async function main() {
   // Top level error boundary of ck
@@ -28,11 +26,6 @@ async function main() {
       '--in': String,
       '--silent': Boolean,
     })
-    
-    // set logging level
-    if (args['--silent'] === true) {
-      console.log = () => {}
-    }
 
     // he just wants to init
     if (args._ && args._.includes('init')) {
@@ -98,7 +91,3 @@ async function main() {
 }
 
 main()
-
-module.exports = { 
-  log,
-}

@@ -35,13 +35,11 @@ const amazonEnvoy = {
         })
         // 2) If yes, log Lambda's stdout in local terminal
         .then((res) => {
-          amazonLog(res, name)
+          // remove arn:... part
+          const prettyname = name.split(':').slice(-1)[0]
+          amazonLog(res, prettyname)
           return res
         })
-        // .then((res) => {
-        //   console.log(res)
-        //   return res
-        // })
         // TODO do multiple parses if it was stringified multiple times lol
         // TODO or check that its an object after 1 go, otherwise throw / complain to user
         // 3) Parse its return value

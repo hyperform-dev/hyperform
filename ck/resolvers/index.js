@@ -1,5 +1,5 @@
 const { amazonQuery } = require('./amazon/index')
-
+const { logdev } = require('../utils/index')
 // order matters
 // we'll blindly pick the first platform that has that fn
 const resolvers = [
@@ -14,7 +14,7 @@ async function resolveName(name) {
 
   for (let i = 0; i < resolveAnswers.length; i += 1) {
     if (resolveAnswers[i]) {
-      console.log(`resolved ${name} ===> ${resolveAnswers[i]}`)
+      logdev(`resolved ${name} ===> ${resolveAnswers[i]}`)
       return resolveAnswers[i]
     }
   }

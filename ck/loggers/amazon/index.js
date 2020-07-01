@@ -1,5 +1,5 @@
 const chalk = require('chalk')
-
+const { log } = require('../../utils/index')
 /**
  * Logs a Lambda's stdout in the local terminal, after it has completed
  * @param {*} envoyRes What comes back from the lambda, parsed
@@ -42,7 +42,7 @@ function amazonLog(envoyRes, name) {
     const styleIt = (l) => `${chalk.rgb(20, 20, 20).bgWhite(` ${name} `)} ${l}`
     loglines
       .map((l) => styleIt(l))
-      .map((l) => console.log(l))
+      .map((l) => log(l))
   }
 }
 

@@ -6,12 +6,10 @@ class Namecache {
   }
 
   put(key, value) {
-  //  console.log('Namecache: Put ', key, value)
     this.namecache[key] = value 
   }
 
   get(key) {
-    // console.log('namecache: get ', key)
     if (typeof key !== 'string') {
       throw new Error(`namecache: get key must be string, but is ${key}`)
     }

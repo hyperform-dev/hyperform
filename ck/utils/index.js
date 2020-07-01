@@ -1,4 +1,4 @@
-const { EOL } = require('os')
+const arg = require('arg')
 
 const invert = (p) => new Promise((res, rej) => p.then(rej, res));
 
@@ -45,8 +45,23 @@ function getAllFunctionNames(parsedFlowJson) {
   return fnames
 }
 
+const args = arg({
+  '--in': String,
+  '--silent': Boolean,
+})
+
+const { log } = console
+let logdev 
+if (args['--silent'] === true) {
+  logdev = () => { }
+} else {
+  logdev = console.log
+}
+
 module.exports = {
   firstOf,
   validateOutput,
   getAllFunctionNames,
+  log, 
+  logdev,
 }

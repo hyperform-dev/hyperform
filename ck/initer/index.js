@@ -1,5 +1,6 @@
 const fs = require('fs')
 const path = require('path')
+const { log } = require('../utils/index')
 /**
  * Writes deploy.json and flow.json to current directory, if not already present
  */
@@ -26,17 +27,17 @@ const deployJsonStr = JSON.stringify(deployJson, null, 2)
 
 function initProject(root) {
   if (fs.existsSync(path.join(root, 'flow.json'))) {
-    console.log('flow.json already exists')
+    log('flow.json already exists')
   } else {
     fs.writeFileSync(path.join(root, 'flow.json'), flowJsonStr) // TODO replace with async, do in parallel
-    console.log('flow.json initialized')
+    log('flow.json initialized')
   }
 
   if (fs.existsSync(path.join(root, 'deploy.json'))) {
-    console.log('deploy.json already exists')
+    log('deploy.json already exists')
   } else {
     fs.writeFileSync(path.join(root, 'deploy.json'), deployJsonStr)
-    console.log('deploy.json initialized')
+    log('deploy.json initialized')
   }
 
   if (fs.existsSync(path.join(root, 'functions')) === false) {

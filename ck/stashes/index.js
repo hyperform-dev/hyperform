@@ -9,7 +9,6 @@ class Stash {
    * @param {*} value 
    */
   put(key, value) {
-  //  console.log('Put ', key, value)
     this.stash[key] = value
   }
 
@@ -18,7 +17,6 @@ class Stash {
    * @param {string | string[]} key Key or arbitrarily nested array of keys
    */
   get(key) {
-    // console.log('get ', key)
     if (typeof key !== 'string' && key.length == null) {
       throw new Error(`stash: get key must be stirng or array, but is ${key}`)
     }
@@ -26,7 +24,6 @@ class Stash {
     // key is string
     if (typeof key === 'string') {
       if (this.stash[key] === undefined) {
-        //    console.log(this.stash[key])
         throw new Error(`stash: get: key ${key} was never set`)
       }
       return this.stash[key]
