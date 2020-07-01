@@ -18,7 +18,10 @@ class Cloudkernel {
       throw new Error('Cloudkernel constructor wasnt passed a flow')
     }
     // validate according to flow.json preset
+    console.time('validate')
     validate(flow, 'flow.json') // TODO don't allow empty flows
+    console.timeEnd('validate')
+
     this.flow = flow 
     this.namecache = new Namecache() 
     this.stash = new Stash()
@@ -32,7 +35,9 @@ class Cloudkernel {
       .forEach((fname) => {
         // don't await, we don't care about the result
         // just kick it off and let it run in the background
+        console.time(`resolve ${fname}`)
         resolveName(fname, this.namecache)
+        console.timeEnd(`resolve ${fname}`)
       })
 
     // deploy/update functions that are found in (1) flow.json and (2) in the current directory
@@ -53,16 +58,24 @@ class Cloudkernel {
 
   async run(input) {
     // validate input 
+    console.time('validate input')
     validateOutput(input, 'input')
+    console.timeEnd('validate input')
 
     // put WF input on stash
     this.stash.put('__workflow_in', input)
 
     console.time('wf')
     // build top-level function
+    console.time('build-wf')
     const wf = await build(this.enrichedFlow, this.stash, this.namecache)
+    console.timeEnd('build-wf')
+
     // run WF
+    console.time('run-wf')
     await wf()
+    console.timeEnd('run-wf')
+
     console.timeEnd('wf')
 
     // get WF output from shash
