@@ -1,8 +1,8 @@
 [
   {
-    "forEachIn": "./lamb",
+    "forEachIn": "lambs",
     "do": "rm -f deploypackage.zip; zip -r deploypackage.zip .",
-    "upload": "./deploypackage.zip",
+    "upload": "deploypackage.zip",
     "config": {
       "amazon": {
         "role": "arn:aws:iam::735406098573:role/lambdaexecute"
