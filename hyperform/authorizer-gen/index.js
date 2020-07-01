@@ -1,20 +1,32 @@
 const util = require('util');
 const exec = util.promisify(require('child_process').exec);
 
-const { generateBearer } = require('./utils')
+const { generateRandomBearerToken } = require('./utils')
 const { deployAmazon, publishAmazon } = require('../deployer/amazon')
 const { zip } = require('../zipper/index')
 
 /**
  * 
  * @param {string} authorizerName For example 'myfn-authorizer'
+ * @param {string} expectedBearer 'Authorization': 'Bearer {expectedBearer}' 
  * @returns {string} ARN of the created authorizer lambda
  */
-async function deployAuthorizer(authorizerName) {
+async function deployAuthorizer(authorizerName, expectedBearer) {
+
+
+  // avoid accidentally empty bearer
+  // Any request with 'Bearer' would be let through
+  if(!expectedBearer || !expectedBearer.trim()) {
+    throw new Error("deployAuthorizer: expectedBearer is required")
+  }
+                     // will mess up weird user-given Tokens but that's on the user
+                    // will lead to false negatives (still better than false positives or injections)
+  const sanitizedExpectedBearer = encodeURI(expectedBearer)
+
   const authorizerCode = `
   exports.handler = async(event) => {
-    const expected = 'Bearer abcde'
-    const isAuthorized = event.headers.authorization === expected
+    const expected = \`Bearer ${sanitizedExpectedBearer}\`
+    const isAuthorized = (event.headers.authorization === expected)
     return {
       isAuthorized
     }
@@ -123,3 +135,4 @@ module.exports = {
   deployAuthorizer,
   setAuthorizer
 }
+
