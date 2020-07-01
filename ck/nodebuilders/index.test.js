@@ -8,7 +8,7 @@ describe('detectnodetype', () => {
     const input = {
       run: 'xxx',
       in: 'xxx',
-      //   id: 'xxx',
+      id: 'xxx',
     }
 
     const toBeTested = () => detectnodetype(input)
@@ -28,5 +28,21 @@ describe('detectnodetype', () => {
     const toBeTested = () => detectnodetype(input)
 
     expect(toBeTested()).toBe('sequence')
+  })
+
+  test('doParallel (enriched)', () => {
+    const input = {
+      doParallel: [
+        {
+          run: 'xxx',
+          in: 'xxx',
+          id: 'xxx',
+        },
+      ],
+    }
+
+    const toBeTested = () => detectnodetype(input)
+
+    expect(toBeTested()).toBe('doParallel')
   })
 })
