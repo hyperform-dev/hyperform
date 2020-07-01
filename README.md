@@ -15,13 +15,13 @@ const s3 = new AWS.S3()
 const bucket = 'my-todo-s3-bucket'
 
 /**
- * Export each desired endpoint using 'exports' or 'module.exports' (CommonJS)
- * It should have 'endpoint' in its name.
+ * Endpoints should be exported using 'exports' or 'module.exports' (CommonJS)
+ * Add 'endpoint' into their name, to mark them for Hyperform.
  * 
  * Quick Start:
  * 
- * A) You can import dependencies and code from anywhere. Hyperform uses Webpack internally.
- * B) You can define your endpoints in multiple files, not just index.js
+ * A) You can import any dependencies and code. Hyperform will bundle using Webpack.
+ * B) You can define endpoints in many files, not just index.js
  * C) 'aws-sdk' and '@google/' are included per default
  * D) Your endpoints will receive one argument: the parsed POST JSON body, or the GET query string
 */
@@ -40,7 +40,7 @@ exports.endpoint_addTodo = async ({ id, text }) => {
   }).promise()
 }
 
-exports.endpoint_toggleTodo = async ({ id }) => {
+exports.endpoint_getTodo = async ({ id }) => {
   const todo = await s3.getObject({
     Bucket: bucket,
     Key: id,
@@ -48,13 +48,7 @@ exports.endpoint_toggleTodo = async ({ id }) => {
     .promise()
     .then((res) => JSON.parse(Buffer.from(res.Body).toString())) // TODO
 
-  todo.completed = !todo.completed
-
-  await s3.putObject({
-    Bucket: bucket,
-    Key: id,
-    Body: JSON.stringify(todo),
-  }).promise()
+  return todo
 }
 
 exports.endpoint_deleteTodo = async ({ id }) => {
@@ -73,7 +67,9 @@ $ hyperform init
 ✓ Created hyperform.json
 ```
 
-#### Deploy
+#### Deploy TODO
+
+should be more, and adapt names
 
 ```sh 
 $ hyperform deploy --allow-unauthenticated
@@ -81,4 +77,22 @@ $ hyperform deploy --allow-unauthenticated
 ✓  Google  endpointGreet https://us-central1-firstnodefunc.cloudfunctions.net/endpointGreet
 ```
 
+#### Invoke TODO
 
+```sh
+##########
+# Amazon #
+##########
+$ curl https://a82n8xkixj.execute-api.us-east-2.amazonaws.com?id=1&text=Pick%20up%tomatoes # addTodo
+> null
+$ curl https://gmlpjhieh9.execute-api.us-east-2.amazonaws.com?id=1 # getTodo
+> {"id":1,"text":"Pick up tomatoes","completed":false}
+
+##########
+# Google #
+##########
+$ curl https://us-central1-firstnodefunc.cloudfunctions.net/endpoint_addTodo?id=1&text=Pick%20up%tomatoes
+> null
+$ curl https://us-central1-firstnodefunc.cloudfunctions.net/endpoint_getTodo?id=1
+> {"id":1,"text":"Pick up tomatoes","completed":false}
+```
