@@ -8,6 +8,8 @@ const lambda = new aws.Lambda({
   region: 'us-east-2',
 })
 
+// TODO handle timeouts. currently it's stuck when function exceeds its timeout
+
 // Envoys should resolve to output obj if successful, or throw an error if not
 const amazonEnvoy = {
   // TODO not call it locally here, use namecache
