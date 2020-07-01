@@ -24,34 +24,38 @@ describe('amazon resolver', () => {
   })
 
   describe('unknown names', () => {
-    test('given s3 arn, throws', async () => {
-      const input = 'arn:aws:s3:::this-is-a-bucket-xweoginewg'
+    // NOTE this would be a fundamental progamming error on our side
+    // it should behave as with any other invalid or non-existing name - return null
 
-      const toBeTested = () => amazonQuery(input)
+    // test('given s3 arn, throws', async () => {
+    //   const input = 'arn:aws:s3:::this-is-a-bucket-xweoginewg'
 
-      let err 
-      try {
-        const res = await toBeTested()
-      } catch (e) {
-        err = e
-      }
+    //   const toBeTested = () => amazonQuery(input)
 
-      expect(err).toBeDefined()
-    })
+    //   let err 
+    //   try {
+    //     const res = await toBeTested()
+    //   } catch (e) {
+    //     err = e
+    //   }
 
-    test('given unknown lambda name, throws', async () => {
+    //   expect(err).toBeDefined()
+    // })
+
+    test('given unknown lambda name, returns null', async () => {
       const input = 'my-nonexisting-lambda'
 
       const toBeTested = () => amazonQuery(input)
 
       let err 
+      let res 
       try {
-        const res = await toBeTested()
+        res = await toBeTested()
       } catch (e) {
         err = e
       }
 
-      expect(err).toBeDefined()
+      expect(res).toBe(null)
     })
   })
 })
