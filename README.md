@@ -1,10 +1,8 @@
 ![Hyperform Banner](https://github.com/qngapparat/hyperform/blob/master/hyperform-banner.png)
 
 
-<p align="center">A Delightful FaaS deployer<br>For AWS Lambda and Google Cloud Functions</div>
+<p align="center">A delightful FaaS deployer<br>For AWS Lambda & Google Cloud Functions</p>
 
-
-`exports.endpointHi = () => ({ msg: "Hi" })`  👉 `$ hf deploy` 👉 `🟢 AWS Lambda endpointHi  https://ltlpjhayh9.execute-api.us-east-2.amazonaws.com # GET and POST-able`
 
 ## Install
 
