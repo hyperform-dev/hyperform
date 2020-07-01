@@ -101,6 +101,8 @@ const appendix = `
 
 `
 
+const REGION = 'us-east-2'
+
 async function main(dir, fnregex) {
   // [ { p: /home/file.js, exps: ['fn_1', 'fn_2'] }, ... ]
   const infos = (await getFilePaths(dir, 'js'))
@@ -140,7 +142,7 @@ async function main(dir, fnregex) {
       info.exps.map(async (exp) => { // under same name
         const handler = `index.${exp}`
         console.log(`Deploying ${zipPath} as ${exp} with handler ${handler}`)
-        await deployAmazon(zipPath, exp, handler)
+        await deployAmazon(zipPath, exp, handler, REGION)
       }),
     )
   })

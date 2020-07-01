@@ -1,5 +1,10 @@
 /* eslint-disable */
-module.exports = (() => {
+/**
+ * 
+ * @param {*} moduleexp 
+ * @param {*} [exp] 
+ */
+module.exports = function change(moduleexp, exp = {}) {
   const aws = require('aws-sdk')
   const lambda = new aws.Lambda({ region: 'us-east-2' })
   function envoy(name, input) {
@@ -60,7 +65,7 @@ module.exports = (() => {
     return newmoduleexports;
   }
 
-  const curr = { ...module.exports }
+  const curr = { ...exp, ...moduleexp }
 
   console.log(Object.keys(curr))
   const isExportingFns = Object.keys(curr).some((k) => (/fn_/.test(k) === true))
@@ -87,4 +92,5 @@ module.exports = (() => {
   }
 
   return curr; // Export unchanged (fallback, no flag)
-})();
+}
+

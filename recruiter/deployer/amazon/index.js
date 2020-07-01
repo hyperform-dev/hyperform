@@ -39,14 +39,14 @@ async function isExistsAmazon(options) {
   }
 }
 
-async function deployAmazon(pathToZip, name, handler) {
+async function deployAmazon(pathToZip, name, handler, region) {
   const options = {
     name: name,
     runtime: 'nodejs12.x',
     timeout: 60,
     handler: handler || 'index.handler',
     role: 'arn:aws:iam::735406098573:role/lambdaexecute',
-    region: 'us-east-2',
+    region: region || 'us-east-2',
   }
 
   // spinnies.add(options.path, { text: `Deploying ${options.name} in ${options.language}` })
