@@ -81,7 +81,7 @@ describe('deployer', () => {
         const zipPath = await zip(code)
 
         /// //////////////////////////////////////////////
-        // Setup: ensure function exists already
+        // Setup: ensure function exists 
         
         const options = {
           name: LAMBDANAME,
@@ -115,6 +115,73 @@ describe('deployer', () => {
         expect(isArn(lambdaArn)).toBe(true)
       }, 30 * 1000)
     })
+
+    // NOTE if we're short on API calls we can sacrifice this:
+    // describe('isExistsAmazon', () => {
+    //   test('returns true on existing Lambda in name, region', async () => {
+    //     const { isExistsAmazon } = require('./utils')
+    //     const { deployAmazon } = require('./index')
+    //     const { zip } = require('../../zipper/index')
+        
+    //     /// //////////////////////////////////////////////
+    //     // Setup: create code zip
+        
+    //     const code = `module.exports = { ${LAMBDANAME}: () => ({a: 1}) }`
+        
+    //     const zipPath = await zip(code)
+
+    //     /// //////////////////////////////////////////////
+    //     // Setup: ensure function exists 
+        
+    //     const deployOptions = {
+    //       name: LAMBDANAME,
+    //       region: LAMBDAREGION,
+    //     }
+    //     try {
+    //       await deployAmazon(zipPath, deployOptions)
+    //     } catch (e) {
+    //       if (e.code === 'ResourceConflictException') {
+    //         /* exists already anyway, cool */
+    //       } else {
+    //         throw e
+    //       }
+    //     }
+
+    //     let err 
+    //     let res 
+    //     try {
+    //       res = await isExistsAmazon({ name: LAMBDANAME, region: LAMBDAREGION })
+    //     } catch (e) {
+    //       err = e
+    //     }
+
+    //     expect(err).not.toBeDefined()
+    //     expect(typeof res).toBe('boolean')
+    //     expect(res).toEqual(true)
+    //   })
+
+    //   test('returns false on non-existing Lambda in name, region', async () => {
+    //     const { isExistsAmazon } = require('./utils')
+    //     const uuidv4 = require('uuid').v4 
+
+    //     const options = {
+    //       name: `some-invalid-lambda-name-${uuidv4()}`,
+    //       region: LAMBDAREGION, // or whatever
+    //     }
+
+    //     let err 
+    //     let res 
+    //     try {
+    //       res = await isExistsAmazon(options)
+    //     } catch (e) {
+    //       err = e
+    //     }
+
+    //     expect(err).not.toBeDefined()
+    //     expect(typeof res).toBe('boolean')
+    //     expect(res).toEqual(false)
+    //   })
+    // })
 
     // TODO more tests for the other methods
   })
