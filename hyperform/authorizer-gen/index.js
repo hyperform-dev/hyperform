@@ -7,9 +7,10 @@ const { zip } = require('../zipper/index')
  * 
  * @param {string} authorizerName For example 'myfn-authorizer'
  * @param {string} expectedBearer 'Authorization': 'Bearer {expectedBearer}' 
+ * @param {string} region Desired region of the authorizer lambda
  * @returns {string} ARN of the deployed authorizer lambda
  */
-async function deployAuthorizer(authorizerName, expectedBearer) {
+async function deployAuthorizer(authorizerName, expectedBearer, region) {
   // avoid accidentally empty bearer
   // Any request with 'Bearer' would be let through
   if (!expectedBearer || !expectedBearer.trim()) {
@@ -39,6 +40,7 @@ async function deployAuthorizer(authorizerName, expectedBearer) {
     role: 'arn:aws:iam::735406098573:role/lambdaexecute',
     timeout: 1, // 1 second is ample time
     handler: 'index.handler',
+    region: region, // if not defined, it will use default TODO throw on not defined
   }
   const authorizerArn = await deployAmazon(zipPath, deployOptions)
 

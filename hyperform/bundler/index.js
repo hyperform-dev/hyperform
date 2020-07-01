@@ -32,7 +32,7 @@ async function bundle(inpath) {
       },
       (err, stats) => {
         if (err || stats.hasErrors()) {
-          console.error(`ERROR: Bundling ${inpath} failed`)
+          console.log(`ERROR: Bundling ${inpath} failed`)
           try {
             console.log(stats.compilation.errors)
           } catch (e) {

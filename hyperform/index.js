@@ -19,7 +19,8 @@ function createAppendix(expectedToken) {
 
   ;module.exports = (() => {
   
- 
+
+
     // for lambda, wrap all exports in context.succeed
     /**
      * 
@@ -44,12 +45,18 @@ function createAppendix(expectedToken) {
           wrappedfunc = async function handler(input, context) {
             let event = null // that way, no event is included in a simple echo (when undefined, the field simply does not appear marshalled)
             //https://docs.aws.amazon.com/apigateway/latest/developerguide/http-api-develop-integrations-lambda.html
+            
+            // TODO support plain inputs
+            // try to parse as json, otherwise just pass 
+            // 1 => "1", "abc" => "abc", '{"a":1}' => { a: 1}
             if(input.body) {
               event = (input.isBase64Encoded === true)
                 ? JSON.parse( Buffer.from(input.body, 'base64').toString('utf-8') )
                 : JSON.parse(input.body) // TODO throw invalid input code if could not decode
                 // TODO generally a way to throw HTTP status codes
                 
+            } else {
+              console.log("No 'body' field found in input.") //TODO remove
             }
             const res = await userfunc(event, context) // todo add context.fail // todo don't pass context otherwise usercode might become amz flavored
             context.succeed(res)
@@ -61,10 +68,9 @@ function createAppendix(expectedToken) {
               // unauthorized, exit
               return resp.sendStatus(403)
             }
-            // authorized
-            const event = JSON.parse(req.body)
-            const res = await userfunc(event) // TODO add fail 500
-            resp.json(res)
+            const input = JSON.parse(JSON.stringify(req.body)) // get rid of prototype methods of req.body
+            const output = await userfunc(input) // TODO add fail 500
+            resp.json(output)
           }
         }
   
@@ -93,12 +99,12 @@ function createAppendix(expectedToken) {
   
     return curr; // Export unchanged (local, fallback)
   
-  
+    
   
   })();
   
   `)
-} 
+}
 
 /**
  * Scouts <dir> and its subdirectories for .js files with exports whose name matches <fnregex>
@@ -143,23 +149,24 @@ async function amazonMain(info, bundledCode, bearerToken) {
         name: exp,
         role: 'arn:aws:iam::735406098573:role/lambdaexecute',
       }
-    
+
       const spinnieName = `amazon-${amazonOptions.name}`
 
       spinnies.add(spinnieName, {
         text: `${chalk.rgb(20, 20, 20).bgWhite(' Amazon ')} ${amazonOptions.name}`,
-    
+
       })
-    
+
       // deploy function
       const amazonArn = await deployAmazon(zipPath, amazonOptions)
+
       // is public
       // TODO split methods so no coincidental mixup of public and private
       const amazonEndpoint = await publishAmazon(amazonArn, {
         allowUnauthenticated: false,
         bearerToken: bearerToken,
       })
-      
+
       // TODO do somewhere else
       // TODO group by endpoint, not provider
       spinnies.succeed(spinnieName, {
@@ -242,14 +249,14 @@ async function main(dir, fnregex) {
     infos.map(async (info) => {
       // bundle file
       let bundledCode = await bundle(info.p)
-      
+
       // add module append
       // use one token for all endpoints (derweil)
       // TODO generate token from terminal seed 
       const bearerToken = generateRandomBearerToken(/* TODO ?SEED */)
       // Hardcode expected token into function (for Google)
       const appendix = createAppendix(bearerToken)
-       
+
       bundledCode += appendix
 
       // TODO mach parallel und do spinnies woanders (eh besser), sollte auch wrapping lösen
@@ -266,23 +273,24 @@ async function main(dir, fnregex) {
       }
       // Print token to console
       console.log(tokenMsg)
-        
-      // Deploy and publish
-        
-      /// ///////////////////
-      // Amazon
-      /// ///////////////////
-        
-      const amazonEndpoints = await amazonMain(info, bundledCode, bearerToken)
-        
-      /// ///////////////////
-      // Google
-      /// ///////////////////
-        
-      // NOTE for new functions add allUsers as invoker
-      // Keep that for now so don't forget the CLI setInvoker thing may screw up --allow-unauthenticated
-      const googleEndpoints = await googleMain(info, bundledCode, bearerToken)
 
+      // Deploy and publish
+
+      const [amazonEndpoints, googleEndpoints] = await Promise.all([
+        /// ///////////////////
+        // Amazon
+        /// ///////////////////
+        amazonMain(info, bundledCode, bearerToken),
+
+        /// ///////////////////
+        // Google
+        /// ///////////////////
+
+        // NOTE for new functions add allUsers as invoker
+        // Keep that for now so don't forget the CLI setInvoker thing may screw up --allow-unauthenticated
+        googleMain(info, bundledCode, bearerToken),
+      ])
+    
       // just for tests
       return [...amazonEndpoints, ...googleEndpoints]
     }),
