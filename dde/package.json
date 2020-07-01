@@ -7,7 +7,13 @@
     "dde": "./cli.js"
   },
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "jest",
+    "lint": "eslint",
+    "lintfix": "eslint --fix"
+  },
+  "engineStrict": true,
+  "engines": {
+    "node": "12.19.0"
   },
   "author": "DPS Group, University of Innsbruck <jakob.wallnoefer@student.uibk.ac.at>",
   "license": "ISC",
@@ -21,5 +27,10 @@
   "devDependencies": {
     "jest": "^26.6.3",
     "mock-fs": "^4.13.0"
+  },
+  "husky": {
+    "hooks": {
+      "pre-push": "npm run lintfix; npm run test"
+    }
   }
 }
