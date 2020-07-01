@@ -10,7 +10,7 @@ const transpilers = {
           exports.handler = async (event, context) => {
             let res 
             try {
-              res = userfunc(event, context)
+              res = await userfunc(event, context)
               context.succeed(res) // if user didn't call context.succeed() himself
             } catch(e) {
               context.fail(e)
