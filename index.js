@@ -131,7 +131,7 @@ async function main(dir, fnregex, parsedHyperformJson, allowUnauthenticated) {
             // 
           } catch (e) {
             spinnies.fail(spinnieName, {
-              text: `${chalk.rgb(20, 20, 20).bgWhite(' Amazon ')} ${exp}: ${e}`,
+              text: `${chalk.rgb(20, 20, 20).bgWhite(' Amazon ')} ${exp}: ${e.stack}`,
             })
             return []
           }
