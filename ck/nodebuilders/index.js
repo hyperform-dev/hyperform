@@ -1,7 +1,7 @@
 /* eslint-disable arrow-body-style, no-use-before-define */
 const joi = require('joi')
 
-const { secondschemas } = require('../schemas')
+const { enrichedschemas } = require('../schemas')
 const { envoy } = require('../envoys/index')
 const { sharedStash } = require('../stashes')
 // This file is about building an internal representation,
@@ -17,7 +17,7 @@ const nodebuilders = {
   // Name of the AFCL construct
   atomic: {
     canBuild: (obj) => {
-      const schema = secondschemas.atomic
+      const schema = enrichedschemas.atomic
       const { error } = schema.validate(obj)
       if (error) {
         return false
@@ -32,7 +32,7 @@ const nodebuilders = {
 
   sequence: {
     canBuild: (obj) => {
-      const schema = secondschemas.sequence
+      const schema = enrichedschemas.sequence
       const { error } = schema.validate(obj)
       if (error) {
         return false
@@ -60,56 +60,11 @@ const nodebuilders = {
           // set output for next fn
           sharedStash.put(obj[i].id, outp)
         }
-
-        // return last-in-chain-fn's output
-        // TODO don't return anything too, do everything with stash (we have the in's anyway)
-        // (but it's convenient for trying out...)
-        return outp
+        // does not return anything, use 'in' fields for reference
       }
     },
+    
   },
-
-  // 'sequence': {
-  //   /** 
-  //    * Whether to claim responsibility for building passed obj
-  //    * @param {*} obj 
-  //    * @returns {boolean}
-  //    */
-  //   canBuild: (obj) => {
-  //     const schema = secondschemas.sequence 
-  //     const { error, value } = schema.validate(obj)
-  //     if (error) {
-  //       return false 
-  //     } else {
-  //       return true
-  //     }
-  //   },
-
-  //   /** Builds a function that if run given input, runs that obj in the cloud
-  //    * Returns promise of final output
-  //    * @param {*} obj The AFCL of the subconstruct
-  //    * @returns {(input) => Promise<{ fn1id: *, fn2id: * ...}>}
-  //    */
-  //   build: (obj) => { 
-  //     return function (input) {
-  //       if (!obj.length) {
-  //         return Promise.resolve()
-  //       }
-
-  //       // We're defining now how the members should be run
-  //       // Because it's a sequence, they should be run one after the other
-
-  //       // array of unstarted functions that if start with input, run the corresponding cloud fn
-  //       const fnRunners = obj.map((n) => {
-  //         return (_input) => envoy(n.run, _input)
-  //       })
-
-  //       return new Promise((resolve, reject) => {
-
-  //       })
-  //     }
-  //   },
-  // },
 }
 
 function detectnodetype(obj) {
@@ -164,4 +119,5 @@ function build(obj) {
 
 module.exports = {
   detectnodetype,
+  build,
 }

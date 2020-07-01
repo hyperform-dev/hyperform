@@ -3,7 +3,7 @@ const joi = require('joi')
 const fsp = require('fs').promises
 const uuidv4 = require('uuid').v4 
 
-const { firstschemas, secondschemas } = require('../schemas')
+const { unenrichedschemas } = require('../schemas')
 
 const readers = {
   'flow.json': (path) => {
@@ -21,59 +21,9 @@ const parsers = {
   },
 }
 
-const firstvalidators = {
+const validators = {
   'flow.json': (obj) => {
-    const schema = firstschemas.sequence // TODO not only support sequence lol
-
-    const { error, value } = schema.validate(obj)
-    if (error) {
-      throw new Error(`${error} ${value}`)
-    }
-  },
-}
-
-const enrichers = {
-  'flow.json': (obj) => {
-    function enrichSequence(arr, inName) {
-      const enrichedarr = [...arr]
-
-      // ADD ID FIELDS
-      for (let i = 0; i < enrichedarr.length; i += 1) {
-        // don't overwrite if user set it manually (overwrite if empty string)
-        if (!enrichedarr[i].id) { 
-          enrichedarr[i].id = `${enrichedarr[i].run}-${uuidv4()}`
-        }
-      }
-        
-      // ADD IN FIELDS
-      for (let i = 0; i < enrichedarr.length; i += 1) {
-        if (i === 0) { 
-          // first function's in = sequence's in
-          enrichedarr[i].in = inName
-          continue 
-        }
-        // function in
-        // fn input is previous fn's output (identified by run field)
-        // TODO introduce wf-unique id's
-        // TODO warn if 'in' is invalid or appears nowhere
-        // don't overwrite if user set it manually (do not overwrite if empty string ~ void)
-        if (enrichedarr[i].in == null) { 
-          enrichedarr[i].in = enrichedarr[i - 1].id
-        }
-      }
-
-      return enrichedarr
-    }
-
-    // only support sequence
-    return enrichSequence(obj, '__workflow_in')
-  },
-}
-
-const secondvalidators = {
-  'flow.json': (obj) => {
-    // here after enriching, "in" is not mandatory
-    const schema = secondschemas.sequence
+    const schema = unenrichedschemas.sequence // TODO not only support sequence lol
 
     const { error, value } = schema.validate(obj)
     if (error) {
@@ -93,7 +43,7 @@ async function readparsevalidate(options) {
   if (!parsers[options.presetName]) {
     throw new Error(`UNIMEPLEMENTED: reader for ${options.presetName}`)
   }
-  if (!firstvalidators[options.presetName]) {
+  if (!validators[options.presetName]) {
     throw new Error(`UNIMEPLEMENTED: reader for ${options.presetName}`)
   }
 
@@ -108,30 +58,12 @@ async function readparsevalidate(options) {
   // parse it
   result = await parsers[options.presetName](result)
   // first validate it
-  await firstvalidators[options.presetName](result)
-
-  // enriching and second validation is optional step
-
-  // force us if we do one, do both
-  if ((!enrichers[options.presetName] && firstvalidators[options.presetName])
-   || (enrichers[options.presetName] && !firstvalidators[options.presetName])) {
-    throw new Error(`UNIMPLEMENTED: you need to implement both or neither of enricher and secondvalidate for: ${options.presetName}`)
-  } 
-
-  // enrich it
-  if (enrichers[options.presetName]) {
-    result = await enrichers[options.presetName](result)
-  } 
-  
-  // second validate 
-  if (secondvalidators[options.presetName]) {
-    await secondvalidators[options.presetName](result)
-  }
+  await validators[options.presetName](result)
 
   return result
 }
 
 module.exports = { 
   readparsevalidate, 
-  _onlyfortesting_firstvalidators: firstvalidators,
+  _onlyfortesting_unenrichedvalidators: validators,
 }
