@@ -1,5 +1,6 @@
 const { unenrichedschemas } = require('../schemas/unenriched/index')
 
+// TODO write tests
 // NOTE THE SLIGHTLY DIFFERENT SEMANTICS TO NODEBUILDERS!
 // Especially enrich's return values
 

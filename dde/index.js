@@ -6,7 +6,6 @@ const { readparsevalidate } = require('./parser/index')
 const { runDo } = require('./doer/index')
 const { runUpload } = require('./uploader/index')
 const { getCandidatePaths } = require('./utils/index')
-const { parseCliArgs } = require('./utils/index')
 const { inferLanguageFromDir } = require('./langinferer/index')
 // TODO support region field for amazon
 
@@ -17,13 +16,17 @@ const { inferLanguageFromDir } = require('./langinferer/index')
 async function cleanUp(options) {
   try {
     await fsp.unlink(options.pathOfUploadable)
-    // Cleaning now done intelligently so user is unlikely to care about uploadable, or that is was deleted
+    // Cleaning now done intelligently so user is unlikely to care about uploadable,
+    // ...  or that is was deleted
     // console.log(`Cleaned up ${options.pathOfUploadable}`)
   } catch (e) {
     console.log(e)
     throw new Error('Could not clean up (delete uploadable)')
   }
 }
+
+// TODO remove provider argument, derive that from task lol
+// TODO support IBM, or google (ONE) as provider
 
 /**
  * Given a member from deploy.json, builds folder ("do") and uploads ("upload") it to Amazon
@@ -50,10 +53,14 @@ async function processTask(args, task, provider = 'amazon') {
     return exists
   })
 
+  // TODO move language field out of provider field lol (at latest when google, ibm join..)
+
   // dominant language of each lambda, we'll derive handler and runtime from that
   //  (usually all the same since "do" kinda dictates per-lang grouping)
   // 'js' | 'java'
-  const languages = await Promise.all(fnFolderAbsolutePaths.map((p) => inferLanguageFromDir(p)))
+  const languages = await Promise.all(
+    fnFolderAbsolutePaths.map((p) => task.config.amazon.language || inferLanguageFromDir(p)),
+  )
   
   // "do" and "upload" in each folder
   return fnFolderAbsolutePaths

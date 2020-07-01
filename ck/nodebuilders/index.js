@@ -66,25 +66,6 @@ const nodebuilders = {
       }
     },
   },
-
-  // doParallel: {
-  //   canBuild: (obj) => {
-  //     const schema = enrichedschemas.flat_doParallel 
-  //     const { error } = schema.validate(obj)
-  //     return !error
-  //   },
-  //   build: async (obj) => {
-  //     // build each section 
-  //     const builtSections = obj.doParallel.map((sec) => build(sec))
-  //     await Promise.all(builtSections)
-
-  //     return async function () {
-  //       // Run them in parallel, wait for all to complete
-  //       const proms = builtSections.map((fn) => fn())
-  //       await Promise.all(proms)
-  //     }
-  //   },
-  // },
 }
 
 function detectnodetype(obj) {
@@ -109,26 +90,6 @@ function build(obj) {
   // console.log('BUILDING ', nodetype)
   return nodebuilders[nodetype].build(obj)
 }
-
-// async function main() {
-//   sharedStash.put('inn', { num: 1 })
-//   const fn = await build([
-//     {
-//       doParallel: [
-//         { run: 'arn:aws:lambda:us-east-2:735406098573:function:myinc', in: 'inn' },
-//         { run: 'arn:aws:lambda:us-east-2:735406098573:function:myincinc', in: 'inn' },
-//       ],
-//     },
-//   ])
-//   console.log('tyoef', typeof fn)
-//   await fn()
-//   console.log(sharedStash.getall())
-//   // await fn()
-//   // console.log(sharedStash.getall())
-//   // console.log(sharedStash.get('arn:aws:lambda:us-east-2:735406098573:function:myinc'))
-// }
-
-// main()
 
 module.exports = {
   _onlyfortesting_detectnodetype: detectnodetype,
