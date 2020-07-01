@@ -1,5 +1,3 @@
-const { string } = require('joi')
-
 class Stash {
   constructor() {
     this.stash = {}

@@ -1,4 +1,3 @@
-const uuidv4 = require('uuid').v4
 const { unenrichedschemas } = require('../schemas/unenriched/index')
 
 // NOTE THE SLIGHTLY DIFFERENT SEMANTICS TO NODEBUILDERS!
@@ -40,12 +39,11 @@ const flowJsonEnrichers = {
       newarr[0] = fstMemberEnriched 
 
       let outputKey = fstMemberOutputkey
-      let enriched
-      // chain functions, by setting each "in" to the predecessor's outputkey
+      // chain functions, by setting each "in" to the predecessor's outputkey:
       for (let i = 1; i < newarr.length; i += 1) {
-        // enrich member
+        // 1) enrich member
         const res = enrich(newarr[i], { in: outputKey });
-        // remember outputkey for next member's in
+        // 2) remember outputkey for next member's in
         [newarr[i], outputKey] = res
       }
       
@@ -64,7 +62,6 @@ const flowJsonEnrichers = {
       }
 
       const newobj = { ...obj }
-      let outputKey 
       //  they all receive the same input
       const _res = newobj.doParallel.map((sec) => enrich(sec, { in: env.in }))
       const enrichedSections = _res.map((r) => r[0])
