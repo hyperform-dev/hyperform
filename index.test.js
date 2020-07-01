@@ -2,7 +2,7 @@
 
 // One test to rule them all
 // Roughly equivalent to
-// (1) $ hyperform /some/path
+// (1) $ hf /some/path
 // (2) $ curl ENDPOINTS
 // (3) Compare output with expected (TODO)
 const os = require('os')
@@ -67,12 +67,12 @@ describe('System tests (takes 1-2 minutes)', () => {
             gc_project: '',
           },
         }
-        const allowUnauthenticated = false
+        const needAuth = true
   
         let mainres 
         let err 
         try {
-          mainres = await main(dir, fnregex, parsedHyperformJson, allowUnauthenticated)
+          mainres = await main(dir, fnregex, parsedHyperformJson, needAuth)
         } catch (e) {
           console.log(e)
           err = e

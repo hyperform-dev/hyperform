@@ -19,12 +19,12 @@ const schema = require('./schemas/index').hyperformJsonSchema
  * @param {string} dir 
  * @param {Regex} fnregex 
  * @param {*} parsedHyperformJson
- * @param {boolean} allowUnauthenticated
+ * @param {boolean} needAuth
  * @returns {{ urls: string[], expectedBearer?: string }} urls: Mixed, nested Array of endpoint URLs. 
- * expectedBearer: if allowUnauthenticated was false, the Bearer token needed to invoke the Fn.
+ * expectedBearer: if needAuth was true, the Bearer token needed to invoke the Fn.
  * @throws
  */
-async function main(dir, fnregex, parsedHyperformJson, allowUnauthenticated) {
+async function main(dir, fnregex, parsedHyperformJson, needAuth) {
   const infos = await getInfos(dir, fnregex)
   /*
     [
@@ -48,9 +48,9 @@ async function main(dir, fnregex, parsedHyperformJson, allowUnauthenticated) {
 
   // options passed to (transpile (for google)) and publishAmazon (for amazon)
   const publishOptions = {
-    allowUnauthenticated: allowUnauthenticated,
+    needAuth: needAuth,
   }
-  if (allowUnauthenticated === false) {
+  if (needAuth === true) {
     publishOptions.expectedBearer = generateRandomBearerToken()
     // Print bearer token in console
     // and copy to clipboard if not in testing
@@ -98,7 +98,7 @@ async function main(dir, fnregex, parsedHyperformJson, allowUnauthenticated) {
       }
   
       // NOTE for new functions add allUsers as invoker
-      // Keep that for now so don't forget the CLI setInvoker thing may screw up --allow-unauthenticated
+      // Keep that for now so don't forget the CLI setInvoker thing may screw up --need-authentication
 
       // For each matching export
       const endpts = await Promise.all(
@@ -110,7 +110,7 @@ async function main(dir, fnregex, parsedHyperformJson, allowUnauthenticated) {
           {
             const amazonSpinnieName = `amazon-main-${exp}`
             try {
-              spinnies.add(amazonSpinnieName, { text: `${chalk.rgb(20, 20, 20).bgWhite(' Amazon ')} ${exp}` })
+              spinnies.add(amazonSpinnieName, { text: `${chalk.rgb(255, 255, 255).bgWhite(' AWS Lambda ')} Deploying ${exp}` })
     
               // Deploy it
               const amazonDeployOptions = {
@@ -120,15 +120,15 @@ async function main(dir, fnregex, parsedHyperformJson, allowUnauthenticated) {
               const amazonArn = await deployAmazon(zipPath, amazonDeployOptions)
               // Publish it
               const amazonPublishOptions = {
-                ...publishOptions, // allowUnauthenticated and expectedBearer
+                ...publishOptions, // needAuth and expectedBearer
                 region: parsedHyperformJson.amazon.aws_default_region,
               }
               amazonUrl = await publishAmazon(amazonArn, amazonPublishOptions) // TODO
                
-              spinnies.succeed(amazonSpinnieName, { text: `${chalk.rgb(20, 20, 20).bgWhite(' Amazon ')} ${exp} ${chalk.rgb(20, 20, 20).bgWhite(amazonUrl)}` })
+              spinnies.succeed(amazonSpinnieName, { text: `${chalk.rgb(255, 255, 255).bgWhite(' AWS Lambda ')} Deployed ${exp} ${chalk.rgb(255, 255, 255).bgWhite(amazonUrl)}` })
             } catch (e) {
               spinnies.fail(amazonSpinnieName, {
-                text: `${chalk.rgb(20, 20, 20).bgWhite(' Amazon ')} ${exp}: ${e.stack}`,
+                text: `${chalk.rgb(255, 255, 255).bgWhite(' AWS Lambda ')} Error deploying ${exp}: ${e.stack}`,
               })
               logdev(e, e.stack)
             }
@@ -142,7 +142,7 @@ async function main(dir, fnregex, parsedHyperformJson, allowUnauthenticated) {
           // {
           //   const googleSpinnieName = `google-main-${exp}`
           //   try {
-          //     spinnies.add(googleSpinnieName, { text: `${chalk.rgb(20, 20, 20).bgWhite(' Google ')} ${exp}` })
+          //     spinnies.add(googleSpinnieName, { text: `${chalk.rgb(255, 255, 255).bgWhite✓✓(' Google ')} ${exp}` })
           //     const googleOptions = { 
           //       name: exp,
           //       project: process.env.GC_PROJECT,
@@ -150,10 +150,10 @@ async function main(dir, fnregex, parsedHyperformJson, allowUnauthenticated) {
           //       runtime: 'nodejs12',
           //     }
           //     googleUrl = await deployGoogle(zipPath, googleOptions)
-          //     spinnies.succeed(googleSpinnieName, { text: `${chalk.rgb(20, 20, 20).bgWhite(' Google ')} ${exp} ${chalk.rgb(20, 20, 20).bgWhite(googleUrl)}` })
+          //     spinnies.succeed(googleSpinnieName, { text: `${chalk.rgb(255, 255, 255).bgWhite(' Google ')} ${exp} ${chalk.rgb(255, 255, 255).bgWhite(googleUrl)}` })
           //   } catch (e) {
           //     spinnies.fail(googleSpinnieName, {
-          //       text: `${chalk.rgb(20, 20, 20).bgWhite(' Google ')} ${exp}: ${e.stack}`,
+          //       text: `${chalk.rgb(255, 255, 255).bgWhite(' Google ')} ${exp}: ${e.stack}`,
           //     })
           //     logdev(e, e.stack)
           //   }

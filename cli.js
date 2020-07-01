@@ -10,18 +10,18 @@ const { maybeShowSurvey, answerSurvey } = require('./surveyor/index')
 
 const args = process.argv.slice(2)
 
-if ((/init|deploy/.test(args[0]) === false) || (args.length > 1 && /--allow-unauthenticated/.test(args[1]) === false)) {
+if ((/init|deploy/.test(args[0]) === false) || (args.length > 1 && /--need-auth/.test(args[1]) === false)) {
   log(`Usage: 
- $ hyperform init
- $ hyperform deploy [--allow-unauthenticated]
+ $ hf init
+ $ hf deploy [--need-auth]
 `)
   process.exit(1)
 }
 
 const mode = args[0]
-const allowUnauthenticated = (/--allow-unauthenticated/.test(args[1]) === true)
+const needAuth = (/--need-auth/.test(args[1]) === true)
 
-// $ hyperform should always be invoked in the desired directory
+// $ hf should always be invoked in the desired directory
 const absdir = process.cwd()
 
 // Mode is init
@@ -32,7 +32,7 @@ if (mode === 'init') {
 
 // Mode is answer survey
 if (mode === 'answer') {
-  const answer = args.slice(1) // words after $ hyperform answer
+  const answer = args.slice(1) // words after $ hf answer
   // Send anonymous answer (words and date recorded)
   answerSurvey(answer)
     .then(process.exit())
@@ -44,7 +44,7 @@ if (mode === 'answer') {
 const hyperformJsonExists = fs.existsSync(path.join(absdir, 'hyperform.json'))
 if (hyperformJsonExists === false) {
   log(`No hyperform.json found. You can create one with:
- $ hyperform init`)
+ $ hf init`)
   process.exit(1)
 }
 // parse and validate hyperform.json
@@ -74,7 +74,7 @@ try {
   // Do not import earlier, it needs to absorb process.env set above
   // TODO: make less sloppy
   const { main } = require('./index')
-  main(absdir, fnregex, parsedHyperformJson, allowUnauthenticated)
+  main(absdir, fnregex, parsedHyperformJson, needAuth)
     // show anonymous survey question with 1/30 percent probability
     .then(() => maybeShowSurvey())
 } catch (e) {

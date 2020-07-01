@@ -4,17 +4,17 @@ const { deployAuthorizerLambda, setDefaultRouteAuthorizer, detachDefaultRouteAut
 
 /**
  * @description Creates a public HTTP endpoint that forwards request to a given Lambda.
- * If allowUnauthenticated is false, the resulting 
+ * If needAuth is true, the resulting 
  * HTTP endpoint will return 403 or 401,
  * unless the HTTP headers contain 'Authorization: Bearer "expectedBearer"'
  * @param {string} lambdaArn 
- * @param {{ region: string, allowUnauthenticated: boolean, expectedBearer?: string }} options 
+ * @param {{ region: string, needAuth: boolean, expectedBearer?: string }} options 
  * @returns {Promise<string>} HTTP endpoint URL of the Lambda
  */
-async function publishAmazon(lambdaArn, { allowUnauthenticated, expectedBearer, region }) {
+async function publishAmazon(lambdaArn, { needAuth, expectedBearer, region }) {
   // TODO do we need to publish 1 or N times for every lambda deploy?
-  if (typeof allowUnauthenticated !== 'boolean') throw new Error(`PublishAmazon: allowUnauthenticated must be true|false but is ${allowUnauthenticated}`) // TODO HF programmer errors, do not check for
-  if (allowUnauthenticated === false && typeof expectedBearer !== 'string') throw new Error(`PublishAmazon: allowUnauthenticated is false but expectedBearer isn't a string: ${expectedBearer}`)
+  if (typeof needAuth !== 'boolean') throw new Error(`PublishAmazon: needAuth must be true|false but is ${needAuth}`) // TODO HF programmer errors, do not check for
+  if (needAuth === true && typeof expectedBearer !== 'string') throw new Error(`PublishAmazon: needAuth is false but expectedBearer isn't a string: ${expectedBearer}`)
  
   const lambdaName = lambdaArn.split(':').slice(-1)[0]
   const apiName = `hf-${lambdaName}`
@@ -45,7 +45,7 @@ async function publishAmazon(lambdaArn, { allowUnauthenticated, expectedBearer, 
   
   await allowApiGatewayToInvokeLambda(lambdaName, region)
   
-  if (allowUnauthenticated === true) {
+  if (needAuth === false) {
     // detach authorizer, if any 
     await detachDefaultRouteAuthorizer(apiId, region)
     return apiUrl
