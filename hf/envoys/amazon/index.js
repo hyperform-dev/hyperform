@@ -18,15 +18,10 @@ aws.config.update({
   },
 });
 
-const { amazonLog } = require('../../loggers/amazon/index')
-
-// aws.config.logger = console
-// TODO not only one region; do name resolving at the start, not here
+// TODO lol
 const lambda = new aws.Lambda({
   region: 'us-east-2',
 })
-
-// TODO handle timeouts. currently it's stuck when function exceeds its timeout
 
 // Envoys should resolve to output obj if successful, or throw an error if not
 const amazonEnvoy = {
@@ -55,6 +50,7 @@ const amazonEnvoy = {
           console.timeEnd(`amazonEnvoy ${arn} ${uid}`)
           return p
         })
+        // TODO maybe reinstantiate
         // 2) If yes, log Lambda's stdout in local terminal
         // .then((res) => {
         //   // // remove arn:... part
