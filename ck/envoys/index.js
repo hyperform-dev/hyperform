@@ -1,7 +1,6 @@
 const { amazonEnvoy } = require('./amazon/index')
-
-// order is important
-// will pick the first one that canEnvoy, to envoy.
+const { firstOf } = require('../utils/index')
+// will pick the one that says canEnvoy() = true the fastest
 const envoys = [
   amazonEnvoy,
 ]
@@ -11,14 +10,23 @@ const envoys = [
  * @param {*} input 
  */
 async function envoy(name, input) {
-  for (let i = 0; i < envoys.length; i += 1) {
-    const en = envoys[i]
-    if (en.canEnvoy(name)) { 
-      const response = await en.envoy(name, input)
-      return response
-    }
+  // start all canQuery in parallel
+  // TODO wait for first one to canEnvoy() = true
+  // wait for all to answer, pick the first one in the array (not performant)
+  const canEnvoyProms = envoys.map((evy) => evy.canEnvoy(name))
+  const canEnvoyAnswers = await Promise.all(canEnvoyProms)
+
+  if (canEnvoyAnswers.includes(true) === false) {
+    throw new Error(`No envoy found for ${name}`)
   }
-  throw new Error(`No envoy found for ${name}`)
+
+  // indexOf of the first one that canEnvoy
+  const selectedenvoy = envoys[canEnvoyAnswers.indexOf(true)]
+  console.log('Selected envoy index: ', canEnvoyAnswers.indexOf(true))
+  // USE THAT ENVOY TO CALL CLOUD FN
+  const response = await selectedenvoy.envoy(name, input)
+  // return its output
+  return response
 }
 
 module.exports = {

@@ -1,4 +1,4 @@
 [
   { "run": "arn:aws:lambda:us-east-2:735406098573:function:myinc" },
-  { "run": "arn:aws:lambda:us-east-2:735406098573:function:myincinc" }
+  { "run": "myincinc" }
 ]
