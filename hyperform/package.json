@@ -7,7 +7,7 @@
     "hyperform": "./cli.js"
   },
   "scripts": {
-    "test": "jest --coverage",
+    "test": "jest --runInBand --coverage",
     "lint": "eslint",
     "lintfix": "eslint --fix"
   },
