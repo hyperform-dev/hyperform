@@ -62,7 +62,6 @@ async function runUploadAmazon(options) {
   try {
     // TODO sanitize
     await exec(uploadCmd)
-    await new Promise((resolve) => setTimeout(resolve, 3000))
     spinnies.succeed(options.path, { text: `Deployed ${options.name}` })
   } catch (e) {
     spinnies.fail(options.path, { text: `Deploy Error for ${options.name}: ` })
