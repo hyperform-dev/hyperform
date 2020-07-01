@@ -9,7 +9,8 @@ const { zip } = require('./zipper/index')
 const LANG = 'js'
 const PROVIDER = 'amazon'
 
-// TODO refac out 'js'
+// TODO refac out 'js', make argument for main
+
 async function main(root) {
   // paths to relevant js files
   let jspaths = await getJsFilePaths(root)
@@ -50,9 +51,7 @@ async function main(root) {
 
   // flatten it, we don't need info grouped per-file
   zippedInfos = zippedInfos.reduce((acc, curr) => [...acc, ...curr], [])
- 
-  console.log(zippedInfos)
-  
+
   // deplopy each zip
   await Promise.all(
     zippedInfos.map((zinfo) => {

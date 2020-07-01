@@ -8,16 +8,16 @@ const transpilers = {
           let userfunc = module.exports.${expkey}
           // Amazon enters here
           exports.handler = async (event, context) => {
+            let res 
             try {
-              const res = await userfunc(event)
-              context.succeed(res)
+              res = userfunc(event, context)
+              context.succeed(res) // if user didn't call context.succeed() himself
             } catch(e) {
               context.fail(e)
             }
           }
           // set both to be sure
           module.exports.handler = exports.handler 
-
         `
       )
     },
