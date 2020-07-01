@@ -1,6 +1,7 @@
 const uuidv4 = require('uuid').v4 
 const { amazonEnvoy } = require('./amazon/index')
 const { spinnies } = require('../printers/index')
+const { validateOutput } = require('../utils/index')
 
 const envoys = [
   amazonEnvoy,
@@ -39,6 +40,9 @@ async function envoy(name, input) {
     throw e
   }
   console.timeEnd(`envoy-${uid}`)
+
+  // Ensure it's an object, etc...
+  validateOutput(response, name)
 
   return response
 }

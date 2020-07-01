@@ -66,21 +66,18 @@ async function main() {
       { in: '__workflow_in' },
     )
     
-    //   console.log(JSON.stringify(enrichedFlowJson, null, 2))
-    // Put --input (the workflow input) onto stash
+    // put WF input on shash
     sharedStash.put('__workflow_in', args.parsedInput)
     
     const lastKey = outputkey
     // build top-level function
     const wf = await build(enrichedFlowJson)
-    //  console.log(JSON.stringify(wf))
-    // run top-level function
- 
+    // run WF
     await wf()
     
     console.timeEnd('all')
     
-    // print output
+    // get WF output from shash
     console.log(sharedStash.get(lastKey))
   } catch (e) {
     console.log(e)
