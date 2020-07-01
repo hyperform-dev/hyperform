@@ -3,23 +3,25 @@ const { deployAmazon } = require('../deployer/amazon/index')
 const { allowApiGatewayToInvokeLambda } = require('../publisher/amazon/utils')
 const { zip } = require('../zipper/index')
 /**
- * @description Creates or updates Authorizer lambda that will
+ * @description Creates or updates Authorizer lambda with name "authorizerName" 
+ * that if used as Authorizer in API Gateway, will
  * greenlight requests with given expectedBearer token
  * @param {string} authorizerName For example 'myfn-authorizer'
- * @param {string} expectedBearer The 'Authorization': 'Bearer ...' token the Authorizer will accept
+ * @param {string} expectedBearer The 'Authorization': 'Bearer ...' token 
+ * the Authorizer will greenlight
  * @param {{region: string}} options 
  * @returns {Promise<string>} ARN of the deployed authorizer lambda
  */
-async function deployAuthorizer(authorizerName, expectedBearer, options) {
+async function deployAuthorizerLambda(authorizerName, expectedBearer, options) {
   if (options == null || options.region == null) { 
     throw new Error('optionsregion is required') // TODO HF programmer mistake
   }
   // avoid accidentally empty bearer et cetera
   if (!expectedBearer || !expectedBearer.trim()) {
-    throw new Error('deployAuthorizer: expectedBearer is required')
+    throw new Error('deployAuthorizerLambda: expectedBearer is required')
   }
   if (expectedBearer.trim().length < 10) {
-    throw new Error(`deployAuthorizer: expectedBearer needs to have 10 or more digits for security: ${expectedBearer}`)
+    throw new Error(`deployAuthorizerLambda: expectedBearer needs to have 10 or more digits for security: ${expectedBearer}`)
   }
 
   // will mess up weird user-given Tokens but that's on the user
@@ -97,7 +99,7 @@ async function getRouteId(apiId, routeKey, region) {
  * @throws Throws if authorizerArn is not formed like a Lambda ARN. 
  * Fails silently if authorizerArn Lambda does not exist.
  */
-async function setAuthorizer(apiId, authorizerArn, apiRegion) {
+async function setDefaultRouteAuthorizer(apiId, authorizerArn, apiRegion) {
   // TODO what happens when api (set to REGIONAL) and authorizer lambda are in different regions
 
   // region is the fourth field
@@ -178,10 +180,36 @@ async function setAuthorizer(apiId, authorizerArn, apiRegion) {
   // done
 }
 
+/**
+ * @description Detaches the current authorizer, if any, from the $default route of API 
+ * with ID "apiId". The route is then in any case unauthorized and the underlying Lambda becomes 
+ * invokable by anyone with the URL.
+ * This does not delete the authorizer or the authorizer Lambda.
+ * @param {string} apiId 
+ * @param {string} apiRegion
+ */
+async function detachDefaultRouteAuthorizer(apiId, apiRegion) {
+  const apigatewayv2 = new AWS.ApiGatewayV2({
+    apiVersion: '2018-11-29',
+    region: apiRegion,
+  })
+
+  const routeKey = '$default'
+  const routeId = await getRouteId(apiId, routeKey, apiRegion)
+
+  const updateRouteParams = {
+    ApiId: apiId,
+    RouteId: routeId,
+    AuthorizationType: 'NONE',
+  }
+
+  await apigatewayv2.updateRoute(updateRouteParams).promise()
+}
 // TODO set authorizer cache ??
 
 module.exports = {
-  deployAuthorizer,
-  setAuthorizer,
+  deployAuthorizerLambda,
+  setDefaultRouteAuthorizer,
+  detachDefaultRouteAuthorizer,
   _only_for_testing_getRouteId: getRouteId,
 }
