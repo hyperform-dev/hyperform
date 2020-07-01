@@ -17,6 +17,7 @@
         "semi": "off",
         "object-shorthand": "off",
         "no-unused-vars": "warn",
-        "no-useless-catch": "warn"
+        "no-useless-catch": "warn",
+        "no-underscore-dangle": "warn"
     }
 }

@@ -2,9 +2,10 @@ const arg = require('arg')
 const path = require('path')
 const fsp = require('fs').promises
 const fs = require('fs')
-const { isValidDeployJson } = require('./validators/index')
+const { readparsevalidate } = require('./parser')
 const { runDo } = require('./doer')
 const { runUploadAmazon } = require('./uploader/amazon')
+
 /**
  * @returns { mode: 'init'|'deploy', root: String}
  */
@@ -27,39 +28,17 @@ function parseCliArgs() {
   }
 }
 
-/// //////////////////////////////////////////////////
-
-async function main() {
-  // parse CLI args
-  const args = parseCliArgs()
-
-  // check if deploy.json present
-  const deployJsonPath = path.join(args.root, 'deploy.json')
-  if (fs.existsSync(deployJsonPath) === false) {
-    throw new Error('No deploy.json found in this directory')
+/**
+ * Given a member from deploy.json, builds folder ("do") and uploads ("upload") it to Amazon
+ * @param {object} args Whatever parseCliArgs returned
+ * @param {object} task Element from the array in deploy.json
+ * @param {'amazon' | 'google' | 'ibm' } provider Currently only amazon (default)
+ */
+async function processTask(args, task, provider = 'amazon') {
+  if (provider !== 'amazon') {
+    throw new Error('DEV: only amazon as deployment target supported atm')
   }
 
-  // try to parse its contents as JSON
-  let parsedJson
-  try {
-    parsedJson = await fsp.readFile(deployJsonPath, { encoding: 'utf8' })
-    parsedJson = JSON.parse(parsedJson)
-  } catch (e) {
-    throw new Error(`deploy.json is not valid JSON ${e}`)
-  }
-
-  // validate the schema
-  try {
-    await isValidDeployJson(parsedJson)
-  } catch (e) {
-    throw new Error(`deploy.json schema is invalid: ${e}`)
-  }
-  
-  // for each folder, console,log, spawn do-er, then upload to AWS
-
-  // TODO do not only for first entry lol
-  const task = parsedJson[0]
-  
   // List all child folders of 'forEachIn' field
   let fnFolderNames = await fsp.readdir(
     path.join(args.root, task.forEachIn), { withFileTypes: true }, 
@@ -76,7 +55,7 @@ async function main() {
 
   // "do" and "upload" in each folder
 
-  await fnFolderAbsolutePaths
+  return fnFolderAbsolutePaths
     .map((p, idx) => { 
       const uploadablePath = path.join(p, task.upload)
       return (
@@ -84,6 +63,23 @@ async function main() {
           .then(() => runUploadAmazon(task, fnFolderNames[idx], uploadablePath))
       )
     })
+}
+
+/// //////////////////////////////////////////////////
+
+async function main() {
+  // parse CLI args
+  const args = parseCliArgs()
+  // parse deploy.json
+  const parsedJson = await readparsevalidate({
+    id: 'deploy.json',
+    path: path.join(args.root, 'deploy.json'),
+  })
+ 
+  const proms = parsedJson
+    .map((task) => processTask(args, task, 'amazon'))
+
+  await Promise.all(proms)
 }
 
 main()
