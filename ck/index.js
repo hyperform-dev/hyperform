@@ -6,6 +6,9 @@ const { sharedStash } = require('./stashes')
 const { build } = require('./nodebuilders/index')
 const { initProject } = require('./initer/index')
 
+// TODO enforce ck is run in project root
+// TODO (prob already done, since it checks for flow)
+
 /**
  * 
  * @returns { mode: 'init'|'deploy', root: String}
