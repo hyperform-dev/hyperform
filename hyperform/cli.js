@@ -19,7 +19,6 @@ const absdir = process.cwd()
 // Mode is init
 if (mode === 'init') {
   init(absdir)
-  console.log('Created hyperform.json') // TODO ask for defaults guide through in init etc
   process.exit()
 }
 

@@ -159,10 +159,12 @@ function init(absdir) {
     path.join(absdir, 'hyperform.json'),
     JSON.stringify(hyperformJsonContents, null, 2),
   )
+
+  console.log('Created hyperform.json') // TODO ask for defaults guide through in init etc
 }
 
 module.exports = {
   init,
   _only_for_testing_getDefaultSectionString: getDefaultSectionString,
-  _only_for_testing_parseAwsCredentialsOrConfigFile: parseAwsCredentialsOrConfigFile
+  _only_for_testing_parseAwsCredentialsOrConfigFile: parseAwsCredentialsOrConfigFile,
 }
