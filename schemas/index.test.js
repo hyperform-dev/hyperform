@@ -2,7 +2,7 @@
 describe('schemas', () => {
   describe('hyperform.json schema', () => {
     describe('valid cases', () => {
-      test('allows empty string fields', () => {
+      test('allows empty string fields in amazon', () => {
         const { hyperformJsonSchema } = require('./index')
 
         const input = {
@@ -11,18 +11,30 @@ describe('schemas', () => {
             aws_secret_access_key: '',
             aws_default_region: '',
           },
-          google: {
-            gc_project: '',
-            gc_client_email: '',
-            gc_private_key: '',
-          },
         }
 
         const { error } = hyperformJsonSchema.validate(input)
         expect(error).not.toBeDefined()
       })
 
-      test('allows normal string fields', () => {
+      test('allows normal string fields in google', () => {
+        const { hyperformJsonSchema } = require('./index')
+
+        const input = {
+          google: {
+            gc_project: 'abc',
+            gc_client_email: 'abc',
+            gc_private_key: 'abc',
+          },
+        }
+
+        const { error } = hyperformJsonSchema.validate(input)
+        expect(error).not.toBeDefined()
+      })
+    })
+
+    describe('invalid cases', () => {
+      test('does not allow both providers', () => {
         const { hyperformJsonSchema } = require('./index')
 
         const input = {
@@ -39,27 +51,21 @@ describe('schemas', () => {
         }
 
         const { error } = hyperformJsonSchema.validate(input)
-        expect(error).not.toBeDefined()
+        expect(error).toBeDefined()
       })
-    })
 
-    describe('invalid cases', () => {
-      test('does not allow missing provider', () => {
+      test('does not allow no provider', () => {
         const { hyperformJsonSchema } = require('./index')
 
         const input = {
-          amazon: {
-            aws_access_key_id: '',
-            aws_secret_access_key: '',
-            aws_default_region: '',
-          },
+          // empty
         }
 
         const { error } = hyperformJsonSchema.validate(input)
         expect(error).toBeDefined()
       })
 
-      test('does not allow missing field', () => {
+      test('does not allow missing field in amazon', () => {
         const { hyperformJsonSchema } = require('./index')
 
         const input = {
@@ -67,11 +73,6 @@ describe('schemas', () => {
             aws_access_key_id: '',
             aws_secret_access_key: '',
             // Missing: aws_default_region: '',
-          },
-          google: {
-            gc_project: '',
-            gc_client_email: '',
-            gc_private_key: '',
           },
         }
 
