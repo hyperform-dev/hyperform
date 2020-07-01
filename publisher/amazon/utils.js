@@ -1,5 +1,3 @@
-const util = require('util')
-const exec = util.promisify(require('child_process').exec);
 const AWS = require('aws-sdk')
 const { log, logdev } = require('../../printers/index')
 
@@ -158,9 +156,7 @@ async function setRoute(apiId, apiRegion, routePath, integrationId) {
     /// ////////////////////////////////////////////////
     // Update routes (GET, POST) with integrationId
     /// ////////////////////////////////////////////////
-
-    console.log('UPDATING ROUTES', routes)
-
+   
     await Promise.all(
       routes.map(async (r) => {
         // skip if integration id is set correctly already
@@ -186,7 +182,6 @@ async function setRoute(apiId, apiRegion, routePath, integrationId) {
       }),
     )
   } else {
-    console.log('CREATING NEW ROUTES')
     /// ////////////////////////////////////////////////
     // Create routes (GET, POST) with integrationId
     /// ////////////////////////////////////////////////
@@ -297,8 +292,6 @@ async function createDefaultAutodeployStage(apiId, apiRegion) {
   }
 
   const res = await apigatewayv2.createStage(params).promise()
-
-  console.log(res)
 }
 
 /**
@@ -342,25 +335,3 @@ module.exports = {
   setRoute,
   createDefaultAutodeployStage,
 }
-
-// createIntegration(
-//   'vca3i8138h',
-//   'us-east-2',
-//   'arn:aws:lambda:us-east-2:735406098573:function:endpoint_logInput',
-// )
-// .then((iid) => {
-//   console.log(`integration id:${iid}`)
-
-//   console.log(res)
-// })
-
-// getIntegrationId('vca3i8138h', 'us-east-2')
-// getRouteId('vca3i8138h', 'us-east-2')
-
-// const res = setRoute(
-//   'vca3i8138h',
-//   'us-east-2',
-//   'GET',
-//   '/some_cool_routexxx',
-//   'eqfiitp',
-// )
