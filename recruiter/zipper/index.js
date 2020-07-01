@@ -9,6 +9,8 @@ const { Readable } = require('stream')
  * @param {string} code index.js code
  */
 async function zip(code) {
+  const uid = `${Math.ceil(Math.random() * 10000)}`
+  console.time(`zip-${uid}`)
   // create tmp dir
   const outdir = await fsp.mkdtemp(path.join(os.tmpdir(), 'zipped-'))
   const outpath = path.join(outdir, 'deploypackage.zip')
@@ -20,6 +22,7 @@ async function zip(code) {
   s.push(null);
   // It's a transform stream, so you can pipe to it
   await compressing.zip.compressFile(s, outpath, { relativePath: 'index.js' })
+  console.timeEnd(`zip-${uid}`)
   return outpath
 }
 

@@ -74,7 +74,10 @@ async function bundle(inpath, lang, provider) {
   if (provider !== 'amazon') {
     throw new Error(`UNIMEPLEMED: bundle for provider ${provider} (needed to exclude SDK's from uploading)`)
   }
-  return bundlers[lang](inpath, provider)
+  console.time(`bundle-${inpath}`)
+  const res = await bundlers[lang](inpath, provider)
+  console.timeEnd(`bundle-${inpath}`)
+  return res
 }
 
 /**
