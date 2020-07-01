@@ -166,8 +166,8 @@ async function main(dir, fnregex, parsedHyperformJson, allowUnauthenticated) {
       }
 
       // for google
-      const tmpdir = await fsp.mkdtemp(path.join(os.tmpdir(), 'bundle-'))
-      await fsp.writeFile(path.join(tmpdir, 'index.js'), transpiledCode, { encoding: 'utf-8' })
+      // const tmpdir = await fsp.mkdtemp(path.join(os.tmpdir(), 'bundle-'))
+      // await fsp.writeFile(path.join(tmpdir, 'index.js'), transpiledCode, { encoding: 'utf-8' })
 
       // const gsKey = `deploypackage-${uuidv4()}.zip`
       // const gsPath = await uploadGoogle(zipPath, 'jak-functions-stage-bucket', gsKey)
@@ -189,12 +189,12 @@ async function main(dir, fnregex, parsedHyperformJson, allowUnauthenticated) {
             region: 'us-east-2',
           }) // TODO
           console.log(amazonUrl)
-          const googleUrl = await deployGoogle(tmpdir, { 
-            name: exp, 
-            stagebucket: 'jak-functions-stage-bucket', 
-          })
-          console.log(googleUrl)
-          return [amazonUrl, googleUrl]
+          // const googleUrl = await deployGoogle(tmpdir, { 
+          //   name: exp, 
+          //   stagebucket: 'jak-functions-stage-bucket', 
+          // })
+          // console.log(googleUrl)
+          return [amazonUrl]
           //   } catch (e) {
         //    console.log(`Errored: ${e}`)
           //   return []

@@ -121,7 +121,6 @@ describe('authorizer-gen', () => {
         try {
           await deployAuthorizerLambda(LAMBDANAME, expectedBearer, options)
         } catch (e) {
-          console.log(e)
           err = e
         }
 
@@ -252,7 +251,6 @@ describe('authorizer-gen', () => {
       try {
         await setDefaultRouteAuthorizer(apiId, invalidArn, APIREGION)
       } catch (e) {
-        console.log(e)
         err = e
       }
 
