@@ -4,10 +4,10 @@ const { bundle } = require('./bundler/index')
 const { getFilePaths, getNamedExports } = require('./discoverer/index')
 const { deployAmazon } = require('./deployer/amazon/index')
 const { zip } = require('./zipper/index')
+const amazon = require('./deployer/amazon/index')
 
 // in lambda : export normally, but wrap in context.succeed (idempotent)
 // in local: export normally
-// in local --cloud: export als envoy
 
 // TODO all this
 
@@ -16,7 +16,12 @@ const appendix = `
 ;module.exports = (() => {
 
   // for lambda, wrap all exports in context.succeed
-  function wrapExports(moduleexports) {
+  /**
+   * 
+   * @param {*} moduleexports 
+   * @param {string} platform amazon | google
+   */
+  function wrapExports(moduleexports, platform) {
     const newmoduleexports = { ...moduleexports };
     const expkeys = Object.keys(moduleexports)
 
@@ -28,10 +33,21 @@ const appendix = `
       if (userfunc.hyperform_wrapped === true) {
         continue
       }
-      const wrappedfunc = async function handler(event, context) {
-        const res = await userfunc(event, context) // todo add context.fail // todo don't pass context otherwise usercode might become amz flavored
-        context.succeed(res)
+
+      let wrappedfunc
+      if(platform === 'amazon') {
+        wrappedfunc = async function handler(event, context) {
+          const res = await userfunc(event, context) // todo add context.fail // todo don't pass context otherwise usercode might become amz flavored
+          context.succeed(res)
+        }
+      } 
+      if(platform === 'google') {
+        wrappedfunc = async function handler(req, resp) {
+          const res = await userfunc(req.body) // TODO add fail 500
+          resp.json(res)
+        }
       }
+
       wrappedfunc.hyperform_wrapped = true
       newmoduleexports[expkey] = wrappedfunc
     }
@@ -42,24 +58,25 @@ const appendix = `
   
   const curr = { ...exports, ...module.exports }
 
-  const isInLambda = !!(process.env.LAMBDA_TASK_ROOT || process.env.AWS_EXECUTION_ENV)
-  const shouldWrapExports = isInLambda
+  const isInAmazon = !!(process.env.LAMBDA_TASK_ROOT || process.env.AWS_EXECUTION_ENV)
+  const isInGoogle = (/google/.test(process.env._) === true)
 
-  console.log('need to wrap exports: ', shouldWrapExports)
-
-  // in Lambda : wrap
-  if (shouldWrapExports === true) {
-    const newmoduleexp = wrapExports(curr)
+  if(isInAmazon === true) {
+    const newmoduleexp = wrapExports(curr, 'amazon')
     return newmoduleexp
   }
 
-  return curr; // Export unchanged (fallback, no flag)
+  if(isInGoogle === true) {
+    const newmoduleexp = wrapExports(curr, 'google')
+    return newmoduleexp
+  }
+
+  return curr; // Export unchanged (local, fallback)
 
 })();
 
 `
 
-const REGION = 'us-east-2'
 
 async function main(dir, fnregex) {
   // [ { p: /home/file.js, exps: ['fn_1', 'fn_2'] }, ... ]
@@ -98,9 +115,17 @@ async function main(dir, fnregex) {
     // with correct handler
     await Promise.all(
       info.exps.map(async (exp) => { // under same name
-        const handler = `index.${exp}`
-        console.log(`Deploying ${zipPath} as ${exp} with handler ${handler}`)
-        await deployAmazon(zipPath, exp, handler, REGION)
+
+        const amazonOptions = {
+          name: exp, 
+          handler: `index.${exp}`,
+          role: 'arn:aws:iam::735406098573:role/lambdaexecute'
+        }
+
+       
+        console.log(`Amazon: Deploying ${zipPath} as ${amazonOptions.name} with handler ${amazonOptions.handler}`)
+
+        await deployAmazon(zipPath, amazonOptions)
       }),
     )
   })
