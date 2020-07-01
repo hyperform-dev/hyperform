@@ -59,6 +59,10 @@ async function main() {
     })
 
     const allFunctionNames = getAllFunctionNames(parsedFlowJson)
+
+    // TODO write promise into namecache to not resolve same multiple times etc...
+    // TODO generally handle better when same function is in flow.json a lot
+    
     // "heat up" namecache
     // in the background, resolve ambiguous function names to exact URI's (arns...)
     // writes to the namecache
