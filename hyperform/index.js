@@ -130,12 +130,11 @@ async function main(dir, fnregex) {
 
           const amazonOptions = {
             name: exp,
-            handler: `index.${exp}`,
+           // handler is always the same
             role: 'arn:aws:iam::735406098573:role/lambdaexecute'
           }
 
-
-          console.log(`Amazon: Deploying ${zipPath} as ${amazonOptions.name} with handler ${amazonOptions.handler}`)
+          console.log(`Amazon: Deploying ${zipPath} as ${amazonOptions.name}`)
 
           await deployAmazon(zipPath, amazonOptions)
         }),
@@ -169,7 +168,8 @@ async function main(dir, fnregex) {
 
           const googleOptions = {
             name: exp,
-            entrypoint: exp
+            entrypoint: exp,
+            stagebucket: 'jak-functions-stage-bucket'
           }
 
           console.log(`Google: Deploying ${tmpdir} as ${googleOptions.name} with entrypoint ${googleOptions.entrypoint}`)

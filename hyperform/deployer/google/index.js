@@ -30,6 +30,8 @@ function createDeployCommand(pathToCode, options) {
  * @param {string} pathToCode 
  * @param {{
  * name: string,
+ * entrypoint: string,
+ * stagebucket: string,
  * region?: string,
  * runtime?: string,
  * 
@@ -45,8 +47,8 @@ async function deployGoogle(pathToCode, options) {
     name: options.name,
     region: options.region || 'us-central1',
     runtime: options.runtime || 'nodejs12',
-    entrypoint: options.entrypoint, // same as name 
-    stagebucket: 'jak-functions-stage-bucket'
+    entrypoint: options.entrypoint, // currently same as name 
+    stagebucket: options.stagebucket
   }
 
   const uploadCmd = createDeployCommand(pathToCode, fulloptions)

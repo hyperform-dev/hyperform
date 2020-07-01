@@ -44,21 +44,20 @@ async function isExistsAmazon(options) {
  * @param {*} pathToZip 
  * @param {{
  * name: string, 
- * handler: string, 
  * role: string, 
  * region: string
  * }} options 
  */
 async function deployAmazon(pathToZip, options) {
-  if(!options.name || !options.handler || !options.role) {
-    throw new Error(`name, handler and role must be specified, but they are ${options.name}, ${options.handler}, ${options.role}`)
+  if(!options.name || !options.role) {
+    throw new Error(`name, and role must be specified, but they are ${options.name}, ${options.role}`)
   }
   
   const fulloptions = {
     name: options.name,
     runtime: 'nodejs12.x',
     timeout: 60,
-    handler: options.handler, // || 'index.handler',
+    handler: `index.${options.name}`,
     role: options.role, // || 'arn:aws:iam::735406098573:role/lambdaexecute',
     region: options.region || 'us-east-2',
   }
