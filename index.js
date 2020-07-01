@@ -2,7 +2,8 @@
 
 const chalk = require('chalk')
 const clipboardy = require('clipboardy')
-const { bundle } = require('./bundler/index')
+const { bundleAmazon } = require('./bundler/amazon/index')
+const { bundleGoogle } = require('./bundler/google/index')
 const { getInfos } = require('./discoverer/index')
 const { deployAmazon } = require('./deployer/amazon/index')
 const { publishAmazon } = require('./publisher/amazon/index')
@@ -73,30 +74,66 @@ async function main(dir, fnregex, parsedHyperformJson, needAuth) {
   //     zip
   //     deployAmazon 
   //     publishAmazon  
-  
+
   const endpoints = await Promise.all(
     // For each file
     infos.map(async (info) => {
-      let bundledCode
-      try {
-        bundledCode = await bundle(info.p)
-      } catch (e) {
-        log(`Errored bundling ${info.p}: ${e}`)
-        return // just skip that file 
+      /// /////////
+      // Amazon //
+      /// /////////
+      let amazonZipPath
+      {
+        // Bundle 
+        let amazonBundledCode
+        try {
+          amazonBundledCode = await bundleAmazon(info.p)
+        } catch (e) {
+          log(`Errored bundling ${info.p} for Amazon: ${e}`)
+          return // just skip that file 
+        }
+        
+        // Transpile 
+        const amazonTranspiledCode = transpile(amazonBundledCode, publishOptions)
+        
+        // Zip
+        try {
+          amazonZipPath = await zip(amazonTranspiledCode)
+        } catch (e) {
+          // probably underlying issue with the zipping library or OS
+          // should not happen
+          log(`Errored zipping ${info.p} for Amazon: ${e}`)
+          return // skip that file 
+        }
       }
-      const transpiledCode = transpile(bundledCode, publishOptions)
-  
-      // For Amazon
-      let zipPath
-      try {
-        zipPath = await zip(transpiledCode)
-      } catch (e) {
-        // probably underlying issue with the zipping library or OS
-        // should not happen
-        log(`Errored zipping ${info.p}: ${e}`)
-        return // skip that file 
+      
+      /// /////////
+      // Google //
+      /// /////////
+      let googleZipPath
+      {
+        // Bundle 
+        let googleBundledCode
+        try {
+          googleBundledCode = await bundleGoogle(info.p)
+        } catch (e) {
+          log(`Errored bundling ${info.p} for Google: ${e}`)
+          return // just skip that file 
+        }
+
+        // Transpile 
+        const googleTranspiledCode = transpile(googleBundledCode, publishOptions)
+
+        // Zip
+        try {
+          googleZipPath = await zip(googleTranspiledCode)
+        } catch (e) {
+          // probably underlying issue with the zipping library or OS
+          // should not happen
+          log(`Errored zipping ${info.p}: ${e}`)
+          return // skip that file 
+        }
       }
-  
+
       // NOTE for new functions add allUsers as invoker
       // Keep that for now so don't forget the CLI setInvoker thing may screw up --need-authentication
 
@@ -106,26 +143,26 @@ async function main(dir, fnregex, parsedHyperformJson, needAuth) {
           /// //////////////////////////////////////////////////////////
           /// Deploy to Amazon
           /// //////////////////////////////////////////////////////////
-          let amazonUrl 
+          let amazonUrl
           {
             const amazonSpinnieName = `amazon-main-${exp}`
             try {
               spinnies.add(amazonSpinnieName, { text: `${chalk.rgb(255, 255, 255).bgWhite(' AWS Lambda ')} Deploying ${exp}` })
-    
+
               // Deploy it
               const amazonDeployOptions = {
                 name: exp,
                 region: parsedHyperformJson.amazon.aws_default_region,
               }
-              const amazonArn = await deployAmazon(zipPath, amazonDeployOptions)
+              const amazonArn = await deployAmazon(amazonZipPath, amazonDeployOptions)
               // Publish it
               const amazonPublishOptions = {
                 ...publishOptions, // needAuth and expectedBearer
                 region: parsedHyperformJson.amazon.aws_default_region,
               }
               amazonUrl = await publishAmazon(amazonArn, amazonPublishOptions) // TODO
-               
-              spinnies.succeed(amazonSpinnieName, { text: `${chalk.rgb(255, 255, 255).bgWhite(' AWS Lambda ')} Deployed ${exp} ${chalk.rgb(255, 255, 255).bgWhite(amazonUrl)}` })
+
+              spinnies.succeed(amazonSpinnieName, { text: `${chalk.rgb(255, 255, 255).bgWhite(' AWS Lambda ')} 🟢 ${exp} ${chalk.rgb(255, 255, 255).bgWhite(amazonUrl)}` })
             } catch (e) {
               spinnies.fail(amazonSpinnieName, {
                 text: `${chalk.rgb(255, 255, 255).bgWhite(' AWS Lambda ')} Error deploying ${exp}: ${e.stack}`,
@@ -138,30 +175,32 @@ async function main(dir, fnregex, parsedHyperformJson, needAuth) {
           /// //////////////////////////////////////////////////////////
           /// Deploy to Google
           /// //////////////////////////////////////////////////////////
-          // let googleUrl 
-          // {
-          //   const googleSpinnieName = `google-main-${exp}`
-          //   try {
-          //     spinnies.add(googleSpinnieName, { text: `${chalk.rgb(255, 255, 255).bgWhite✓✓(' Google ')} ${exp}` })
-          //     const googleOptions = { 
-          //       name: exp,
-          //       project: process.env.GC_PROJECT,
-          //       region: 'us-central1', // TODO get from parsedhyperfromjson
-          //       runtime: 'nodejs12',
-          //     }
-          //     googleUrl = await deployGoogle(zipPath, googleOptions)
-          //     spinnies.succeed(googleSpinnieName, { text: `${chalk.rgb(255, 255, 255).bgWhite(' Google ')} ${exp} ${chalk.rgb(255, 255, 255).bgWhite(googleUrl)}` })
-          //   } catch (e) {
-          //     spinnies.fail(googleSpinnieName, {
-          //       text: `${chalk.rgb(255, 255, 255).bgWhite(' Google ')} ${exp}: ${e.stack}`,
-          //     })
-          //     logdev(e, e.stack)
-          //   }
-          // }
+          let googleUrl
+          {
+            const googleSpinnieName = `google-main-${exp}`
+            try {
+              spinnies.add(googleSpinnieName, { text: `${chalk.rgb(255, 255, 255).bgWhite(' Google ')} ${exp}` })
+              const googleOptions = {
+                name: exp,
+                project: 'firstnodefunc', // process.env.GC_PROJECT,
+                region: 'us-central1', // TODO get from parsedhyperfromjson
+                runtime: 'nodejs12',
+              }
+              googleUrl = await deployGoogle(googleZipPath, googleOptions)
+              spinnies.succeed(googleSpinnieName, { text: `${chalk.rgb(255, 255, 255).bgWhite(' Google ')} ${exp} ${chalk.rgb(255, 255, 255).bgWhite(googleUrl)}` })
+            } catch (e) {
+              spinnies.fail(googleSpinnieName, {
+                text: `${chalk.rgb(255, 255, 255).bgWhite(' Google ')} ${exp}: ${e.stack}`,
+              })
+              logdev(e, e.stack)
+            }
+          }
 
           return [amazonUrl] // for tests etc
         }),
       )
+
+      console.log('Google takes another 1 - 2m for changes to take effect')
 
       return [].concat(...endpts)
     }),
