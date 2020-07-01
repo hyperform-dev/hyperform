@@ -9,3 +9,6 @@ npm i -g jest
 'ESLint' by Dirk Baeumer
 'Jest' by Orta
 ```
+
+
+Notes: disabling spinnies and console.log, console.time drastically decreases time-to-complete, esp with large parallel things.
