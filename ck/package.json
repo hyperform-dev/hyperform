@@ -9,7 +9,7 @@
     "lintfix": "eslint --fix"
   },
   "bin": {
-    "clk": "./index.js"
+    "clk": "./cli.js"
   },
   "author": "DPS Group, University of Innsbruck <jakob.wallnoefer@student.uibk.ac.at>",
   "license": "ISC",

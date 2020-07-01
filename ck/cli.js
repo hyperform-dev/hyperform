@@ -2,7 +2,7 @@
 const arg = require('arg')
 const path = require('path')
 const { log } = require('./utils/index')
-const { main } = require('./index')
+const { Cloudkernel } = require('./index')
 const { readparse } = require('./parsers/index')
 const { initProject } = require('./initer/index')
 
@@ -48,7 +48,8 @@ async function cli() {
   /// ///////////////////////////////////////////////////////////////////////
   /// ///////////////////////////////////////////////////////////////////////
   // run main
-  const res = await main(parsedFlowJson, parsedInput)
+  const clk = new Cloudkernel(parsedFlowJson)
+  const res = await clk.run(parsedInput)
   log(res) // log result terminal
   /// ///////////////////////////////////////////////////////////////////////
   /// ///////////////////////////////////////////////////////////////////////
