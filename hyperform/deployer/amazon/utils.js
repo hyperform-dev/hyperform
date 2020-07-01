@@ -161,14 +161,25 @@ async function createLambdaRole(roleName) {
   * @returns {Promise<boolean>}
   */
 async function isExistsAmazon(options) {
-  let cmd = `aws lambda get-function --function-name ${options.name}`
-  if (options.region) cmd += ` --region ${options.region}`
- 
-  try { // TODO sanitize
-    await exec(cmd)
+  const lambda = new AWS.Lambda({
+    region: options.region,
+    apiVersion: '2015-03-31',
+  })
+
+  const params = {
+    FunctionName: options.name,
+  }
+
+  try {
+    await lambda.getFunction(params).promise()
     return true
   } catch (e) {
-    return false
+    if (e.code === 'ResourceNotFoundException') {
+      return false 
+    } else {
+      // some other error
+      throw e
+    }
   }
 }
 
