@@ -1,7 +1,7 @@
 {
   "name": "cloudkernel",
   "author": "DPS Group, University of Innsbruck <jakob.wallnoefer@student.uibk.ac.at>",
-  "version": "0.0.1",
+  "version": "0.1.0",
   "description": "",
   "license": "ISC",
   "main": "index.js",
