@@ -1,7 +1,7 @@
 ![Hyperform Banner](https://github.com/qngapparat/hyperform/blob/master/hyperform-banner.png)
 
 
-<p align="center">A delightful FaaS deployer<br>For AWS Lambda & Google Cloud Functions</p>
+<p align="center">The easiest way to deploy serverless code<br>For AWS Lambda & Google Cloud Functions</p>
 
 
 ## Install
