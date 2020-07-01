@@ -14,6 +14,7 @@
   "author": "DPS Group, University of Innsbruck <jakob.wallnoefer@student.uibk.ac.at>",
   "license": "ISC",
   "dependencies": {
+    "arg": "^5.0.0",
     "aws-sdk": "^2.780.0",
     "chalk": "^4.1.0",
     "spinnies": "^0.5.1",

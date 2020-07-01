@@ -1,7 +1,8 @@
 const { flattenObject, isFunction } = require('../utils/index')
+const { logdev } = require('../utils/index')
 
 function validateInput(input) {
-  console.log('checking ', input)
+  logdev('validating input: ', input)
   if (input == null) {
     throw new Error(`HF input must be object, but is undefined: ${input}`)
   }
