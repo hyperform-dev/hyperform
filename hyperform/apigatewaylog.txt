@@ -1,0 +1,10 @@
+aws apigatewayv2 create-api --name my-http-lambda-term1 --protocol-type HTTP --target arn:aws:lambda:us-east-2:XXXXXXXXXXX:function:fn_myinc
+
+
+aws lambda add-permission --function-name fn_myinc --action lambda:InvokeFunction --statement-id apigateway-one --principal apigateway.amazonaws.com 
+
+// WORKS POG
+
+TODO: add --source-arn arn:aws:sns:us-east-2:123456789012:my-topic
+
+arn:aws:execute-api:region:account-id:api-id/stage-name/HTTP-VERB/resource-path-specifier
