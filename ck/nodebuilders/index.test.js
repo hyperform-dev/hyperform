@@ -8,7 +8,7 @@ describe('detectnodetype', () => {
     const input = {
       run: 'xxx',
       in: 'xxx',
-      id: 'xxx',
+      //   id: 'xxx',
     }
 
     const toBeTested = () => detectnodetype(input)

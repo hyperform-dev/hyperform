@@ -15,50 +15,59 @@ const nodebuilders = {
   // Name of the AFCL construct
   atomic: {
     canBuild: (obj) => {
-      const schema = enrichedschemas.atomic
+      const schema = enrichedschemas.flat_atomic
       const { error } = schema.validate(obj)
       return !error
     },
-    build: (obj) => function (input) {
-      return envoy(obj.run, input)
+    build: async (obj) => {
+      return async function () {
+        const inp = sharedStash.get(obj.in)
+        const outp = await envoy(obj.run, inp)
+        sharedStash.put(obj.run, outp)
+      }
     },
   },
 
   sequence: {
     canBuild: (obj) => {
-      const schema = enrichedschemas.sequence
+      const schema = enrichedschemas.flat_sequence
       const { error } = schema.validate(obj)
-      if (error) {
-        return false
-      } else {
-        return true
-      }
+      return !error
     },
     build: async (obj) => {
-      // Build each member in the sequence
       const builtMembers = obj.map((o) => build(o))
       await Promise.all(builtMembers)
-
-      // return a function that runs these member functions one after the other
+      
       return async function () {
-        if (!obj.length) {
-          return undefined
+        // Build each member fn in the sequence
+        // Run one after the other
+        // Data transfer is handled automatically over shmem (sharedStash)
+        for (let i = 0; i < obj.length; i += 1) {
+          await builtMembers[i]()
         }
-
-        let inp
-        let outp
-        for (let i = 0; i < builtMembers.length; i += 1) {
-          inp = sharedStash.get(obj[i].in)
-          // run fn
-          outp = await builtMembers[i](inp)
-          // set output for next fn
-          sharedStash.put(obj[i].id, outp)
-        }
-        // does not return anything, use 'in' fields for reference
       }
     },
-    
   },
+  // doParallel: async (obj) => {
+  //   // build each member in doParallel
+  //   const builtMembers = obj.doParallel.map((o) => build(o))
+  //   await Promise.all(builtMembers)
+
+  //   // return a function that runs these member functions in parallel, 
+  //   // completes when all are done
+  //   return async function () {
+  //     if (!obj.doParallel.length) {
+  //       return undefined
+  //     }
+
+  //     const proms = builtMembers.map((fn) => {
+
+  //     })
+  //     await Promise.all(
+  //       obj.doParallel.map((n) => build(node)),
+  //     )
+  //   }
+  // },
 }
 
 function detectnodetype(obj) {
@@ -82,6 +91,15 @@ function build(obj) {
   // build the node function
   return nodebuilders[nodetype].build(obj)
 }
+
+// async function main() {
+//   sharedStash.put('inn', { num: 1 })
+//   const fn = await build({ run: 'arn:aws:lambda:us-east-2:735406098573:function:myinc', in: 'inn' })
+//   await fn()
+//   console.log(sharedStash.get('arn:aws:lambda:us-east-2:735406098573:function:myinc'))
+// }
+
+// main()
 
 module.exports = {
   _onlyfortesting_detectnodetype: detectnodetype,
