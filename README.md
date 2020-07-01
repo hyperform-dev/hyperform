@@ -82,18 +82,19 @@ $ hyperform deploy --allow-unauthenticated
 #### Invoke TODO
 
 You can `GET` or `POST` to your functions. 
+
 Functions are secured per default. Unless you specified `--allow-unauthenticated`, `$ hyperform deploy` will generate a Bearer token for you. Include it as `Authorization: Bearer {token}` in your requests.
 
 ```sh
-# Amazon
-$ curl https://a82n8xkixj.execute-api.us-east-2.amazonaws.com?id=1&text=Pick%20up%tomatoes # addTodo
-> null
-$ curl https://gmlpjhieh9.execute-api.us-east-2.amazonaws.com?id=1 # getTodo
-> {"id":1,"text":"Pick up tomatoes","completed":false}
-
 # Google
 $ curl https://us-central1-firstnodefunc.cloudfunctions.net/endpoint_addTodo?id=1&text=Pick%20up%tomatoes
 > null
 $ curl https://us-central1-firstnodefunc.cloudfunctions.net/endpoint_getTodo?id=1
+> {"id":1,"text":"Pick up tomatoes","completed":false}
+
+# Amazon
+$ curl https://a82n8xkixj.execute-api.us-east-2.amazonaws.com?id=1&text=Pick%20up%tomatoes # addTodo
+> null
+$ curl https://gmlpjhieh9.execute-api.us-east-2.amazonaws.com?id=1 # getTodo
 > {"id":1,"text":"Pick up tomatoes","completed":false}
 ```
