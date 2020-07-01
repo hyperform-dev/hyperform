@@ -22,7 +22,7 @@ async function runDo(path, command, hint) {
     spinnies.succeed(path, { text: `Built ${hint}` })
   } catch (e) {
     // TODO somehow get stdout up until the error & print it
-    spinnies.fail(path, { text: `Building Error: "do" script ran in '${path}' returned a non-zero exit code: ${EOL} ${e}` })
+    spinnies.fail(path, { text: `Building Error: "do" script run in '${path}' returned a non-zero exit code: ${EOL} ${e}` })
     throw e
   }
 }

@@ -11,8 +11,8 @@ const { spinnies } = require('./printer')
  */
 function parseCliArgs() {
   const args = arg({
-    '--version': Boolean,
-    '-v': '--version',
+    '--silent': Boolean,
+    '-s': '--silent',
   })
 
   // Defaults
@@ -46,7 +46,7 @@ async function processTask(args, task, provider = 'amazon') {
       path.join(args.root, task.forEachIn), { withFileTypes: true }, 
     ) 
   } catch (e) {
-    spinnies.justPrintFail(`Could not read directory: ${path.join(args.root, task.forEachIn)}`)
+    spinnies.justPrintFail(`Could not read directory stated in deploy.json: ${path.join(args.root, task.forEachIn)}`)
     throw e
   }
 
@@ -65,8 +65,16 @@ async function processTask(args, task, provider = 'amazon') {
     .map((p, idx) => { 
       const uploadablePath = path.join(p, task.upload)
       return (
+        // Put all major steps here
         runDo(p, task.do, fnFolderNames[idx])
           .then(() => runUploadAmazon(task, fnFolderNames[idx], uploadablePath, p))
+          .catch(() => {
+          /* 
+          This is the catch if the ASYNCHRONIUS code in runDo or runUpload throws
+          Do nothing as we still can do the other tasks.
+          The user is notified in runDo or runUpload, depending on the error.
+        */
+          })
       )
     })
 }
@@ -74,22 +82,31 @@ async function processTask(args, task, provider = 'amazon') {
 /// //////////////////////////////////////////////////
 
 async function main() {
-  // parse CLI args
-  const args = parseCliArgs()
-  // parse deploy.json
-  const parsedJson = await readparsevalidate({
-    presetName: 'deploy.json',
-    path: path.join(args.root, 'deploy.json'),
-  })
- 
-  // For each element in deploy.json (a task), "do" and "upload"
-  const proms = parsedJson
-    .map((task) => processTask(args, task, 'amazon')
-      .catch(() => { /* Do nothing, if one task failed we can still do the others. 
-      The user is made aware in processTask */ }))
-
-  // wait for all to complete
-  await Promise.all(proms)
+  // Top level error boundary
+  try {
+    // parse CLI args
+    const args = parseCliArgs()
+    // parse deploy.json
+    const parsedJson = await readparsevalidate({
+      presetName: 'deploy.json',
+      path: path.join(args.root, 'deploy.json'),
+    })
+   
+    // For each element in deploy.json (a task), "do" and "upload"
+    const proms = parsedJson
+      .map((task) => processTask(args, task, 'amazon')
+        .catch(() => {
+          /* This is the catch if the SYNCHRONIOUS code in processTasks throws
+          Do nothing as we still can do the other tasks.
+          The user is notified in processTasks.
+          */
+        }))
+  
+    // wait for all to complete
+    await Promise.all(proms)
+  } catch (e) {
+    process.exit(1)
+  }
 }
 
 main()
