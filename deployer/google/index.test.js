@@ -1,4 +1,6 @@
 const GCFREGION = 'us-central1'
+const GCFPROJECT = 'firstnodefunc'
+const GCFRUNTIME = 'nodejs12'
 
 describe('deployer', () => {
   describe('google', () => {
@@ -7,65 +9,91 @@ describe('deployer', () => {
       // Therefore you can't really setup it properly 
       // because setup might overlap with the test itself
 
-      test('completes, and returns an URL', async () => {
-        // NOTE: Deactivated until we re-add Google as provider
-        // ...and `gcloud functions ...` is replaced with SDK calls 
-        // Which might take a bit to figure out given the doc quality...
-        // @see https://googleapis.dev/nodejs/nodejs-functions/latest/google.cloud.functions.v1.CloudFunctionsService.html#createFunction1
+      test('completes if GCF exists already, and returns an URL', async () => {
+        const { deployGoogle } = require('./index')
+        const { zip } = require('../../zipper/index')
+
+        /// //////////////////////////////////////////////
+        // Setup: create folder with code
+
+        /// //////////////////////////////////////////////
+        // Setup: create code zip
         
-        /// //
-        /// // 
-        // Google does not differentiate between deploy and update anyway, 
-        // so this should be okay-ish representative
+        const name = 'jest_reserved_deployGoogle_A'
+        const code = `module.exports = { ${name}: () => ({a: 1}) }`
+        const zipPath = await zip(code)
 
-        // const { deployGoogle } = require('./index')
-        // const path = require('path')
-        // const fsp = require('fs').promises
-        // const os = require('os')
-        // const uuidv4 = require('uuid').v4
+        /// ////////////////////////////////////////////////////
 
-        // /// //////////////////////////////////////////////
-        // // Setup: create folder with code
-
-        // const name = 'jest_reserved_deployer_test_A'
-        // const code = `module.exports = { ${name}: () => ({a: 1}) }`
-
-        // const tmpdir = path.join(
-        //   os.tmpdir(),
-        //   uuidv4(),
-        // )
-        // await fsp.mkdir(tmpdir)
-        // // write code to there as file
-        // await fsp.writeFile(
-        //   path.join(tmpdir, 'index.js'),
-        //   code,
-        //   { encoding: 'utf-8' },
-        // )
-
-        // /// ////////////////////////////////////////////////////
-
-        // const options = {
-        //   name: name,
-        //   stagebucket: 'jak-functions-stage-bucket',
-        //   region: GCFREGION,
-        // }
+        const options = {
+          name: name,
+          project: GCFPROJECT,
+          region: GCFREGION,
+          runtime: GCFRUNTIME, 
+        }
         
-        // let err
-        // let googleUrl
-        // try {
-        //   googleUrl = await deployGoogle(tmpdir, options)
-        // } catch (e) {
-        //   console.log(e)
-        //   err = e
-        // }
+        let err
+        let res
+        try {
+          res = await deployGoogle(zipPath, options)
+        } catch (e) {
+          console.log(e)
+          err = e
+        }
 
-        // // it completed 
-        // expect(err).not.toBeDefined()
+        // it completed 
+        expect(err).not.toBeDefined()
 
-        // // it's an URL 
-        // const tryUrl = () => new URL(googleUrl)
-        // expect(tryUrl).not.toThrow()
+        // it's an URL 
+        const tryUrl = () => new URL(res)
+        expect(tryUrl).not.toThrow()
+        // Note: the URL would then take another 1-2 minutes to point to a proper GCF
       }, 2 * 60 * 1000)
+    })
+
+    describe('isExistsGoogle', () => {
+      test('true on existing function in project, region', async () => {
+        const isExistsGoogle = require('./index')._only_for_testing_isExistsGoogle
+
+        const input = {
+          name: 'endpoint_oho', // TODO make reserved funcs for tests
+          project: GCFPROJECT,
+          region: GCFREGION,
+        }
+
+        let err 
+        let res 
+        try {
+          res = await isExistsGoogle(input)
+        } catch (e) {
+          err = e
+        }
+
+        expect(err).not.toBeDefined()
+        expect(res).toEqual(true)
+      })
+
+      test('false on non-existing function in project, region', async () => {
+        const isExistsGoogle = require('./index')._only_for_testing_isExistsGoogle
+
+        const input = {
+          name: 'SOME_NONEXISTING_FUNCTION_0987654321', // TODO make reserved funcs for tests
+          project: GCFPROJECT,
+          region: GCFREGION,
+        }
+
+        let err 
+        let res 
+        try {
+          res = await isExistsGoogle(input)
+        } catch (e) {
+          err = e
+        }
+
+        // should still not throw
+        expect(err).not.toBeDefined()
+        expect(res).toEqual(false)
+      })
     })
   })
 })
