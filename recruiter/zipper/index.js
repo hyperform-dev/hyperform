@@ -1,9 +1,11 @@
-const compressing = require('compressing')
 const fsp = require('fs').promises
+const fs = require('fs')
 const os = require('os')
 const path = require('path')
+
 const { Readable } = require('stream')
 
+const yazl = require('yazl')
 /**
  * Zips given code as 'index.js' to deploypackage.zip
  * @returns {string} path to the created zip
@@ -11,6 +13,8 @@ const { Readable } = require('stream')
  */
 async function zip(code) {
   const uid = `${Math.ceil(Math.random() * 10000)}`
+  const zipfile = new yazl.ZipFile()
+
   console.time(`zip-${uid}`)
   // create tmp dir
   const outdir = await fsp.mkdtemp(path.join(os.tmpdir(), 'zipped-'))
@@ -22,7 +26,12 @@ async function zip(code) {
   s.push(code);
   s.push(null);
   // It's a transform stream, so you can pipe to it
-  await compressing.zip.compressFile(s, outpath, { relativePath: 'index.js' })
+  // zipfile.addReadStream(s, 'index.js')
+  
+  zipfile.outputStream.pipe(fs.createWriteStream(outpath))
+  zipfile.addReadStream(s, 'index.js'); // place code in index.js inside zip
+  zipfile.end()
+
   console.timeEnd(`zip-${uid}`)
   return outpath
 }
