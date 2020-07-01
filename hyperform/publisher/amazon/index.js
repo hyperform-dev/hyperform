@@ -1,5 +1,5 @@
 const { createApi, allowApiGatewayToInvokeLambda, getApiDetails } = require('./utils')
-const { deployAuthorizer, setAuthorizer } = require('../../authorizer-gen/index')
+const { deployAuthorizerLambda, setDefaultRouteAuthorizer } = require('../../authorizer-gen/index')
 // TODO handle regional / edge / read up on how edge works
 
 /**
@@ -56,9 +56,9 @@ async function publishAmazon(lambdaArn, { allowUnauthenticated, bearerToken, reg
     const authorizerOptions = { 
       region: region,
     }
-    const authorizerArn = await deployAuthorizer(authorizerName, bearerToken, authorizerOptions)
+    const authorizerArn = await deployAuthorizerLambda(authorizerName, bearerToken, authorizerOptions)
     // set authorizer
-    await setAuthorizer(apiId, authorizerArn)
+    await setDefaultRouteAuthorizer(apiId, authorizerArn)
   
     return apiUrl
   }

@@ -16,6 +16,8 @@ const exec = util.promisify(require('child_process').exec);
  * @returns {string} 
  */
 function createDeployCommand(pathToCode, options) {
+  // TODO replace with createFunction from SDK: 
+  // https://googleapis.dev/nodejs/nodejs-functions/latest/google.cloud.functions.v1.CloudFunction.html#.create
   let cmd = `gcloud functions deploy ${options.name} --region ${options.region} --trigger-http --runtime ${options.runtime} --entry-point ${options.entrypoint} --source ${pathToCode} --stage-bucket ${options.stagebucket} --allow-unauthenticated`
 
   if (options.timeout) cmd += ` --timeout ${options.timeout}`
