@@ -3,6 +3,12 @@
 const { bundle } = require('./bundler/index')
 const { getFilePaths, getNamedExports } = require('./discoverer/index')
 const { deployAmazon } = require('./deployer/amazon/index')
+const { deployGoogle } = require('./deployer/google/index')
+const uuidv4 = require('uuid').v4
+const path = require('path')
+const os = require('os')
+const fsp = require('fs').promises
+
 const { zip } = require('./zipper/index')
 const amazon = require('./deployer/amazon/index')
 
@@ -78,15 +84,16 @@ const appendix = `
 `
 
 
+
 async function main(dir, fnregex) {
   // [ { p: /home/file.js, exps: ['fn_1', 'fn_2'] }, ... ]
   const infos = (await getFilePaths(dir, 'js'))
-    .map((p) => ({ 
+    .map((p) => ({
       p: p,
       exps: getNamedExports(p),
     }))
     // skip files that don't have named exports
-    .filter(({ exps }) => exps != null && exps.length > 0) 
+    .filter(({ exps }) => exps != null && exps.length > 0)
     // skip files that don't have named exports that fit fnregex
     .filter(({ exps }) => exps.some((exp) => fnregex.test(exp) === true))
     // filter out exports that don't fit fnregex
@@ -104,30 +111,74 @@ async function main(dir, fnregex) {
   await infos.map(async (info) => {
     // bundle file
     let bundledCode = await bundle(info.p)
-    
+
     // add module append
     bundledCode += appendix
-    
-    // zip it
-    const zipPath = await zip(bundledCode)
 
-    // for every named fn_ export, deploy the zip 
-    // with correct handler
-    await Promise.all(
-      info.exps.map(async (exp) => { // under same name
+    //////////////////////
+    // Amazon
+    //////////////////////
+    {
+      // zip it
+      const zipPath = await zip(bundledCode)
 
-        const amazonOptions = {
-          name: exp, 
-          handler: `index.${exp}`,
-          role: 'arn:aws:iam::735406098573:role/lambdaexecute'
-        }
+      // for every named fn_ export, deploy the zip 
+      // with correct handler
+      await Promise.all(
+        info.exps.map(async (exp) => { // under same name
 
-       
-        console.log(`Amazon: Deploying ${zipPath} as ${amazonOptions.name} with handler ${amazonOptions.handler}`)
+          const amazonOptions = {
+            name: exp,
+            handler: `index.${exp}`,
+            role: 'arn:aws:iam::735406098573:role/lambdaexecute'
+          }
 
-        await deployAmazon(zipPath, amazonOptions)
-      }),
-    )
+
+          console.log(`Amazon: Deploying ${zipPath} as ${amazonOptions.name} with handler ${amazonOptions.handler}`)
+
+          await deployAmazon(zipPath, amazonOptions)
+        }),
+      )
+    }
+
+    //////////////////////
+    // Google
+    //////////////////////
+
+    {
+      // create temporary directory
+      const tmpdir = path.join(
+        os.tmpdir(),
+        uuidv4()
+      )
+
+      await fsp.mkdir(tmpdir)
+
+      // write code to there as file
+      await fsp.writeFile(
+        path.join(tmpdir, 'index.js'),
+        bundledCode,
+        { encoding: 'utf-8' }
+      )
+
+      // for every named fn_ export, deploy the folder 
+      // with correct handler
+      await Promise.all(
+        info.exps.map(async (exp) => { // under same name
+
+          const googleOptions = {
+            name: exp,
+            entrypoint: exp
+          }
+
+          console.log(`Google: Deploying ${tmpdir} as ${googleOptions.name} with entrypoint ${googleOptions.entrypoint}`)
+
+          await deployGoogle(tmpdir, googleOptions)
+          // TODO delete file & tmpdir
+        })
+      )
+    }
+
   })
 }
 

@@ -73,7 +73,7 @@ async function deployAmazon(pathToZip, options) {
 
   // deploy/upload
   try {
-    console.time(`deploy-${options.name}`)
+    console.time(`Amazon-deploy-${options.name}`)
     // TODO sanitize
     await exec(uploadCmd)
   } catch (e) {
@@ -81,7 +81,7 @@ async function deployAmazon(pathToZip, options) {
     // spinnies.fail(options.path, { text: `Deploy Error for ${options.name}: ` })
     throw e
   }
-  console.timeEnd(`deploy-${options.name}`)
+  console.timeEnd(`Amazon-deploy-${options.name}`)
 }
 
 module.exports = {
