@@ -11,15 +11,24 @@ const AWS = require('aws-sdk')
  * // TODO throws on existing? 
  */
 async function createApi(apiName, targetlambdaArn) {
-  const cmd = `aws apigatewayv2 create-api --name ${apiName} --protocol-type HTTP --target ${targetlambdaArn}`
-    
-  const { stdout } = await exec(cmd, { encoding: 'utf-8' })
-  const parsedStdout = JSON.parse(stdout)
+  const apigatewayv2 = new AWS.ApiGatewayV2({
+    apiVersion: '2018-11-29',
+  })
 
-  return {
-    apiId: parsedStdout.ApiId,
-    apiUrl: parsedStdout.ApiEndpoint,
+  const createApiParams = {
+    Name: apiName,
+    ProtocolType: 'HTTP',
+    Target: targetlambdaArn,
   }
+
+  const createApiRes = await apigatewayv2.createApi(createApiParams).promise()
+
+  const res = {
+    apiId: createApiRes.ApiId,
+    apiUrl: createApiRes.ApiEndpoint,
+  }
+  
+  return res 
 }
 
 /**
@@ -72,15 +81,16 @@ async function allowApiGatewayToInvokeLambda(lambdaName, region) {
     FunctionName: lambdaName,
     Principal: 'apigateway.amazonaws.com',
     // TODO SourceArn https://docs.aws.amazon.com/AWSJavaScriptSDK/latest/AWS/Lambda.html#addPermission-property
-    StatementId: `hyperform-statement-${lambdaName}`,
+    StatementId: `hf-stmnt-${lambdaName}`,
   }
  
   try {
-    lambda.addPermission(addPermissionParams).promise()
+    await lambda.addPermission(addPermissionParams).promise()
   } catch (e) {
     if (e.code === 'ResourceConflictException') {
       // API Gateway can already access that lambda (happens on all subsequent deploys), cool
     } else {
+      console.log('addpermission: some other error: ', e)
       throw e
     }
   }    
