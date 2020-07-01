@@ -6,6 +6,10 @@ const { spawn } = require('child_process')
  */
 function amazonQuery(name) {
   console.log(`querying for ${name}`)
+  // NOTE don't do elaborate querying, if deployed, ready and so on
+  // query is really just if Amazon is the right handler to call for the name
+  // not if it is deployed ...
+  
   if (/^arn:(aws|aws-cn|aws-us-gov):lambda:/.test(name) === true) {
     return Promise.resolve(name)
   }
