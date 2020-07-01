@@ -21,6 +21,7 @@
     "clipboardy": "^2.3.0",
     "dotenv": "^8.2.0",
     "findit": "^2.0.0",
+    "hyperform-cli": "^0.4.4",
     "joi": "^17.3.0",
     "node-fetch": "^2.6.1",
     "spinnies": "^0.5.1",
