@@ -79,10 +79,11 @@ async function getRouteId(apiId, routeKey) {
 }
 
 /**
- * 
+ * Sets the $default path of <apiId> to be guarded by authorizerArn.
  * @param {string} apiId 
  * @param {string} authorizerArn ARN of Lambda that should be the authorizer
  * @returns {void}
+ * @throws If authorizerArn is not formed like a Lambda ARN. Fails silently if authorizerArn Lambda does not exist
  */
 async function setAuthorizer(apiId, authorizerArn) {
   // ARN format: https://docs.aws.amazon.com/general/latest/gr/aws-arns-and-namespaces.html
@@ -118,6 +119,12 @@ async function setAuthorizer(apiId, authorizerArn) {
     const cmd2 = `aws apigatewayv2 get-authorizers --api-id ${apiId} --query 'Items[?Name==\`${authorizerName}\`]'`
     const { stdout } = await exec(cmd2, { encoding: 'utf-8' })
     const parsedStdout = JSON.parse(stdout)
+    // Could not create, and could not get
+    // Means bad input
+    if (!parsedStdout.length || parsedStdout[0].AuthorizerId == null) {
+      throw new Error(`Could not create or get Authorizer ${authorizerName}. Check these inputs to setAuthorizer: ${apiId} , ${authorizerArn}`) // TODO HF Programmer mistake
+    }
+
     authorizerId = parsedStdout[0].AuthorizerId
   }
 
