@@ -5,11 +5,9 @@ const uuidv4 = require('uuid').v4
 
 const readers = {
   'flow.json': (path) => {
-    // check if deploy.json present
     if (fs.existsSync(path) === false) {
       throw new Error('No flow.json found in this directory')
     }
-    // try to read it
     return fsp.readFile(path, { encoding: 'utf8' })
   },
 }
@@ -41,6 +39,16 @@ const enrichers = {
   'flow.json': (obj) => {
     function enrichSequence(arr, inName) {
       const enrichedarr = [...arr]
+
+      // ADD ID FIELDS
+      for (let i = 0; i < enrichedarr.length; i += 1) {
+        // don't overwrite if user set it manually (overwrite if empty string)
+        if (!enrichedarr[i].id) { 
+          enrichedarr[i].id = `${enrichedarr[i].run}-${uuidv4()}`
+        }
+      }
+        
+      // ADD IN FIELDS
       for (let i = 0; i < enrichedarr.length; i += 1) {
         if (i === 0) { 
           // first function's in = sequence's in
@@ -51,9 +59,9 @@ const enrichers = {
         // fn input is previous fn's output (identified by run field)
         // TODO introduce wf-unique id's
         // TODO warn if 'in' is invalid or appears nowhere
-        // don't overwrite if user set it manually
+        // don't overwrite if user set it manually (do not overwrite if empty string ~ void)
         if (enrichedarr[i].in == null) { 
-          enrichedarr[i].in = enrichedarr[i - 1].run
+          enrichedarr[i].in = enrichedarr[i - 1].id
         }
       }
 
@@ -72,6 +80,7 @@ const secondvalidators = {
       joi.object({
         run: joi.string().required(),
         in: joi.string().required(),
+        id: joi.string().required(),
       }),
     )
 

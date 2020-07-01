@@ -44,14 +44,13 @@ async function main() {
     for (let i = 0; i < parsedFlowJson.length; i += 1) {
       const fnDetails = sequence[i]
       const input = stash.get(fnDetails.in)
+
       console.log(input)
-      console.log(typeof input)
       const output = await envoy(fnDetails.run, input)
       console.log(output)
-      console.log(typeof output)
 
       // function output is next function's input (use fn name ('run' field) as identifier)
-      stash.put(fnDetails.run, output)
+      stash.put(fnDetails.id, output)
     }
 
     console.log(`FINISHED; result: ${JSON.stringify(stash.getall())}`)

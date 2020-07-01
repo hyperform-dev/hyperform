@@ -9,7 +9,7 @@ const amazonEnvoy = {
     return /^arn:(aws|aws-cn|aws-us-gov):lambda:/.test(name)
   },
   envoy: function (name, input) {
-    console.log(`Using Amazon envoy for ${name}`)
+  //  console.log(`Using Amazon envoy for ${name}`)
     const jsonInput = JSON.stringify(input)
     return (
       lambda.invoke({
