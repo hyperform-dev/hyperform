@@ -1,7 +1,7 @@
-// scouting starts as soon as this file is loaded
+/* eslint-disable arrow-body-style */
+const aws = require('aws-sdk')
 const { regions, roundtripCost } = require('../../topology/index')
 const { sharedNamecache } = require('../../namecache/index')
-const { sharedLambdas } = require('../../connections/amazon/index')
 
 const CURRREGION = 'us-east-2'
 
@@ -9,16 +9,20 @@ const CURRREGION = 'us-east-2'
  * Scouts all regions for function names and updates namecache accordingly
  * if no entry, or it's cheaper than current entry
  */
+let isScouted = false 
+
 async function scout() {
+  // only scout once
+  if (isScouted === true) return Promise.resolve()
   // for each region, 
-  return Promise.all(
+  const all = await Promise.all(
     regions.map(async (region) => {
-      const lambda = sharedLambdas[region]
+      const lambda = new aws.Lambda({ region })
 
       const params = {
         MaxItems: 999,
       }
-
+      // TODO solve better with pagination
       const res = await lambda.listFunctions(params).promise()
       if (res == null || res.Functions == null) {
         return
@@ -45,8 +49,14 @@ async function scout() {
       })
     }),
   )
+  isScouted = true 
+  return all
 }
 
-module.expoorts = {
+// distance to region should be natural penalty / delay
+// closer regions will list names faster
+// hence will be picked more often
+
+module.exports = {
   scout,
 }

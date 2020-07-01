@@ -19,7 +19,6 @@ aws.config.update({
     timeout: 15.1 * 60 * 1000,
   },
 });
-
 const { extractRegion } = require('../../topology/helpers/index')
 const { regions } = require('../../topology/index')
 
@@ -36,10 +35,9 @@ const amazonEnvoy = {
       /^arn:(aws|aws-cn|aws-us-gov):lambda:/.test(name) === true
     )
   },
-  envoy: function (arn, input) {
+  envoy: async function (arn, input) {
     const region = extractRegion(arn)
     const lambda = new aws.Lambda({ region })
-
     const jsonInput = JSON.stringify(input)
     const uid = `${Math.ceil(Math.random() * 1000)}`
     console.time(`envoy ${uid}`)

@@ -6,7 +6,12 @@ function isArn(name) {
 }
 
 function isRegion(name) {
-  return /^[0-9a-zA-Z-]+$/.test(name) === true
+  const regions = [
+    'us-east-1',
+    'us-east-2',
+  ]
+
+  return (regions.includes(name) === true)
 }
 
 function extractRegion(name) {
