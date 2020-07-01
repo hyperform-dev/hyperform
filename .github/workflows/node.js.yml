@@ -24,9 +24,9 @@ jobs:
       with:
         node-version: 12.x 
     - name: Install
-      run: cd hyperform; npm ci                         # beware of dashes (-) before run
+      run: npm ci                         # beware of dashes (-) before run
     - name: Test                                        
-      run: cd hyperform; npm run test
+      run: npm run test
       env:                                              # env is only kept in this step
         AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }} 
         AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
