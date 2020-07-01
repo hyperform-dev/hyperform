@@ -11,14 +11,20 @@ $ npm install -g hyperform-cli
 ```js
 // index.js
 const AWS = require('aws-sdk')
-
 const s3 = new AWS.S3()
 const bucket = 'my-todo-s3-bucket'
 
 /**
- * Export each desired endpoint using 'exports' or 'module.exports'
- * It should have 'endpoint' in its name
-* */
+ * Export each desired endpoint using 'exports' or 'module.exports' (CommonJS)
+ * It should have 'endpoint' in its name.
+ * 
+ * Quick Start:
+ * 
+ * A) You can import dependencies and code from anywhere. Hyperform uses Webpack internally.
+ * B) You can define your endpoints in multiple files, not just index.js
+ * C) 'aws-sdk' and '@google/' are included per default
+ * D) Your endpoints will receive one argument: the parsed POST JSON body, or the GET query string
+*/
 
 exports.endpoint_addTodo = async ({ id, text }) => {
   const todo = {
