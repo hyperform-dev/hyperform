@@ -1,7 +1,7 @@
 const fs = require('fs')
 const fsp = require('fs').promises
 
-const { unenrichedschemas } = require('../schemas')
+const { unenrichedschemas } = require('../schemas/unenriched/index')
 
 const readers = {
   'flow.json': (path) => {

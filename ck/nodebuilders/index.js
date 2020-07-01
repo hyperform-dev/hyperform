@@ -1,5 +1,5 @@
 /* eslint-disable arrow-body-style, no-use-before-define */
-const { enrichedschemas } = require('../schemas')
+const { enrichedschemas } = require('../schemas/enriched/index')
 const { envoy } = require('../envoys/index')
 const { sharedStash } = require('../stashes')
 // This file is about building an internal representation,
