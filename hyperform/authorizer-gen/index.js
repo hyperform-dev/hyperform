@@ -44,13 +44,13 @@ async function deployAuthorizer(authorizerName, expectedBearer) {
 
   try {
     await exec(cmd2)
-    console.log(`allowed Lambda ${authorizerName} to be accessed by API gateway`)
+    //   console.log(`allowed Lambda ${authorizerName} to be accessed by API gateway`)
   //  console.log(`Authorized Gateway to access ${lambdaName}`)
   } catch (e) {
     // means statement exists already - means API gateway is already auth to access that lambda
     // console.log(`Probably already authorized to access ${lambdaName}`)
     // surpress throw e
-    console.log(`Lambda ${authorizerName} probably can already be accessed by API gateway`)
+    //   console.log(`Lambda ${authorizerName} probably can already be accessed by API gateway`)
   }
   return authorizerArn
 }
@@ -100,14 +100,14 @@ async function setAuthorizer(apiId, authorizerArn) {
   try {
     // Try to create authorizer
     const { stdout } = await exec(cmd, { encoding: 'utf-8' })
-    console.log(`Newly created Authorizer from Lambda ${authorizerName}`)
-    console.log(stdout)
+    //   console.log(`Newly created Authorizer from Lambda ${authorizerName}`)
+    //  console.log(stdout)
     const parsedStdout = JSON.parse(stdout)
     authorizerId = parsedStdout.AuthorizerId
   } catch (e) {
     // authorizer already exists
     // obtain its id
-    console.log(`Reusing existing authorizer ${authorizerName}`)
+    //   console.log(`Reusing existing authorizer ${authorizerName}`)
     const cmd2 = `aws apigatewayv2 get-authorizers --api-id ${apiId} --query 'Items[?Name==\`${authorizerName}\`]'`
     const { stdout } = await exec(cmd2, { encoding: 'utf-8' })
     const parsedStdout = JSON.parse(stdout)
@@ -119,7 +119,7 @@ async function setAuthorizer(apiId, authorizerArn) {
   const routeId = await getRouteId(apiId, routeKey)
   const cmd3 = `aws apigatewayv2 update-route --api-id ${apiId} --route-id ${routeId} --authorization-type CUSTOM --authorizer-id ${authorizerId} `
   const { stdout } = await exec(cmd3, { encoding: 'utf-8' })
-  console.log(`Attached authorizer to ${routeKey}`)
+  // console.log(`Attached authorizer to ${routeKey}`)
 }
 
 // TODO set authorizer cache ??

@@ -39,13 +39,13 @@ async function publishAmazon(lambdaArn, { allowUnauthenticated }) {
         throw new Error(`Hyperform convention: expect unique API for name ${apiName}, but found: ${parsedStdout1}`)
       }
       
-      console.log(`Found api with name ${apiName}, reusing that`)
+      //  console.log(`Found api with name ${apiName}, reusing that`)
       apiId = parsedStdout1[0].ApiId 
       apiUrl = parsedStdout1[0].ApiEndpoint
     } else {
       // API with that name does not exist yet
       // create one
-      console.log(`No api with name ${apiName}, creating new one`)
+    //  console.log(`No api with name ${apiName}, creating new one`)
       const cmd1 = `aws apigatewayv2 create-api --name ${apiName} --protocol-type HTTP --target ${lambdaArn}`
     
       const res2 = await exec(cmd1, { encoding: 'utf-8' })
