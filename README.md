@@ -1,6 +1,7 @@
 ![Hyperform Banner](https://github.com/qngapparat/hyperform/blob/master/hyperform/hyperform-banner.png)
 
-Requires Node >= 12.19.0
+
+<!-- Requires Node >= 12.19.0
 
 ```
 npm i 
@@ -11,5 +12,5 @@ npm i -g jest
 'ESLint' by Dirk Baeumer
 ```
 
-* Don't use a background Jest runner (in VSCode et cetera), otherwise Google tests will fail as 'Operation already in progress'
+* Don't use a background Jest runner (in VSCode et cetera), otherwise Google tests will fail as 'Operation already in progress' -->
 
