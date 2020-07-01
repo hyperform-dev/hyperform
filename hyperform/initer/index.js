@@ -106,14 +106,20 @@ function parseAwsCredentialsOrConfigFile(filecontents) {
 /**
  * @description Tries to infer AWS credentials and config, and creates a hyperform.json in "absdir" with what it could infer. If hyperform.json already exists in "absdir" it just prints a message.
  * @param {string} absdir The directory where 'hyperform.json' should be created
- * @returns {void}
+ * @returns {{ 
+ * amazon: { 
+ *  aws_access_key_id: string?,
+ *  aws_secret_access_key: string?, 
+ *  aws_default_region: string? 
+ * }
+ * }}
  */
 function init(absdir) {
   const hyperformJsonContents = {
     amazon: {
       aws_access_key_id: '',
       aws_secret_access_key: '',
-      region: '', // TODO will be made redundant when hyperform deploys multi-region
+      aws_default_region: '', // TODO will be made redundant when hyperform deploys multi-region
     },
   }
 
@@ -122,36 +128,65 @@ function init(absdir) {
     console.log('hyperform.json exists already.')
     return
   }
+  
+  // try to infer AWS credentials
 
-  {
-    // try to infer AWS credentials
-    const possibleCredentialsPath = path.join(os.homedir(), '.aws', 'credentials')
+  // AWS CLI uses this precedence:
+  // (1 - highest precedence) Environment variables AWS_ACCESS_KEY_ID, ...  
+  // (2) .aws/credentials and .aws/config
 
-    if (fs.existsSync(possibleCredentialsPath) === true) {
-      const credentialsFileContents = fs.readFileSync(possibleCredentialsPath, { encoding: 'utf-8' })
-      
-      // TODO offer selection to user when there are multiple profiles
-      const parsedCredentials = parseAwsCredentialsOrConfigFile(credentialsFileContents)
-      hyperformJsonContents.amazon.aws_access_key_id = parsedCredentials.default.aws_access_key_id
-      hyperformJsonContents.amazon.aws_secret_access_key = parsedCredentials.default.aws_secret_access_key
-      console.log(`Inferred AWS credentials from ${possibleCredentialsPath}`)
-    } else {
-      console.log(`Could not guess AWS credentials. No AWS credentials file found in ${possibleCredentialsPath}`)
-    }
+  // Hence, do the same here
+
+  // First, start with (2)
+
+  // Check ~/.aws/credentials and ~/.aws/config
+  
+  const possibleCredentialsPath = path.join(os.homedir(), '.aws', 'credentials')
+  
+  if (fs.existsSync(possibleCredentialsPath) === true) {
+    const credentialsFileContents = fs.readFileSync(possibleCredentialsPath, { encoding: 'utf-8' })
+        
+    // TODO offer selection to user when there are multiple profiles
+    const parsedCredentials = parseAwsCredentialsOrConfigFile(credentialsFileContents)
+    hyperformJsonContents.amazon.aws_access_key_id = parsedCredentials.default.aws_access_key_id
+    hyperformJsonContents.amazon.aws_secret_access_key = parsedCredentials.default.aws_secret_access_key
+    console.log(`Inferred AWS credentials from ${possibleCredentialsPath}`)
+  } else {
+    console.log(`Could not guess AWS credentials. No AWS credentials file found in ${possibleCredentialsPath}`)
   }
 
-  { // try to infer AWS region
-    const possibleConfigPath = path.join(os.homedir(), '.aws', 'config')
+  /// /////////////////
+  /// /////////////////
 
-    if (fs.existsSync(possibleConfigPath) === true) {
-      const configFileContents = fs.readFileSync(possibleConfigPath, { encoding: 'utf-8' })
+  // try to infer AWS region
+  const possibleConfigPath = path.join(os.homedir(), '.aws', 'config')
 
-      const parsedConfig = parseAwsCredentialsOrConfigFile(configFileContents)
-      hyperformJsonContents.amazon.region = parsedConfig.default.region
-      console.log(`Inferred AWS region from ${possibleConfigPath}`)
-    } else {
-      console.log(`Could not guess AWS region. No AWS config file found in ${possibleConfigPath}`) // TODO region will not be a single region, but smartly multiple ones (or?)
-    }
+  if (fs.existsSync(possibleConfigPath) === true) {
+    const configFileContents = fs.readFileSync(possibleConfigPath, { encoding: 'utf-8' })
+
+    const parsedConfig = parseAwsCredentialsOrConfigFile(configFileContents)
+    hyperformJsonContents.amazon.aws_default_region = parsedConfig.default.region
+    console.log(`Inferred AWS region from ${possibleConfigPath}`)
+  } else {
+    console.log(`Could not guess AWS region. No AWS config file found in ${possibleConfigPath}`) // TODO region will not be a single region, but smartly multiple ones (or?)
+  }
+
+  // Then, do (1), possibly overriding values
+  // Check environment variables
+
+  if (typeof process.env.AWS_ACCESS_KEY_ID === 'string' && process.env.AWS_ACCESS_KEY_ID.trim().length > 0) {
+    hyperformJsonContents.amazon.aws_access_key_id = process.env.AWS_ACCESS_KEY_ID.trim()
+    console.log('environment variable AWS_ACCESS_KEY_ID overriding credentials file')
+  }
+
+  if (typeof process.env.AWS_SECRET_ACCESS_KEY === 'string' && process.env.AWS_SECRET_ACCESS_KEY.trim().length > 0) {
+    hyperformJsonContents.amazon.aws_secret_access_key = process.env.AWS_SECRET_ACCESS_KEY.trim()
+    console.log('environment variable AWS_SECRET_ACCESS_KEY overriding credentials file')
+  }
+
+  if (typeof process.env.AWS_DEFAULT_REGION === 'string' && process.env.AWS_DEFAULT_REGION.trim().length > 0) {
+    hyperformJsonContents.amazon.aws_default_region = process.env.AWS_DEFAULT_REGION.trim()
+    console.log('environment variable AWS_DEFAULT_REGION overriding config file')
   }
 
   // write results to hyperform.json

@@ -5,6 +5,7 @@ const { main } = require('./index')
 const { init } = require('./initer/index')
 const { getParsedHyperformJson } = require('./parser/index')
 // Ingest CLI arguments
+// DEV NOTE: Keep it brief and synchronious
 
 let mode 
 
@@ -37,7 +38,6 @@ if (hyperformJsonExists === false) {
  $ hyperform init`)
   process.exit(1)
 }
-
 const parsedHyperformJson = getParsedHyperformJson(absdir)
 
 // be overgenerous in detecting endpoints
