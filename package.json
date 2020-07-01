@@ -18,6 +18,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "@google-cloud/functions": "^1.1.2",
     "aws-sdk": "^2.820.0",
     "chalk": "^4.1.0",
     "clipboardy": "^2.3.0",
