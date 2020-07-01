@@ -1,4 +1,4 @@
-/* eslint-disable no-await-in-loop */
+/* eslint-disable no-await-in-loop, global-require */
 
 // One test to rule them all
 // Roughly equivalent to
@@ -47,29 +47,27 @@ describe('System tests (takes 1-2 minutes)', () => {
       
       const tmpcodepath = path.join(tmpdir, 'index.js')
       await fsp.writeFile(tmpcodepath, code, { encoding: 'utf-8' })
-
-      // TODO ahem
-      const json = JSON.stringify({
+      
+      // const tmpjsonpath = path.join(tmpdir, 'hyperform.json')
+      // await fsp.writeFile(tmpjsonpath, json, { encoding: 'utf-8' })
+      
+      /// ////////////////////////////////////////////
+      // Run
+      
+      const dir = tmpdir
+      const fnregex = /endpoint_/
+      const parsedHyperformJson = {
         amazon: {
           aws_access_key_id: process.env.AWS_ACCESS_KEY_ID,
           aws_secret_access_key: process.env.AWS_SECRET_ACCESS_KEY, 
           region: process.env.AWS_REGION, 
         },
-      }, null, 2)
-
-      const tmpjsonpath = path.join(tmpdir, 'hyperform.json')
-      await fsp.writeFile(tmpjsonpath, json, { encoding: 'utf-8' })
-
-      /// ////////////////////////////////////////////
-      // Run
-
-      const dir = tmpdir
-      const fnregex = /endpoint_/
+      }
 
       let mainres 
       let err 
       try {
-        mainres = await main(dir, fnregex)
+        mainres = await main(dir, fnregex, parsedHyperformJson)
       } catch (e) {
         err = e
       }
@@ -117,5 +115,9 @@ describe('System tests (takes 1-2 minutes)', () => {
         expect([403]).toContain(statusCode)
       }
     }, TIMEOUT)
+  })
+
+  describe('cli', () => {
+    // TODO
   })
 })

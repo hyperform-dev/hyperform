@@ -13,7 +13,6 @@ const { publishAmazon } = require('./publisher/amazon/index')
 const { deployGoogle } = require('./deployer/google/index')
 const { spinnies } = require('./printers/index')
 const { zip } = require('./zipper/index')
-const { getConstants } = require('./constants/index')
 
 function createAppendix(expectedToken) {
   return (`
@@ -138,7 +137,7 @@ async function getInfos(dir, fnregex) {
   return infos
 }
 
-async function amazonMain(info, bundledCode, bearerToken, constants) {
+async function amazonMain(info, bundledCode, bearerToken, parsedHyperformJson) {
   // Prepare uploadable
   const zipPath = await zip(bundledCode)
   
@@ -158,7 +157,7 @@ async function amazonMain(info, bundledCode, bearerToken, constants) {
 
       const amazonDeployOptions = {
         name: name,
-        region: constants.amazon.region,
+        region: parsedHyperformJson.amazon.region,
       }
       // deploy function
       const amazonArn = await deployAmazon(zipPath, amazonDeployOptions)
@@ -170,7 +169,7 @@ async function amazonMain(info, bundledCode, bearerToken, constants) {
       const amazonPublishOptions = {
         allowUnauthenticated: false, 
         bearerToken: bearerToken,
-        region: constants.amazon.region,
+        region: parsedHyperformJson.amazon.region,
       }
 
       // TODO split methods so no coincidental mixup of public and private (?)
@@ -191,7 +190,7 @@ async function amazonMain(info, bundledCode, bearerToken, constants) {
 
 /* Does not use bearerToken, it's already baked into bundledCode */
 
-async function googleMain(info, bundledCode, bearerToken, constants) {
+async function googleMain(info, bundledCode, bearerToken, parsedHyperformJson) {
   // Prepare uploadable
   const tmpdir = path.join(
     os.tmpdir(),
@@ -241,9 +240,10 @@ async function googleMain(info, bundledCode, bearerToken, constants) {
  * 
  * @param {string} dir 
  * @param {Regex} fnregex 
+ * @param {*} parsedHyperformJson
  * @throws
  */
-async function main(dir, fnregex) {
+async function main(dir, fnregex, parsedHyperformJson) {
   const infos = await getInfos(dir, fnregex)
 
   /*
@@ -286,12 +286,11 @@ async function main(dir, fnregex) {
 
       // Deploy and publish
 
-      const constants = getConstants(dir)
       const [amazonEndpoints, googleEndpoints] = await Promise.all([
         /// ///////////////////
         // Amazon
         /// ///////////////////
-        amazonMain(info, bundledCode, bearerToken, constants),
+        amazonMain(info, bundledCode, bearerToken, parsedHyperformJson),
 
         /// ///////////////////
         // Google
@@ -299,7 +298,7 @@ async function main(dir, fnregex) {
 
         // NOTE for new functions add allUsers as invoker
         // Keep that for now so don't forget the CLI setInvoker thing may screw up --allow-unauthenticated
-        googleMain(info, bundledCode, bearerToken, constants),
+        googleMain(info, bundledCode, bearerToken, parsedHyperformJson),
       ])
       // TODO .catch here catches aamzonMain or GoogleMain throwing
       // But seemingly does not propagate up to top-level boundary
