@@ -6,7 +6,7 @@ const uuidv4 = require('uuid').v4
 const path = require('path')
 const os = require('os')
 const fsp = require('fs').promises
-
+const { spinnies } = require('./printers/index')
 const { zip } = require('./zipper/index')
 
 // in lambda : export normally, but wrap in context.succeed (idempotent)
@@ -134,9 +134,10 @@ async function main(dir, fnregex) {
             role: 'arn:aws:iam::735406098573:role/lambdaexecute'
           }
 
-          console.log(`Amazon: Deploying ${zipPath} as ${amazonOptions.name}`)
-
+       //   console.log(`Amazon: Deploying ${zipPath} as ${amazonOptions.name}`)
+          spinnies.add(amazonOptions.name, { text: `Amazon: Deploying ${amazonOptions.name} (${zipPath})`})
           await deployAmazon(zipPath, amazonOptions)
+          spinnies.succeed(amazonOptions.name, { text: `Amazon: ${amazonOptions.name}`})
         }),
       )
     }
@@ -172,9 +173,11 @@ async function main(dir, fnregex) {
             stagebucket: 'jak-functions-stage-bucket'
           }
 
-          console.log(`Google: Deploying ${tmpdir} as ${googleOptions.name} with entrypoint ${googleOptions.entrypoint}`)
+      //    console.log(`Google: Deploying ${tmpdir} as ${googleOptions.name} with entrypoint ${googleOptions.entrypoint}`)
 
+          spinnies.add(googleOptions.name, { text: `Google: Deploying ${googleOptions.name} (${tmpdir})`})
           await deployGoogle(tmpdir, googleOptions)
+          spinnies.succeed(googleOptions.name, { text: `Google: ${googleOptions.name}`})
           // TODO delete file & tmpdir
         })
       )

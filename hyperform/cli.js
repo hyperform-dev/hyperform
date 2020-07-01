@@ -8,6 +8,10 @@ if (process.argv.length !== 3) {
   process.exit(1)
 }
 
+// hide timing info
+console.time = () => { }
+console.timeEnd = () => { }
+
 
 const dir = process.argv[2]
 const absdir = path.resolve(
