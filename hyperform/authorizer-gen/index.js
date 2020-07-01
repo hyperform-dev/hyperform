@@ -15,6 +15,9 @@ async function deployAuthorizer(authorizerName, expectedBearer) {
   if (!expectedBearer || !expectedBearer.trim()) {
     throw new Error('deployAuthorizer: expectedBearer is required')
   }
+  if (expectedBearer.trim().length < 10) {
+    throw new Error(`deployAuthorizer: expectedBearer needs to have 10 or more digits for security: ${expectedBearer}`)
+  }
   // will mess up weird user-given Tokens but that's on the user
   // will lead to false negatives (still better than false positives or injections)
   const sanitizedExpectedBearer = encodeURI(expectedBearer)
@@ -129,4 +132,5 @@ async function setAuthorizer(apiId, authorizerArn) {
 module.exports = {
   deployAuthorizer,
   setAuthorizer,
+  _only_for_testing_getRouteId: getRouteId,
 }
