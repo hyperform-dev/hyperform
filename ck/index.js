@@ -44,9 +44,6 @@ class Cloudkernel {
 
     // deploy/update functions that are found in (1) flow.json and (2) in the current directory
     // TODO do somewhere else
-    // const localfnpath = path.join(root, '..', 'recruiter', 'tm')
-    // await recruiter(localfnpath, LANG, allFunctionNames)
-
     // infer data flow from control flow
     // add some fields for internal representation
     const [enrichedFlow, outputKey] = enrich(
@@ -74,7 +71,8 @@ class Cloudkernel {
     console.timeEnd('build-wf')
 
     // deploy with recruiter 
-    const fnsPath = path.join(process.cwd(), '..', 'recruiter', 'tm')
+    // TODO some safety handle or something lol
+    const fnsPath = path.join(process.cwd(), 'fns')
     const whitelist = getAllFunctionNames(this.flow)
     await recruiter(
       fnsPath,
