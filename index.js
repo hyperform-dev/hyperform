@@ -138,29 +138,28 @@ async function main(dir, fnregex, parsedHyperformJson, allowUnauthenticated) {
           /// //////////////////////////////////////////////////////////
           /// Deploy to Google
           /// //////////////////////////////////////////////////////////
-          let googleUrl 
-          {
-            const googleSpinnieName = `google-main-${exp}`
-            try {
-              spinnies.add(googleSpinnieName, { text: `${chalk.rgb(20, 20, 20).bgWhite(' Google ')} ${exp}` })
-              const googleOptions = { 
-                name: exp,
-                project: process.env.GC_PROJECT,
-                region: 'us-central1', // TODO get from parsedhyperfromjson
-                runtime: 'nodejs12',
-                entrypoint: exp,
-              }
-              googleUrl = await deployGoogle(zipPath, googleOptions)
-              spinnies.succeed(googleSpinnieName, { text: `${chalk.rgb(20, 20, 20).bgWhite(' Google ')} ${exp} ${chalk.rgb(20, 20, 20).bgWhite(googleUrl)}` })
-            } catch (e) {
-              spinnies.fail(googleSpinnieName, {
-                text: `${chalk.rgb(20, 20, 20).bgWhite(' Google ')} ${exp}: ${e.stack}`,
-              })
-              logdev(e, e.stack)
-            }
-          }
+          // let googleUrl 
+          // {
+          //   const googleSpinnieName = `google-main-${exp}`
+          //   try {
+          //     spinnies.add(googleSpinnieName, { text: `${chalk.rgb(20, 20, 20).bgWhite(' Google ')} ${exp}` })
+          //     const googleOptions = { 
+          //       name: exp,
+          //       project: process.env.GC_PROJECT,
+          //       region: 'us-central1', // TODO get from parsedhyperfromjson
+          //       runtime: 'nodejs12',
+          //     }
+          //     googleUrl = await deployGoogle(zipPath, googleOptions)
+          //     spinnies.succeed(googleSpinnieName, { text: `${chalk.rgb(20, 20, 20).bgWhite(' Google ')} ${exp} ${chalk.rgb(20, 20, 20).bgWhite(googleUrl)}` })
+          //   } catch (e) {
+          //     spinnies.fail(googleSpinnieName, {
+          //       text: `${chalk.rgb(20, 20, 20).bgWhite(' Google ')} ${exp}: ${e.stack}`,
+          //     })
+          //     logdev(e, e.stack)
+          //   }
+          // }
 
-          return [amazonUrl, googleUrl] // for tests etc
+          return [amazonUrl] // for tests etc
         }),
       )
 
