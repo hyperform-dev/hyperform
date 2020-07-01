@@ -12,8 +12,6 @@ $ npm install -g hyperform-cli
 
 ## Basic Example
 
-#### Write code
-
 ```js
 // index.js
 
