@@ -1,8 +1,10 @@
 const arg = require('arg')
 const path = require('path')
 const { readparsevalidate } = require('./parsers/index')
+const { enrichvalidate } = require('./enrichers/index')
 const { envoy } = require('./envoys/index')
 const { sharedStash } = require('./stashes')
+const { build } = require('./nodebuilders/index')
 /**
  * 
  * @returns { mode: 'init'|'deploy', root: String}
@@ -34,26 +36,22 @@ async function main() {
       path: path.join(args.root, 'flow.json'),
     })
 
+    const enrichedFlowJson = await enrichvalidate({
+      presetName: 'flow.json',
+      obj: parsedFlowJson,
+    })
+
     sharedStash.put('__workflow_in', { num: 1 })
 
-    const sequence = parsedFlowJson
+    // TODO overhaul lol
+    
+    // build top-level function
+    const lastid = parsedFlowJson.slice(-1)[0].id
+    const wf = await build(parsedFlowJson)
+    await wf()
 
-    // EE LOOP
-    // Currently only supports sequence of "run"-s
-    for (let i = 0; i < parsedFlowJson.length; i += 1) {
-      const fnDetails = sequence[i]
-      const input = sharedStash.get(fnDetails.in)
-
-      console.log(input)
-      const output = await envoy(fnDetails.run, input)
-
-      console.log(output)
-
-      // function output is next function's input (use fn name ('run' field) as identifier)
-      sharedStash.put(fnDetails.id, output)
-    }
-
-    console.log(`FINISHED; result: ${JSON.stringify(sharedStash.getall())}`)
+    console.log('xxx')
+    console.log(sharedStash.get(lastid))
   } catch (e) {
     console.log(e)
     process.exit(1)
