@@ -12,7 +12,7 @@ class Stash {
   get(key) {
     console.log('Get ', key)
     if (this.stash[key] === undefined) {
-      throw new Error(`stash: key ${key} was never set`)
+      throw new Error(`stash: get: key ${key} was never set`)
     }
     return this.stash[key]
   }
@@ -22,6 +22,8 @@ class Stash {
   }
 }
 
+const sharedStash = new Stash()
+
 module.exports = {
-  Stash,
+  sharedStash,
 }

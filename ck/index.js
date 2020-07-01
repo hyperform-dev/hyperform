@@ -2,7 +2,7 @@ const arg = require('arg')
 const path = require('path')
 const { readparsevalidate } = require('./parsers/index')
 const { envoy } = require('./envoys/index')
-const { Stash } = require('./stashes')
+const { sharedStash } = require('./stashes')
 /**
  * 
  * @returns { mode: 'init'|'deploy', root: String}
@@ -34,8 +34,7 @@ async function main() {
       path: path.join(args.root, 'flow.json'),
     })
 
-    const stash = new Stash()
-    stash.put('__workflow_in', { num: 1 })
+    sharedStash.put('__workflow_in', { num: 1 })
 
     const sequence = parsedFlowJson
 
@@ -43,17 +42,18 @@ async function main() {
     // Currently only supports sequence of "run"-s
     for (let i = 0; i < parsedFlowJson.length; i += 1) {
       const fnDetails = sequence[i]
-      const input = stash.get(fnDetails.in)
+      const input = sharedStash.get(fnDetails.in)
 
       console.log(input)
       const output = await envoy(fnDetails.run, input)
+
       console.log(output)
 
       // function output is next function's input (use fn name ('run' field) as identifier)
-      stash.put(fnDetails.id, output)
+      sharedStash.put(fnDetails.id, output)
     }
 
-    console.log(`FINISHED; result: ${JSON.stringify(stash.getall())}`)
+    console.log(`FINISHED; result: ${JSON.stringify(sharedStash.getall())}`)
   } catch (e) {
     console.log(e)
     process.exit(1)
