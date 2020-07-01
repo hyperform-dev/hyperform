@@ -39,27 +39,41 @@ async function isExistsAmazon(options) {
   }
 }
 
-async function deployAmazon(pathToZip, name, handler, region) {
-  const options = {
-    name: name,
+/**
+ * 
+ * @param {*} pathToZip 
+ * @param {{
+ * name: string, 
+ * handler: string, 
+ * role: string, 
+ * region: string
+ * }} options 
+ */
+async function deployAmazon(pathToZip, options) {
+  if(!options.name || !options.handler || !options.role) {
+    throw new Error(`name, handler and role must be specified, but they are ${options.name}, ${options.handler}, ${options.role}`)
+  }
+  
+  const fulloptions = {
+    name: options.name,
     runtime: 'nodejs12.x',
     timeout: 60,
-    handler: handler || 'index.handler',
-    role: 'arn:aws:iam::735406098573:role/lambdaexecute',
-    region: region || 'us-east-2',
+    handler: options.handler, // || 'index.handler',
+    role: options.role, // || 'arn:aws:iam::735406098573:role/lambdaexecute',
+    region: options.region || 'us-east-2',
   }
 
   // spinnies.add(options.path, { text: `Deploying ${options.name} in ${options.language}` })
   // check if lambda has been deployed before
-  const exists = await isExistsAmazon(options)
+  const exists = await isExistsAmazon(fulloptions)
   // piece together terminal command to deploy
   const uploadCmd = exists === true 
-    ? createUpdateCommand(pathToZip, options)
-    : createDeployCommand(pathToZip, options)
+    ? createUpdateCommand(pathToZip, fulloptions)
+    : createDeployCommand(pathToZip, fulloptions)
 
   // deploy/upload
   try {
-    console.time(`deploy-${name}`)
+    console.time(`deploy-${options.name}`)
     // TODO sanitize
     await exec(uploadCmd)
   } catch (e) {
@@ -67,7 +81,7 @@ async function deployAmazon(pathToZip, name, handler, region) {
     // spinnies.fail(options.path, { text: `Deploy Error for ${options.name}: ` })
     throw e
   }
-  console.timeEnd(`deploy-${name}`)
+  console.timeEnd(`deploy-${options.name}`)
 }
 
 module.exports = {

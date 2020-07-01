@@ -3,9 +3,6 @@ const path = require('path')
 const fsp = require('fs').promises
 const os = require('os')
 
-
-
-
 async function bundle(inpath) {
   // create out dir (silly webpack)
   const outdir = await fsp.mkdtemp(path.join(os.tmpdir(), 'bundle-'))
