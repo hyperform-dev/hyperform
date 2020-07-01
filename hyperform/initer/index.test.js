@@ -3,12 +3,12 @@ describe('initer', () => {
     test('returns string on input: empty string', () => {
       const getDefaultSectionString = require('./index')._only_for_testing_getDefaultSectionString
 
-      const filecontents = ` `
+      const filecontents = ' '
     
-      let res = getDefaultSectionString(filecontents)
+      const res = getDefaultSectionString(filecontents)
     
-      expect(typeof res).toBe("string")
-      expect(res.trim()).toBe("")
+      expect(typeof res).toBe('string')
+      expect(res.trim()).toBe('')
     })
 
     test('returns empty string on input: [default] header', () => {
@@ -19,10 +19,10 @@ describe('initer', () => {
       
       `
   
-      let res = getDefaultSectionString(filecontents)
+      const res = getDefaultSectionString(filecontents)
     
-      expect(typeof res).toBe("string")
-      expect(res.trim()).toBe("")
+      expect(typeof res).toBe('string')
+      expect(res.trim()).toBe('')
     })
 
     test('returns empty string on input: other header, other section', () => {
@@ -35,10 +35,10 @@ second
 
       `
   
-      let res = getDefaultSectionString(filecontents)
+      const res = getDefaultSectionString(filecontents)
     
-      expect(typeof res).toBe("string")
-      expect(res.trim()).toBe("")
+      expect(typeof res).toBe('string')
+      expect(res.trim()).toBe('')
     })
 
     test('returns section on input: [default] header and section', () => {
@@ -50,15 +50,13 @@ first
 second
       `
   
-      let res = getDefaultSectionString(filecontents)
+      const res = getDefaultSectionString(filecontents)
     
-      expect(typeof res).toBe("string")
+      expect(typeof res).toBe('string')
       const text = res.trim() // 'first\nsecond'
       expect(/first/.test(text)).toBe(true)
       expect(/second/.test(text)).toBe(true)
-      
     })
-
 
     test('returns section on input: other section 1, [default] header, section, other section 2', () => {
       const getDefaultSectionString = require('./index')._only_for_testing_getDefaultSectionString
@@ -74,18 +72,18 @@ second
 clouds
       `
   
-      let res = getDefaultSectionString(filecontents)
+      const res = getDefaultSectionString(filecontents)
     
-      expect(typeof res).toBe("string")
+      expect(typeof res).toBe('string')
       const text = res.trim()
       // We want all between [default] and next header, but nothing else
-      expect(text).toBe("first\nsecond")
+      expect(text).toBe('first\nsecond')
     })
   })
 
   describe('parseAwsCredentialsOrConfigFile', () => {
     test('returns default credentials on just [default] section present', () => {
-      const  parseAwsCredentialsOrConfigFile  = require('./index')._only_for_testing_parseAwsCredentialsOrConfigFile
+      const parseAwsCredentialsOrConfigFile = require('./index')._only_for_testing_parseAwsCredentialsOrConfigFile
 
       const filecontents = `
 [default]
@@ -97,13 +95,12 @@ aws_secret_access_key = XXXXXXXXXX+tgppEZPzdN/XXXXlXXXXX/XXXXXXX
 
       expect(res).toBeDefined()
       expect(res.default).toBeDefined()
-      expect(res.default.aws_access_key_id).toBe("AKIA2WOM6JAHXXXXXXXX")
-      expect(res.default.aws_secret_access_key).toBe("XXXXXXXXXX+tgppEZPzdN/XXXXlXXXXX/XXXXXXX")
-      
+      expect(res.default.aws_access_key_id).toBe('AKIA2WOM6JAHXXXXXXXX')
+      expect(res.default.aws_secret_access_key).toBe('XXXXXXXXXX+tgppEZPzdN/XXXXlXXXXX/XXXXXXX')
     })
 
     test('returns default credentials on multiple sections present', () => {
-      const  parseAwsCredentialsOrConfigFile  = require('./index')._only_for_testing_parseAwsCredentialsOrConfigFile
+      const parseAwsCredentialsOrConfigFile = require('./index')._only_for_testing_parseAwsCredentialsOrConfigFile
 
       // the more weirdly formed
       const filecontents = `
@@ -119,8 +116,8 @@ aws_secret_access_key =XXXXXXXXXX+tgppEZPzdN/XXXXlXXXXX/XXXXXXX
 
       expect(res).toBeDefined()
       expect(res.default).toBeDefined()
-      expect(res.default.aws_access_key_id).toBe("AKIA2WOM6JAHXXXXXXXX")
-      expect(res.default.aws_secret_access_key).toBe("XXXXXXXXXX+tgppEZPzdN/XXXXlXXXXX/XXXXXXX")
+      expect(res.default.aws_access_key_id).toBe('AKIA2WOM6JAHXXXXXXXX')
+      expect(res.default.aws_secret_access_key).toBe('XXXXXXXXXX+tgppEZPzdN/XXXXlXXXXX/XXXXXXX')
     })
   })
 
@@ -139,7 +136,7 @@ aws_secret_access_key =XXXXXXXXXX+tgppEZPzdN/XXXXlXXXXX/XXXXXXX
       let err 
       try {
         init(absdir)
-      }catch(e) {
+      } catch (e) {
         err = e
       }
 
@@ -150,7 +147,6 @@ aws_secret_access_key =XXXXXXXXXX+tgppEZPzdN/XXXXlXXXXX/XXXXXXX
       const hyperformJsonPath = path.join(absdir, 'hyperform.json')
       expect(fs.existsSync(hyperformJsonPath)).toBe(true)
 
-
       // hyperform.json has the expected structure
       let hyperformJson = fs.readFileSync(hyperformJsonPath)
       hyperformJson = JSON.parse(hyperformJson)
@@ -159,9 +155,6 @@ aws_secret_access_key =XXXXXXXXXX+tgppEZPzdN/XXXXlXXXXX/XXXXXXX
       expect(hyperformJson.amazon.aws_access_key_id).toBeDefined()
       expect(hyperformJson.amazon.aws_secret_access_key).toBeDefined()
       expect(hyperformJson.amazon.region).toBeDefined()
-      
     })
   })
-
-  
 })

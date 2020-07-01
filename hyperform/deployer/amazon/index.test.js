@@ -47,5 +47,7 @@ describe('deployer', () => {
         expect(arnRegex.test(lambdaArn)).toBe(true)
       }, 15 * 1000)
     })
+
+    // TODO more tests for the other methods
   })
 })
