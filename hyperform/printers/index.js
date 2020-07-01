@@ -23,7 +23,7 @@ const spinner = {
 
 const spinnies = new Spinnies({ color: 'white', succeedColor: 'white', spinner: spinner });
 
-// In testing, be silent
+// In testing, be silent but console.log successes and fails
 if (isInTesting() === true) {
   spinnies.add = () => { }
   spinnies.update = () => { }

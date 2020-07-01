@@ -72,11 +72,13 @@ describe('authorizer-gen', () => {
         const { deployAuthorizer } = require('./index')
 
         const authorizerName = 'jest-reserved-authorizer'
-        const authorizerRegion = 'us-east-2'
         const expectedBearer = '123456789  ' 
+        const options = {
+          region: 'us-east-2',
+        }
         let err 
         try {
-          await deployAuthorizer(authorizerName, expectedBearer, authorizerRegion)
+          await deployAuthorizer(authorizerName, expectedBearer, options)
         } catch (e) {
           err = e
         }
@@ -88,11 +90,13 @@ describe('authorizer-gen', () => {
         const { deployAuthorizer } = require('./index')
 
         const authorizerName = 'jest-reserved-authorizer'
-        const authorizerRegion = 'us-east-2'
         const expectedBearer = null 
+        const options = {
+          region: 'us-east-2',
+        }
         let err 
         try {
-          await deployAuthorizer(authorizerName, expectedBearer, authorizerRegion)
+          await deployAuthorizer(authorizerName, expectedBearer, options)
         } catch (e) {
           err = e
         }
@@ -104,11 +108,13 @@ describe('authorizer-gen', () => {
         const { deployAuthorizer } = require('./index')
 
         const authorizerName = 'jest-reserved-authorizer'
-        const authorizerRegion = 'us-east-2'
         const expectedBearer = '  ' 
+        const options = {
+          region: 'us-east-2', 
+        }
         let err 
         try {
-          await deployAuthorizer(authorizerName, expectedBearer, authorizerRegion)
+          await deployAuthorizer(authorizerName, expectedBearer, options)
         } catch (e) {
           err = e
         }
@@ -122,12 +128,14 @@ describe('authorizer-gen', () => {
         const { deployAuthorizer } = require('./index')
         
         const authorizerName = 'jest-reserved-authorizer'
-        const authorizerRegion = 'us-east-2' 
         const expectedBearer = BEARERTOKEN
+        const options = {
+          region: 'us-east-2', 
+        }
         let err 
         let res
         try {
-          res = await deployAuthorizer(authorizerName, expectedBearer, authorizerRegion)
+          res = await deployAuthorizer(authorizerName, expectedBearer, options)
         } catch (e) {
           err = e
         }

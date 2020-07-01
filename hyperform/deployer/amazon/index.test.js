@@ -1,3 +1,4 @@
+/* eslint-disable global-require */
 const zipper = require('../../zipper/index')
 
 // Omit tests for sub functions
@@ -17,6 +18,7 @@ describe('deployer', () => {
         // Setup: create code zip
 
         const name = 'jest-reserved-returna1'
+        const region = 'us-east-2'
         const code = `module.exports = { ${name}: () => ({a: 1}) }`
 
         const zipPath = await zip(code)
@@ -25,6 +27,7 @@ describe('deployer', () => {
 
         const options = {
           name: name,
+          region: region,
         }
 
         let err 
