@@ -51,6 +51,9 @@ function extractArn(stdout) {
 }
 
 
+
+
+
 // TODO handle regional / edge / read up on how edge works
 // TODO don't create 
 /**
@@ -60,7 +63,12 @@ function extractArn(stdout) {
  */
 
  // TODO do we need to publish 1 or N times for every lambda deploy?
-async function _publishAmazon(lambdaArn) {
+async function publishAmazon(lambdaArn, { allowUnauthenticated }) {
+  if(allowUnauthenticated == null) {
+    throw new Error("PublishAmazon: specify second argument") // TODO HF programmer error, do not check for
+  }
+
+
   const lambdaName = lambdaArn.split(':').slice(-1)[0]
   const apiName = `hyperform-${lambdaName}`
 
@@ -98,6 +106,14 @@ async function _publishAmazon(lambdaArn) {
    // surpress throw e
   }
 
+
+  // if allowUnauthenticated == true, do nothing
+  // if false, 
+
+  // (1) deploy Lambda Authorizer https://docs.aws.amazon.com/apigateway/latest/developerguide/apigateway-use-lambda-authorizer.html
+
+  // (a) 
+
   return apiUrl
 }
 
@@ -108,7 +124,10 @@ async function _publishAmazon(lambdaArn) {
  * @param {{
  * name: string, 
  * role: string, 
- * region: string
+ * region?: string,
+ * timeout?: number,
+ * ram?: number,
+ * handler?: string
  * }} options 
  * @returns {string} The Lambda ARN
 
@@ -120,12 +139,13 @@ async function deployAmazon(pathToZip, options) {
   }
   
   const fulloptions = {
-    name: options.name,
-    runtime: 'nodejs12.x',
-    timeout: 60,
-    handler: `index.${options.name}`,
-    role: options.role, // || 'arn:aws:iam::735406098573:role/lambdaexecute',
-    region: options.region || 'us-east-2',
+    name:          options.name,
+    runtime:                              'nodejs12.x',
+    timeout:       options.timeout     || 60, // also prevents 0
+    'memory-size': options.ram         || 128,
+    handler:       options.handler     || `index.${options.name}`,
+    role:          options.role, // || 'arn:aws:iam::735406098573:role/lambdaexecute',
+    region:        options.region      || 'us-east-2',
   }
 
   // spinnies.add(options.path, { text: `Deploying ${options.name} in ${options.language}` })
@@ -150,12 +170,11 @@ async function deployAmazon(pathToZip, options) {
   }
   console.timeEnd(`Amazon-deploy-${options.name}`)
 
-  // publish (create URL with API Gateway)
-  const url = await _publishAmazon(arn)
-  return url
+  return arn
   
 }
 
 module.exports = {
   deployAmazon,
+  publishAmazon
 }
