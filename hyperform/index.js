@@ -122,26 +122,48 @@ const { uploadGoogle } = require('./uploader/google/index')
  * @param {string} dir 
  * @param {Regex} fnregex 
  * @param {*} parsedHyperformJson
+ * @param {boolean} allowUnauthenticated
+ * @returns {string[]} Mixed, nested list of endpoint URLs
  * @throws
  */
-async function main(dir, fnregex, parsedHyperformJson) {
+async function main(dir, fnregex, parsedHyperformJson, allowUnauthenticated) {
   const infos = await getInfos(dir, fnregex)
 
   if (infos.length === 0) {
     console.log(`No exports found matching ${fnregex}`)
-    return null
+    return [] // no endpoint URL's created
   }
 
-  // generate beearer token 
-  const expectedBearer = generateRandomBearerToken()
+  // passed to transpile (for google) and publishAmazon (for amazon)
+  const publishOptions = {
+    allowUnauthenticated: allowUnauthenticated,
+  }
+  if (allowUnauthenticated === false) {
+    publishOptions.expectedBearer = generateRandomBearerToken()
+  }
 
   const endpoints = await Promise.all(
     // for each file
     infos.map(async (info) => {
-      const bundledCode = await bundle(info.p)
-      const transpiledCode = transpile(bundledCode, expectedBearer)
+      let bundledCode 
+      try {
+        bundledCode = await bundle(info.p)
+      } catch (e) {
+        console.log(`Errored bundling ${info.p}: ${e}`)
+        return // skip that file 
+      }
+      const transpiledCode = transpile(bundledCode, publishOptions)
       // for amazon
-      const zipPath = await zip(transpiledCode)
+
+      let zipPath 
+      try {
+        zipPath = await zip(transpiledCode)
+      } catch (e) {
+        // probably underlying issue with the zipping library or OS
+        // should not happen
+        console.log(`Errored zipping ${info.p}: ${e}`)
+        return // skip that file 
+      }
 
       // for google
       const tmpdir = await fsp.mkdtemp(path.join(os.tmpdir(), 'bundle-'))
@@ -156,18 +178,27 @@ async function main(dir, fnregex, parsedHyperformJson) {
       // Keep that for now so don't forget the CLI setInvoker thing may screw up --allow-unauthenticated
       const endpts = await Promise.all(
         info.exps.map(async (exp) => {
-          try {
-            console.log(zipPath, exp, expectedBearer)
-            const amazonArn = await deployAmazon(zipPath, { name: exp, region: 'us-east-2' })
-            const amazonUrl = await publishAmazon(amazonArn, { allowUnauthenticated: false, region: 'us-east-2', bearerToken: expectedBearer })
-            console.log(amazonUrl)
-            const googleUrl = await deployGoogle(tmpdir, { name: exp, stagebucket: 'jak-functions-stage-bucket' })
-            console.log(googleUrl)
-            return [amazonUrl, googleUrl]
-          } catch (e) {
-            console.log(`Errored: ${e}`)
-            return []
-          }
+        //  try {
+          console.log(zipPath, exp, publishOptions.expectedBearer)
+          const amazonArn = await deployAmazon(zipPath, { 
+            name: exp, 
+            region: 'us-east-2',
+          })
+          const amazonUrl = await publishAmazon(amazonArn, {
+            ...publishOptions, // allowUnauthenticated and expectedBearer
+            region: 'us-east-2',
+          }) // TODO
+          console.log(amazonUrl)
+          const googleUrl = await deployGoogle(tmpdir, { 
+            name: exp, 
+            stagebucket: 'jak-functions-stage-bucket', 
+          })
+          console.log(googleUrl)
+          return [amazonUrl, googleUrl]
+          //   } catch (e) {
+        //    console.log(`Errored: ${e}`)
+          //   return []
+        //  }
         }),
       )
 
