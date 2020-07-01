@@ -17,22 +17,18 @@ function amazonQuery(name) {
     return Promise.resolve(name)
   }
 
-  return new Promise((resolve, reject) => {
-    const params = {
-      FunctionName: name,
-    }
+  const params = {
+    FunctionName: name,
+  }
 
-    lambda.getFunction(params, (err, data) => {
-      if (err) {
-        console.log(err, err.stack); 
-        reject(err)
-      } 
-
-      // console.log(data)
-      const arn = data.Configuration.FunctionArn
-      resolve(arn)
-    })
-  })
+  return (
+    lambda.getFunction(params).promise()
+      .then((res) => res && res.Configuration && res.Configuration.FunctionName)
+      .catch((err) => {
+        console.log(`Could not get details about Amazon lambda ${name}. Is it deployed?`)
+        throw err
+      })
+  )
 }
 
 module.exports = {
