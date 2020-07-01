@@ -1,8 +1,8 @@
 const fs = require('fs')
 const path = require('path')
 const os = require('os')
+const { EOL } = require('os')
 const { log } = require('../printers/index')
-
 /**
  * @description Extracts the [default] section of an AWS .aws/config or .aws/credentials file
  * @param {string} filecontents File contents of an .aws/credentials or .aws/config file
@@ -190,13 +190,20 @@ function init(absdir) {
     log('Environment variable AWS_REGION set, overriding value from config file')
   }
 
+  // append 'hyperform.json' to .gitignore 
+  // (or create .gitignore if it does not exist yet)
+  fs.appendFileSync(
+    path.join(absdir, '.gitignore'),
+    `${EOL}hyperform.json`,
+  )
+
   // write results to hyperform.json
   fs.writeFileSync(
     path.join(absdir, 'hyperform.json'),
     JSON.stringify(hyperformJsonContents, null, 2),
   )
 
-  log('Created hyperform.json') // TODO ask for defaults guide through in init etc
+  log('Created hyperform.json') // TODO ask for defaults guide through in init
 }
 
 module.exports = {
