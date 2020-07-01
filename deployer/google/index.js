@@ -238,9 +238,6 @@ async function deployGoogle(pathToZip, options) {
   }
 
   // allow anyone to invoke function 
-  // Note that a correct Bearer token may still be required to not have it exit immediately
-  // But on Google we check for that inside the function
-
   const allowPublicInvokeOptions = {
     name: options.name,
     project: options.project, 

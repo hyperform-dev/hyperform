@@ -6,8 +6,7 @@ const { logdev } = require('../printers/index')
 
 /**
  * @description Bundles a given .js files with its dependencies using webpack. 
- * Does not include dependencies that are given in "externals", 
- * for instance { 'aws-sdk': 'aws-sdk' }.
+ * Does not include dependencies that are given in "externals".
  * @param {string} inpath Path to entry .js file
  * @param {*} externals Webpack 'externals' field of package names we don't need to bundle. 
  * For example { 'aws-sdk': 'aws-sdk' } to skip 'aws-sdk'

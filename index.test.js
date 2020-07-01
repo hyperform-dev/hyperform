@@ -1,16 +1,19 @@
 /* eslint-disable no-await-in-loop, global-require */
 
 // One test to rule them all
-// Roughly equivalent to
-// (1) $ hf /some/path
-// (2) $ curl ENDPOINTS
-// (3) Compare output with expected (TODO)
+// (1) Deploy & publish a echo function via Hyperform to Amazon, Google
+//     -> The deployment, publishing worked correctly
+// (2) Ping it with an event
+//     -> The function completes
+// (3) Check whether echo is what we expect 
+//     -> The in-function wrapper worked correctly
+
 const os = require('os')
 const path = require('path')
 const fsp = require('fs').promises
 const fetch = require('node-fetch')
 const uuidv4 = require('uuid').v4
-// allow 2 minutes
+
 const TIMEOUT = 2 * 60 * 1000
 
 describe('System tests (takes 1-2 minutes)', () => {
@@ -70,11 +73,10 @@ describe('System tests (takes 1-2 minutes)', () => {
           },
 
         }
-        const needAuth = false
-
+      
         let err
         try {
-          amazonMainRes = await main(dir, fnregex, amazonParsedHyperformJson, needAuth)
+          amazonMainRes = await main(dir, fnregex, amazonParsedHyperformJson)
         } catch (e) {
           console.log(e)
           err = e
@@ -85,10 +87,6 @@ describe('System tests (takes 1-2 minutes)', () => {
         // Expect main returned sensible data
         expect(amazonMainRes).toBeDefined()
         expect(amazonMainRes.urls).toBeDefined()
-        // // Expect expectedBearer to be defined, since this is an authenticated test
-        // expect(amazonMainRes.expectedBearer).toBeDefined()
-        // // Conveniently use util method
-        // expect(() => ensureBearerTokenSecure(amazonMainRes.expectedBearer)).not.toThrow()
       }
         
       /// ////////////////////////////////////////////
@@ -104,11 +102,10 @@ describe('System tests (takes 1-2 minutes)', () => {
           },
 
         }
-        const needAuth = false
-
+     
         let err
         try {
-          googleMainRes = await main(dir, fnregex, googleParsedHyperformJson, needAuth)
+          googleMainRes = await main(dir, fnregex, googleParsedHyperformJson)
         } catch (e) {
           console.log(e)
           err = e
@@ -119,10 +116,6 @@ describe('System tests (takes 1-2 minutes)', () => {
         // Expect main returned sensible data
         expect(googleMainRes).toBeDefined()
         expect(googleMainRes.urls).toBeDefined()
-        // // Expect expectedBearer to be defined, since this is an authenticated test
-        // expect(googleMainRes.expectedBearer).toBeDefined()
-        // // Conveniently use util method
-        // expect(() => ensureBearerTokenSecure(googleMainRes.expectedBearer)).not.toThrow()
       }
 
       /// ///////////////////////////////////////////
@@ -177,47 +170,6 @@ describe('System tests (takes 1-2 minutes)', () => {
           expect(actualResult.http.method).toBe('GET')
         }
       }
-
-      // /// /////////////////////////////
-      // // Ping each URL without Authorization header
-      // // Expect 401 or 403
-      // // TODO check more precise ... google weirdly returns 403s here instead of 401
-
-      // // NOTE: had to grant allUsers access in Gcloud console
-      // // Thus for google new functions not 100% representative
-      // // But we don't test Google currently anyway (see above)
-      // for (let i = 0; i < urls.length; i += 1) {
-      //   // POST
-      //   const url = urls[i]
-      //   const res = await fetch(url, {
-      //     method: 'POST',
-      //     headers: {
-      //       'Content-Type': 'application/json',
-      //     },
-      //   })
-      //   const statusCode = res.status
-      //   // console.log(`Pinged without Authorization header: ${url}`)
-      //   expect([401, 403]).toContain(statusCode)
-      // }
-
-      // /// /////////////////////////////
-      // // Ping each URL with wrong Authorization header
-      // // Expect 403 
-
-      // for (let i = 0; i < urls.length; i += 1) {
-      //   // POST 
-      //   const url = urls[i]
-      //   const res = await fetch(url, {
-      //     method: 'POST',
-      //     headers: {
-      //       'Content-Type': 'application/json',
-      //       Authorization: 'Bearer XXXXXXXXXNONSENSETOKENXXXXXXX',
-      //     },
-      //   })
-      //   const statusCode = res.status
-      //   //   console.log(`Pinged with invalid Authorization header: ${url}`)
-      //   expect([403]).toContain(statusCode)
-      // }
     }, TIMEOUT)
   })
 

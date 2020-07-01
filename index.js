@@ -1,29 +1,22 @@
 /* eslint-disable max-len */
 
 const chalk = require('chalk')
-const clipboardy = require('clipboardy')
 const { bundleAmazon } = require('./bundler/amazon/index')
 const { bundleGoogle } = require('./bundler/google/index')
 const { getInfos } = require('./discoverer/index')
 const { deployAmazon } = require('./deployer/amazon/index')
 const { publishAmazon } = require('./publisher/amazon/index')
-const { generateRandomBearerToken } = require('./authorizer-gen/utils')
 const { spinnies, log, logdev } = require('./printers/index')
 const { zip } = require('./zipper/index')
 const { deployGoogle } = require('./deployer/google/index')
 const { transpile } = require('./transpiler/index')
-const { isInTesting } = require('./meta/index')
 const schema = require('./schemas/index').hyperformJsonSchema
 
 /**
  * 
  * @param {string} fpath Path to .js file
- * @param {{
- * needAuth: boolean,
- * expectedBearer?: string
- * }} publishOptions 
  */
-async function bundleTranspileZipAmazon(fpath, publishOptions) {
+async function bundleTranspileZipAmazon(fpath) {
   // Bundle 
   let amazonBundledCode
   try {
@@ -34,7 +27,7 @@ async function bundleTranspileZipAmazon(fpath, publishOptions) {
   }
 
   // Transpile 
-  const amazonTranspiledCode = transpile(amazonBundledCode, publishOptions)
+  const amazonTranspiledCode = transpile(amazonBundledCode)
 
   // Zip
   try {
@@ -42,21 +35,16 @@ async function bundleTranspileZipAmazon(fpath, publishOptions) {
     return amazonZipPath
   } catch (e) {
     // probably underlying issue with the zipping library or OS
-    // should not happen
-    log(`Errored zipping ${fpath} for Amazon: ${e}`)
     // skip that file 
+    log(`Errored zipping ${fpath} for Amazon: ${e}`)
   }
 }
 
 /**
  * 
  * @param {string} fpath Path to .js file
- * @param {{
- * needAuth: boolean,
- * expectedBearer?: string
- * }} publishOptions 
  */
-async function bundleTranspileZipGoogle(fpath, publishOptions) {
+async function bundleTranspileZipGoogle(fpath) {
   // Bundle 
   let googleBundledCode
   try {
@@ -67,7 +55,7 @@ async function bundleTranspileZipGoogle(fpath, publishOptions) {
   }
 
   // Transpile 
-  const googleTranspiledCode = transpile(googleBundledCode, publishOptions)
+  const googleTranspiledCode = transpile(googleBundledCode)
 
   // Zip
   try {
@@ -75,25 +63,19 @@ async function bundleTranspileZipGoogle(fpath, publishOptions) {
     return googleZipPath
   } catch (e) {
     // probably underlying issue with the zipping library or OS
-    // should not happen
-    log(`Errored zipping ${fpath}: ${e}`)
     // skip that file 
+    log(`Errored zipping ${fpath}: ${e}`)
   }
 }
 
 /**
- *  @description Deploys and publishes a given code .zip to AWS Lambda
+ *  @description Deploys a given code .zip to AWS Lambda, and gives it a HTTP endpoint via API Gateway
  * @param {string} name 
  * @param {string} region 
  * @param {string} zipPath 
- * @param {{
- * needAuth: boolean, 
- * expectedBearer?: string
- * region: string
- * }} publishOptions 
  * @returns {string} URL of the endpoint of the Lambda
  */
-async function deployPublishAmazon(name, region, zipPath, publishOptions) {
+async function deployPublishAmazon(name, region, zipPath) {
   const amazonSpinnieName = `amazon-main-${name}`
   try {
     spinnies.add(amazonSpinnieName, { text: `${chalk.rgb(255, 255, 255).bgWhite(' AWS Lambda ')} Deploying ${name}` })
@@ -105,11 +87,7 @@ async function deployPublishAmazon(name, region, zipPath, publishOptions) {
     }
     const amazonArn = await deployAmazon(zipPath, amazonDeployOptions)
     // Publish it
-    const amazonPublishOptions = {
-      ...publishOptions, // needAuth and expectedBearer
-      region: region,
-    }
-    const amazonUrl = await publishAmazon(amazonArn, amazonPublishOptions)
+    const amazonUrl = await publishAmazon(amazonArn, region)
     spinnies.succeed(amazonSpinnieName, { text: `${chalk.rgb(255, 255, 255).bgWhite(' AWS Lambda ')} 🟢 ${name} ${chalk.rgb(255, 255, 255).bgWhite(amazonUrl)}` })
 
     // return url 
@@ -160,12 +138,9 @@ async function deployPublishGoogle(name, region, project, zipPath) {
  * @param {string} dir 
  * @param {Regex} fnregex 
  * @param {*} parsedHyperformJson
- * @param {boolean} needAuth
- * @returns {{ urls: string[], expectedBearer?: string }} urls: Mixed, nested Array of endpoint URLs. 
- * expectedBearer: if needAuth was true, the Bearer token needed to invoke the Fn.
- * @throws
+ * @returns {{ urls: string[] }} urls: Mixed, nested Array of endpoint URLs.
  */
-async function main(dir, fnregex, parsedHyperformJson, needAuth) {
+async function main(dir, fnregex, parsedHyperformJson) {
   const infos = await getInfos(dir, fnregex)
   /*
     [
@@ -187,26 +162,6 @@ async function main(dir, fnregex, parsedHyperformJson, needAuth) {
     return [] // no endpoint URLs created
   }
 
-  // options passed to (transpile (for google)) and publishAmazon (for amazon)
-  const publishOptions = {
-    needAuth: needAuth,
-  }
-  if (needAuth === true) {
-    publishOptions.expectedBearer = generateRandomBearerToken()
-    // Print bearer token in console
-    // and copy to clipboard if not in testing
-    let bearerStdout = `Authorization: Bearer ${chalk.bold(publishOptions.expectedBearer)}`
-    if (isInTesting() === false) {
-      try {
-        await clipboardy.write(publishOptions.expectedBearer)
-        bearerStdout += ` ${chalk.rgb(175, 175, 175)('(Copied)')}`
-      } catch (e) {
-        /* Not the end of the world */
-      }
-    }
-    log(bearerStdout)
-  }
-
   // For each file 
   //   bundle
   //   transpile 
@@ -225,7 +180,7 @@ async function main(dir, fnregex, parsedHyperformJson, needAuth) {
       /// //////////////////////////////////////////////////////////
       let amazonZipPath
       if (toAmazon === true) {
-        amazonZipPath = await bundleTranspileZipAmazon(info.p, publishOptions)
+        amazonZipPath = await bundleTranspileZipAmazon(info.p)
       } 
 
       /// //////////////////////////////////////////////////////////
@@ -233,11 +188,8 @@ async function main(dir, fnregex, parsedHyperformJson, needAuth) {
       /// //////////////////////////////////////////////////////////
       let googleZipPath 
       if (toGoogle === true) {
-        googleZipPath = await bundleTranspileZipGoogle(info.p, publishOptions)
+        googleZipPath = await bundleTranspileZipGoogle(info.p)
       }
-
-      // NOTE for new functions add allUsers as invoker
-      // Keep that for now so don't forget the CLI setInvoker thing may screw up --need-authentication
 
       // For each matching export
       const endpts = await Promise.all(
@@ -251,7 +203,6 @@ async function main(dir, fnregex, parsedHyperformJson, needAuth) {
               exp,
               parsedHyperformJson.amazon.aws_default_region,
               amazonZipPath,
-              publishOptions,
             )
           }
 
@@ -275,7 +226,7 @@ async function main(dir, fnregex, parsedHyperformJson, needAuth) {
       return [].concat(...endpts)
     }),
   )
-  return { urls: endpoints, expectedBearer: publishOptions.expectedBearer }
+  return { urls: endpoints }
 }
 
 module.exports = {

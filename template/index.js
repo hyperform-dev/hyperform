@@ -78,7 +78,6 @@ module.exports = () => {
       }
       if (platform === 'google') {
         wrappedfunc = async function handler(req, resp) {
-          ${ googleBearerCheckCode }
           //            GET          POST
           const event = req.query || JSON.parse(JSON.stringify(req.body));
           const httpsubset = {
