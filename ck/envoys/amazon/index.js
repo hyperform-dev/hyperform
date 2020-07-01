@@ -9,9 +9,10 @@ const amazonEnvoy = {
     return /^arn:(aws|aws-cn|aws-us-gov):lambda:/.test(name)
   },
   envoy: function (name, input) {
+    console.log(`Using Amazon envoy for ${name}`)
     let jsonInput
     try {
-      json = JSON.stringify(input)
+      jsonInput = JSON.stringify(input)
     } catch (e) {
       console.log(`Could not JSON stringify function input: ${input}`)
     }
@@ -19,10 +20,11 @@ const amazonEnvoy = {
     return (
       lambda.invoke({
         FunctionName: name,
-        Payload: JSON.stringify(input),
+        Payload: jsonInput,
       })
         .promise()
         .then((p) => p.Payload)
+        .then((p) => JSON.parse(p))
     )
   },
 }
