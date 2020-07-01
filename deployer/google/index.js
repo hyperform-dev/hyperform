@@ -1,86 +1,206 @@
-const util = require('util');
-const exec = util.promisify(require('child_process').exec);
+const fsp = require('fs').promises
+const { CloudFunctionsServiceClient } = require('@google-cloud/functions');
+const fetch = require('node-fetch')
 const { logdev } = require('../../printers/index')
+
+const client = new CloudFunctionsServiceClient();
+
 /**
- * @description Returns shell command that newly deploys or updates "options.name" GCF 
- * // TODO does Google consider changed options on subsequent deploys, or ignore them?
- * @param {string} pathToCode 
+ * @description Checks whether a GCF 
+ * exists in a given project & region
  * @param {{
  * name: string,
+ * project:string
  * region: string,
- * runtime: string,
- * entrypoint: string,
- * stagebucket: string,
- * timeout?: Number
  * }} options 
- * @returns {string} 
+ * @returns {Promise<boolean>}
  */
-function createDeployCommand(pathToCode, options) {
-  // TODO replace with createFunction from SDK: 
-  // https://googleapis.dev/nodejs/nodejs-functions/latest/google.cloud.functions.v1.CloudFunction.html#.create
-  let cmd = `gcloud functions deploy ${options.name} --region ${options.region} --trigger-http --runtime ${options.runtime} --entry-point ${options.entrypoint} --source ${pathToCode} --stage-bucket ${options.stagebucket} --allow-unauthenticated`
-
-  if (options.timeout) cmd += ` --timeout ${options.timeout}`
-  return cmd
-}
-
-/**
- * @description Extracts the endpoint URL from the STDOUT of "gcloud deploy"
- * @param {string} stdout 
- * @returns {string} The endpoint URL
- */
-function extractUrl(stdout) {
-  let line = stdout.split('\n')
-    .filter((l) => l && l.length > 0)
-    .filter((l) => /url: /.test(l) === true)[0]
-
-  line = line
-    .replace('url:', '')
-    .trim()
-  return line
-}
-
-/**
- * @description Creates or updates "options.name" GCF with given code
- * // TODO does Google consider changed options on subsequent deploys, or ignore them?
- * @param {string} pathToCode 
- * @param {{
- * name: string,
- * stagebucket: string,
- * entrypoint?: string,
- * region?: string,
- * runtime?: string,
- * }} options 
- * @returns {Promise<string>} The endpoint URL
- */
-async function deployGoogle(pathToCode, options) {
-  // TODO make more things required lol
-  if (!options.name || !options.stagebucket) {
-    throw new Error(`name and stagebucket must be specified but is ${options.name}, ${options.stagebucket}`)
+async function isExistsGoogle(options) {
+  const getParams = {
+    name: `projects/${options.project}/locations/${options.region}/functions/${options.name}`,
   }
-
-  const fulloptions = {
-    name: options.name,
-    region: options.region || 'us-central1',
-    runtime: options.runtime || 'nodejs12',
-    entrypoint: options.entrypoint || options.name,  
-    stagebucket: options.stagebucket,
-  }
-
-  const uploadCmd = createDeployCommand(pathToCode, fulloptions)
 
   try {
-    console.time(`Google-deploy-${fulloptions.name}`)
-    const { stdout } = await exec(uploadCmd, { encoding: 'utf-8' })
-    const url = extractUrl(stdout)
-    console.timeEnd(`Google-deploy-${fulloptions.name}`)
-    return url
+    const res = await client.getFunction(getParams)
+    if (res.length > 0 && res.filter((el) => el).length > 0) {
+      return true 
+    } else {
+      return false
+    }
   } catch (e) {
-    logdev(`Errored google deploy: ${e}`)
-    throw e
+    return false 
   }
+}
+
+/**
+ * @description Uploads a given file (usually code .zips) to a temporary 
+ * Google storage and returns 
+ * its so-called signed URL.
+ * This URL can then be used, for example 
+ * as sourceUploadUrl for creating and updating Cloud Functions. 
+ * @param {string} pathToFile 
+ * @param {{
+ *  project: string,
+ *  region: string
+ * }} options 
+ * @returns {Promise<string>} The signed upload URL
+ * @see https://cloud.google.com/storage/docs/access-control/signed-urls Google Documentation
+ */
+async function uploadGoogle(pathToFile, options) {
+  const generateUploadUrlOptions = {
+    parent: `projects/${options.project}/locations/${options.region}`,
+  }
+
+  const signedUploadUrl = (await client.generateUploadUrl(generateUploadUrlOptions))[0].uploadUrl
+
+  // Upload zip
+  // TODO use createReadStream instead
+  const zipBuf = await fsp.readFile(pathToFile)
+  await fetch(signedUploadUrl, {
+    method: 'PUT',
+    headers: {
+      'content-type': 'application/zip',
+      'x-goog-content-length-range': '0,104857600',
+    },
+    body: zipBuf,
+  })
+  logdev('uploaded zip to google signed url')
+
+  return signedUploadUrl
+}
+
+/**
+ * @description Updates an existing GCF "options.name" in "options.project", "options.region" 
+ * with given uploaded code .zip. 
+ * And, in theory, arbitrary options too (timeout, availableMemoryMb), 
+ * but currently not needed but could easily be added.
+ * Returns immediately, but Google updates for 1-2 minutes more
+* @param {string} signedUploadUrl Signed upload URL where .zip has been uploaded to already.
+*  Output of "uploadGoogle".
+* @param {{
+* name: string,
+* project: string,
+* region: string,
+* runtime: string
+* }} options
+*/
+async function _updateGoogle(signedUploadUrl, options) {
+  const updateOptions = {
+    function: {
+      name: `projects/${options.project}/locations/${options.region}/functions/${options.name}`,
+      httpsTrigger: {
+        url: `https://${options.region}-${options.project}.cloudfunctions.net/${options.name}`,
+      },
+      runtime: options.runtime,
+      sourceUploadUrl: signedUploadUrl,
+    },
+    updateMask: null,
+  }
+  const res = await client.updateFunction(updateOptions)
+  logdev(`google: updated function ${options.name}`)
+}
+
+/**
+ * @description Creates a new GCF "options.name" in "options.project", "options.region" 
+ * with given uploaded code .zip and options. 
+ * Returns immediately, but Google creates for 1-2 minutes more
+ * @param {string} signedUploadUrl 
+ * @param {{
+ *  name: string,
+ * project: string,
+ * region: string,
+ * runtime: string,
+ * entrypoint?: string,
+ * }} options 
+ */
+async function _createGoogle(signedUploadUrl, options) {
+  const createOptions = {
+    location: `projects/${options.project}/locations/${options.region}`,
+    function: {
+      name: `projects/${options.project}/locations/${options.region}/functions/${options.name}`,
+      httpsTrigger: {
+        url: `https://${options.region}-${options.project}.cloudfunctions.net/${options.name}`,
+      },
+      entryPoint: options.entrypoint || options.name, 
+      runtime: options.runtime,
+      sourceUploadUrl: signedUploadUrl,
+      timeout: {
+        seconds: 60,
+      }, // those are the defaults anyway
+      availableMemoryMb: 256,
+    },
+  }
+  const res = await client.createFunction(createOptions)
+  // TODO wait for operaton to complete (ie setInterval done && !error, promise resolve then)
+  // TODO in _updateGoogle too
+  logdev(`google: created function ${options.name}`)
+}
+
+/**
+ * @description If Google Cloud Function "options.name" 
+ * does not exist yet in "options.project", "options.region", 
+ * it creates a new GCF with given code ("pathToZip") and "options". 
+ * If GCF exists already, it updates its code with "pathToZip". 
+ * If other options are specified, it can update those too (currently only "runtime"). 
+ * Returns URL immediately, but Cloud Function takes another 1-2 minutes to be invokable.
+ * @param {string} pathToZip 
+ * @param {{
+ * name: string,
+ * project: string,
+ * region: string,
+ * runtime: string,
+ * entrypoint?: string
+ * }} options 
+ * @returns {Promise<string>} The endpoint URL
+ * @see https://cloud.google.com/functions/docs/reference/rest/v1/projects.locations.functions#CloudFunction For the underlying Google SDK documentation
+ */
+async function deployGoogle(pathToZip, options) {
+  if (!options.name || !options.project || !options.region || !options.runtime) {
+    throw new Error(`name, project and region and runtime must be defined but are ${options.name}, ${options.project}, ${options.region}, ${options.runtime}`) // HF programmer mistake
+  }
+
+  const existsOptions = {
+    name: options.name,
+    project: options.project,
+    region: options.region, 
+  }
+  // Check if GCF exists
+  const exists = await isExistsGoogle(existsOptions)
+
+  logdev(`google isexists ${options.name}: ${exists}`)
+
+  // Either way, upload the .zip
+  // @see https://cloud.google.com/storage/docs/access-control/signed-urls
+  const signedUploadUrl = await uploadGoogle(pathToZip, {
+    project: options.project,
+    region: options.region, 
+  })
+
+  // if GCF does not exist yet, create it
+  if (exists !== true) {
+    const createParams = {
+      ...options,
+    }
+    await _createGoogle(signedUploadUrl, createParams)
+  } else {
+    // GCF exists, update code and options (currently none)
+    const updateParams = {
+      name: options.name,
+      project: options.project,
+      region: options.region, 
+      runtime: options.runtime, 
+    }
+    await _updateGoogle(signedUploadUrl, updateParams)
+  }
+
+  // Construct endpoint URL (it's deterministic)
+  const endpointUrl = `https://${options.region}-${options.project}.cloudfunctions.net/${options.name}`
+
+  // Note: GCF likely not ready by the time we return its URL here
+  return endpointUrl 
 }
 
 module.exports = {
   deployGoogle,
+  _only_for_testing_isExistsGoogle: isExistsGoogle,
 }
