@@ -2,8 +2,15 @@
 
 
 const stdrequire = require 
-//const myrequire = (...args) => { console.log("ayyy myrequire"); return stdrequire(...args);}
-const myrequire = () => ({ a: () => console.log("booh") })
+const myrequire = (...args) => {
+  const imp = stdrequire(...args)
+  if(typeof imp === 'object') {
+    // ... inject
+    return imp
+  } else {
+    return imp
+  }
+}
 require = myrequire
 
 /////
@@ -13,8 +20,13 @@ require = myrequire
 
 
 function ab() {
-  const { a } = require('./a')
-  a()
+  const { fn_c } = require('./hmm')
+  fn_c()
 }
 
 ab()
+
+
+module.exports = {
+  ab
+}
