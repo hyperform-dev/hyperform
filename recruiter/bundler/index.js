@@ -4,12 +4,20 @@ const fsp = require('fs').promises
 const os = require('os')
 const compressing = require('compressing')
 
+// blacklist what npm packages (per provider) not to bundle 
+const ignorePluginOptions = {
+  // aws-sdk is provided to lambdas, no need to include it
+  amazon: {
+    resourceRegExp: /^aws-sdk/,
+  },
+}
+
 const bundlers = {
   /** @param 
    * @returns {Promise<string>} resolves to the bundled code string
    * @param {*} inpath 
    */
-  js: async function (inpath) {
+  js: async function (inpath, provider) {
     // create out dir
     const outdir = await fsp.mkdtemp(path.join(os.tmpdir(), 'bundle-'))
     const outpath = path.join(outdir, 'bundle.js')
@@ -23,8 +31,15 @@ const bundlers = {
           output: {
             path: outdir,
             filename: 'bundle.js',
+            // so amazon sees it
             libraryTarget: 'commonjs',
           },
+          // so we don't upload unnecessary SDKs
+          plugins: [
+            new webpack.IgnorePlugin(
+              ignorePluginOptions[provider],
+            ),
+          ],
         },
         (err, stats) => {
           if (err || stats.hasErrors()) {
@@ -52,11 +67,14 @@ const bundlers = {
  * @param {string} lang js|
  */
 
-async function bundle(inpath, lang) {
+async function bundle(inpath, lang, provider) {
   if (lang !== 'js') {
-    throw new Error(`UNIMEPLEMED: bundler for lang ${lang}`)
+    throw new Error(`UNIMEPLEMED: bundle for lang ${lang}`)
   }
-  return bundlers[lang](inpath)
+  if (provider !== 'amazon') {
+    throw new Error(`UNIMEPLEMED: bundle for provider ${provider} (needed to exclude SDK's from uploading)`)
+  }
+  return bundlers[lang](inpath, provider)
 }
 
 /**

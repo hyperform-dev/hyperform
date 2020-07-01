@@ -12,6 +12,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "aws-sdk": "^2.792.0",
     "compressing": "^1.5.1",
     "findit": "^2.0.0",
     "spinnies": "^0.5.1",

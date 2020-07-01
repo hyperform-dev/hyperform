@@ -23,7 +23,7 @@ async function main(root) {
 
   // bundle each file
   const bundleCodes = await Promise.all(
-    jspaths.map((jspath) => bundle(jspath, LANG)),
+    jspaths.map((jspath) => bundle(jspath, LANG, PROVIDER)),
   )
 
   // for each named export, transpile file, zip it, and upload it
