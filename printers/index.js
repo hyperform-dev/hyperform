@@ -4,15 +4,15 @@ const { isInTesting } = require('../meta/index')
 const spinner = {
   interval: 80,
   frames: [
-    "⠁",
-    "⠂",
-    "⠄",
-    "⡀",
-    "⢀",
-    "⠠",
-    "⠐",
-    "⠈"
-  ]
+    '⠁',
+    '⠂',
+    '⠄',
+    '⡀',
+    '⢀',
+    '⠠',
+    '⠐',
+    '⠈',
+  ],
 }
 
 const spinnies = new Spinnies({ color: 'white', succeedColor: 'white', spinner: spinner });
