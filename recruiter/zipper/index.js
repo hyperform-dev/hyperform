@@ -48,5 +48,3 @@ async function zip(code) {
 module.exports = {
   zip,
 }
-
-zip('deterministic ?')
