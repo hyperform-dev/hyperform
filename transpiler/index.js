@@ -65,11 +65,19 @@ function transpile(bundleCode, options) {
       let wrappedfunc;
       if (platform === 'amazon') {
         wrappedfunc = async function handler(input, context) {
+          console.log('from API gateway received inp: ', JSON.stringify(input));
           let event = {};
           if (input.body) {
             event = (input.isBase64Encoded === true)
-              ? JSON.parse(Buffer.from(input.body, 'base64').toString('utf-8'))
-              : JSON.parse(input.body);
+              ? Buffer.from(input.body, 'base64').toString('utf-8')
+              : input.body;
+            // try to parse as JSON first
+            try {
+              event = JSON.parse(event);
+            } catch (e) {
+              // try to parse as query string second
+              event = Object.fromEntries(new URLSearchParams(event));
+            }
           } else {
             console.log("Warn: No 'body' field found in input."); // visible in CloudWatch and on Google
           }
@@ -103,6 +111,7 @@ function transpile(bundleCode, options) {
   }
   return curr; // Export unchanged (local, fallback)
 
+ 
 })();
 `
 
