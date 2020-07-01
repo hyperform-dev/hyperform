@@ -19,7 +19,7 @@ const uploaders = {
 
 /**
  * Upload a uploadable to all given providers (currently only amazon)
- * @param {{task: Object, name: string, pathOfUploadable: string, path: string}} options 
+ * @param {{task: Object, name: string, pathOfUploadable: string, path: string, language: 'js'|'java'}} options 
  */
 function runUpload(options) {
   // find out which uploaders to use (all)
