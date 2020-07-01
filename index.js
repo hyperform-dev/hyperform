@@ -9,6 +9,7 @@ const { publishAmazon } = require('./publisher/amazon/index')
 const { generateRandomBearerToken } = require('./authorizer-gen/utils')
 const { spinnies, log, logdev } = require('./printers/index')
 const { zip } = require('./zipper/index')
+const { deployGoogle } = require('./deployer/google/index')
 const { transpile } = require('./transpiler/index')
 const { isInTesting } = require('./meta/index')
 const schema = require('./schemas/index').hyperformJsonSchema
@@ -94,47 +95,71 @@ async function main(dir, fnregex, parsedHyperformJson, allowUnauthenticated) {
         log(`Errored zipping ${info.p}: ${e}`)
         return // skip that file 
       }
-
-      // For Google
-      // const tmpdir = await fsp.mkdtemp(path.join(os.tmpdir(), 'bundle-'))
-      // await fsp.writeFile(path.join(tmpdir, 'index.js'), transpiledCode, { encoding: 'utf-8' })
-
-      // const gsKey = `deploypackage-${uuidv4()}.zip`
-      // const gsPath = await uploadGoogle(zipPath, 'jak-functions-stage-bucket', gsKey)
-
+  
       // NOTE for new functions add allUsers as invoker
       // Keep that for now so don't forget the CLI setInvoker thing may screw up --allow-unauthenticated
 
       // For each matching export
       const endpts = await Promise.all(
         info.exps.map(async (exp) => {
-          const spinnieName = `amazon-main-${exp}`
-          try {
-            spinnies.add(spinnieName, { text: `${chalk.rgb(20, 20, 20).bgWhite(' Amazon ')} ${exp}` })
-
-            const amazonArn = await deployAmazon(zipPath, {
-              name: exp,
-              region: parsedHyperformJson.amazon.aws_default_region,
-            })
-            const amazonUrl = await publishAmazon(amazonArn, {
-              ...publishOptions, // allowUnauthenticated and expectedBearer
-              region: parsedHyperformJson.amazon.aws_default_region,
-            }) // TODO
-            spinnies.succeed(spinnieName, { text: `${chalk.rgb(20, 20, 20).bgWhite(' Amazon ')} ${exp} ${chalk.bold(amazonUrl)}` })
-
-            // const googleUrl = await deployGoogle(tmpdir, { 
-            //   name: exp, 
-            //   stagebucket: 'jak-functions-stage-bucket', 
-            // })
-            // console.log(googleUrl)
-            return [amazonUrl] // for tests etc
-            // 
-          } catch (e) {
-            spinnies.fail(spinnieName, {
-              text: `${chalk.rgb(20, 20, 20).bgWhite(' Amazon ')} ${exp}: ${e.stack}`,
-            })
-            return []
+          /// //////////////////////////////////////////////////////////
+          /// Deploy to Amazon
+          /// //////////////////////////////////////////////////////////
+          let amazonUrl 
+          {
+            const amazonSpinnieName = `amazon-main-${exp}`
+            try {
+              spinnies.add(amazonSpinnieName, { text: `${chalk.rgb(20, 20, 20).bgWhite(' Amazon ')} ${exp}` })
+    
+              // Deploy it
+              const amazonDeployOptions = {
+                name: exp,
+                region: parsedHyperformJson.amazon.aws_default_region,
+              }
+              const amazonArn = await deployAmazon(zipPath, amazonDeployOptions)
+              // Publish it
+              const amazonPublishOptions = {
+                ...publishOptions, // allowUnauthenticated and expectedBearer
+                region: parsedHyperformJson.amazon.aws_default_region,
+              }
+              amazonUrl = await publishAmazon(amazonArn, amazonPublishOptions) // TODO
+               
+              spinnies.succeed(amazonSpinnieName, { text: `${chalk.rgb(20, 20, 20).bgWhite(' Amazon ')} ${exp} ${chalk.bold(amazonUrl)}` })
+            } catch (e) {
+              spinnies.fail(amazonSpinnieName, {
+                text: `${chalk.rgb(20, 20, 20).bgWhite(' Amazon ')} ${exp}: ${e.stack}`,
+              })
+              logdev(e, e.stack)
+            }
           }
+
+          // TODO
+          /// //////////////////////////////////////////////////////////
+          /// Deploy to Google
+          /// //////////////////////////////////////////////////////////
+          let googleUrl 
+          {
+            const googleSpinnieName = `google-main-${exp}`
+            try {
+              spinnies.add(googleSpinnieName, { text: `${chalk.rgb(20, 20, 20).bgWhite(' Google ')} ${exp}` })
+              const googleOptions = { 
+                name: exp,
+                project: 'firstnodefunc', // TODO TODO TODO
+                region: 'us-central1', // TODO get from parsedhyperfromjson
+                runtime: 'nodejs12',
+                entrypoint: exp,
+              }
+              googleUrl = await deployGoogle(zipPath, googleOptions)
+              spinnies.succeed(googleSpinnieName, { text: `${chalk.rgb(20, 20, 20).bgWhite(' Google ')} ${exp} ${chalk.bold(googleUrl)}` })
+            } catch (e) {
+              spinnies.fail(googleSpinnieName, {
+                text: `${chalk.rgb(20, 20, 20).bgWhite(' Google ')} ${exp}: ${e.stack}`,
+              })
+              logdev(e, e.stack)
+            }
+          }
+
+          return [amazonUrl, googleUrl] // for tests etc
         }),
       )
 

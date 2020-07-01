@@ -10,7 +10,8 @@ const { logdev } = require('../../printers/index')
 /**
  * @description If Lambda "options.name" does not exist yet in "options.region", 
  * it deploys a new Lambda with given code ("pathToZip") and "options". 
- * If Lambda exists, it just updates its code with "pathToZip", and ignores "options"
+ * If Lambda exists, it just updates its code with "pathToZip", 
+ * and ignores all options except "options.name" and "options.region"
  * @param {*} pathToZip Path to the zipped Lambda code
  * @param {{
  * name: string, 
@@ -33,7 +34,7 @@ async function deployAmazon(pathToZip, options) {
   // check if lambda exists 
   const exists = await isExistsAmazon(existsOptions)
 
-  logdev(`isexists ${options.name} : ${exists}`)
+  logdev(`amazon isexists ${options.name} : ${exists}`)
   // if not, create new role 
   const roleName = `hf-${options.name}`
   const roleArn = await createLambdaRole(roleName)
