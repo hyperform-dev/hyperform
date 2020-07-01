@@ -6,13 +6,12 @@ const uuidv4 = require('uuid').v4
  * by users answering $ hyperform survey
  */
 
-async function endpoint_collectSurveyResponse(event) {
+async function collectSurveyResponse(event) {
   const s3 = new aws.S3()
   const filename = `${new Date().toDateString()}:${uuidv4()}.json`
 
-  if (event == null || Object.keys(event).length === 0) {
-    return
-  }
+  if (event == null) return 
+  
   const putParams = {
     Bucket: 'hyperform-survey-responses',
     Key: `cli-responses/${filename}`,
@@ -21,6 +20,14 @@ async function endpoint_collectSurveyResponse(event) {
   await s3.putObject(putParams).promise()
 }
 
+function getSurveyQuestion() {
+  return {
+    text: 'Some survey text',
+    postUrl: 'https://mj9jbzlpxi.execute-api.us-east-2.amazonaws.com',
+  }
+}
+
 module.exports = {
-  endpoint_collectSurveyResponse,
+  endpoint_getSurveyQuestion: getSurveyQuestion,
+  endpoint_collectSurveyResponse: collectSurveyResponse,
 }
