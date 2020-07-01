@@ -13,6 +13,7 @@ describe('validators', () => {
               amazon: {
                 role: 'arn:aws:lambda:us-east-2:735406098573:role:woegnwoeg',
                 timeout: 60,
+                language: 'js',
               },
             },
           },
