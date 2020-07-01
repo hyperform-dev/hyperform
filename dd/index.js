@@ -1,30 +1,24 @@
 const arg = require('arg')
 const path = require('path')
-const fsp = require('fs').promises
 const fs = require('fs')
-const { readparsevalidate } = require('./parser')
-const { runDo } = require('./doer')
-const { runUpload } = require('./uploader')
-const { spinnies } = require('./printer')
+const fsp = require('fs').promises
+const { readparsevalidate } = require('./parser/index')
+const { runDo } = require('./doer/index')
+const { runUpload } = require('./uploader/index')
+const { getCandidatePaths } = require('./utils/index')
+const { parseCliArgs } = require('./utils/index')
+
 /**
- * @returns { mode: 'init'|'deploy', root: String}
+ * Deletes an uploadable
+ * @param {{pathOfUploadable: string}} options 
  */
-function parseCliArgs() {
-  const args = arg({
-    '--silent': Boolean,
-    '-s': '--silent',
-  })
-
-  // Defaults
-  let mode = 'deploy'
-  if (args._ && args._.includes('init')) mode = 'init'
-  
-  // ~~ Force user to invoke dd in his project folder (akin to pip, npm)
-  const root = process.cwd()
-
-  return {
-    mode: mode,
-    root: root,
+async function cleanUp(options) {
+  try {
+    await fsp.unlink(options.pathOfUploadable)
+    console.log(`Cleaned up ${options.pathOfUploadable}`)
+  } catch (e) {
+    console.log(e)
+    throw new Error('Could not clean up (delete uploadable)')
   }
 }
 
@@ -39,35 +33,45 @@ async function processTask(args, task, provider = 'amazon') {
     throw new Error('DEV: only amazon as deployment target supported atm')
   }
 
-  // List all child folders of 'forEachIn' field
-  let fnFolderNames
-  try {
-    fnFolderNames = await fsp.readdir(
-      path.join(args.root, task.forEachIn), { withFileTypes: true }, 
-    ) 
-  } catch (e) {
-    spinnies.justPrintFail(`Could not read directory stated in deploy.json: ${path.join(args.root, task.forEachIn)}`)
-    throw e
-  }
-
-  // TODO ignore hidden folders on Unix, Windows
-  // only keep folders (directories)
-  fnFolderNames = fnFolderNames
-    .filter((d) => d.isDirectory())
-    .map((d) => d.name)
-
-  const fnFolderAbsolutePaths = fnFolderNames
-    .map((d) => path.join(args.root, task.forEachIn, d)) 
+  // Get paths to lambda folders
+  const fnFolderAbsolutePaths = await getCandidatePaths(task, args)
+  const fnFolderNames = fnFolderAbsolutePaths.map((p) => path.basename(p))
+  const uploadablePaths = fnFolderAbsolutePaths.map((p) => path.join(p, task.upload))
+  // array of booleans, for each folder
+  const shouldKeepUploadables = uploadablePaths.map((p) => {
+    if (args['--keep-uploadable'] === true) return true 
+    // check if uploadable is there before "do" step
+    // if yes, user might want to keep it. 
+    // If no, "do" step is likely to (cheaply) generate it and it can be deleted every time
+    const exists = fs.existsSync(p)
+    return exists
+  })
 
   // "do" and "upload" in each folder
-
   return fnFolderAbsolutePaths
     .map((p, idx) => { 
-      const uploadablePath = path.join(p, task.upload)
+      const uploadablePath = uploadablePaths[idx]
+      const shouldKeepUploadable = shouldKeepUploadables[idx]
       return (
         // Put all major steps here
-        runDo(p, task.do, fnFolderNames[idx])
-          .then(() => runUpload(task, fnFolderNames[idx], uploadablePath, p))
+        runDo({
+          path: p, 
+          command: task.do, 
+          hint: fnFolderNames[idx],
+        })
+          .then(() => runUpload({
+            task: task, 
+            name: fnFolderNames[idx], 
+            pathOfUploadable: uploadablePath, 
+            path: p,
+          }))
+          .then(() => {
+            if (shouldKeepUploadable === false) {
+              return cleanUp({
+                pathOfUploadable: uploadablePath,
+              })
+            }
+          }) 
           .catch((e) => {
             console.log(e)
           /* 
@@ -87,6 +91,7 @@ async function main() {
   try {
     // parse CLI args
     const args = parseCliArgs()
+
     // parse deploy.json
     const parsedJson = await readparsevalidate({
       presetName: 'deploy.json',
@@ -103,7 +108,7 @@ async function main() {
           The user is notified in processTasks.
           */
         }))
-  
+
     // wait for all to complete
     await Promise.all(proms)
   } catch (e) {

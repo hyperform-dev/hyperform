@@ -1,7 +1,7 @@
 const joi = require('joi')
 const fs = require('fs')
 const fsp = require('fs').promises
-const { spinnies } = require('../printer')
+const { spinnies } = require('../printer/index')
 // TODO make slimmer
 // 1)
 const readers = {

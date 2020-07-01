@@ -1,24 +1,37 @@
-const { runUploadAmazon } = require('./amazon')
+const { runUploadAmazon } = require('./amazon/index')
 
 const uploaders = {
-  amazon: function (task, name, pathOfUploadable, path) {
-    return runUploadAmazon(task, name, pathOfUploadable, path)
+  amazon: function (options) {
+    return runUploadAmazon(options)
   },
-  google: function (task, name, pathOfUploadable, path) {
+  google: function (options) {
     throw new Error('google uploader not yet implemented')
   },
 }
 
-function runUpload(task, name, pathOfUploadable, path) {
-  // see deploy.json to understand this
-  const providerNames = Object.keys(task.config)
-  providerNames.map((pn) => {
+// function build(obj) {
+//   // find out which builder to use
+//   const nodetype = detectnodetype(obj)
+//   // build the node function
+//   console.log('BUILDING ', nodetype)
+//   return nodebuilders[nodetype].build(obj)
+// }
+
+/**
+ * Upload a uploadable to all given providers (currently only amazon)
+ * @param {{task: Object, name: string, pathOfUploadable: string, path: string}} options 
+ */
+function runUpload(options) {
+  // find out which uploaders to use (all)
+  const providerNames = Object.keys(options.task.config)
+
+  return Promise.all(providerNames.map((pn) => {
     if (!uploaders[pn]) {
       throw new Error(`UNIMEPLEMENTED: uploader for ${pn} (wished for in deploy.json)`)
     }
-    // invoke the correct uploader, return promise
-    return uploaders[pn](task, name, pathOfUploadable, path)
-  })
+    // invoke uploader, return promise
+    return uploaders[pn](options)
+  }))
 }
 
 module.exports = {

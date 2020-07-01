@@ -1,8 +1,7 @@
 const util = require('util');
 const exec = util.promisify(require('child_process').exec);
-const lstat = util.promisify(require('fs').lstat);
 const fsp = require('fs').promises
-const { spinnies } = require('../../printer')
+const { spinnies } = require('../../printer/index')
 
 // TODO intelligently infer runtime from uploadable or handler, if not specified in config
 
@@ -36,18 +35,16 @@ function generateUpdateCommand(task, name, pathOfUploadable) {
 /**
  * Does the "do" and "upload" of a given task
  * 
- * @param {object} task An object from the deploy.json array
- * @param {string} name Alphanueric name of the lambda function
- * @param {string} pathOfUploadable Where the zip ... lies
+ * @param {{task: Object, name: string, pathOfUploadable: string, path: string, keepUploadable: boolean}} options 
  */
-async function runUploadAmazon(task, name, pathOfUploadable, path) {
-  spinnies.add(path, { text: `Deploying ${name}` })
-  // check if lambda already exists
-  const exists = await isExistsAmazon(name)
+async function runUploadAmazon(options) {
+  spinnies.add(options.path, { text: `Deploying ${options.name}` })
+  // check if lambda has been deployed before
+  const exists = await isExistsAmazon(options.name)
   // piece together terminal command to deploy
   const uploadCmd = (exists === true) 
-    ? generateUpdateCommand(task, name, pathOfUploadable)
-    : generateDeployCommand(task, name, pathOfUploadable)
+    ? generateUpdateCommand(options.task, options.name, options.pathOfUploadable)
+    : generateDeployCommand(options.task, options.name, options.pathOfUploadable)
 
   // deploy/upload
   try {
@@ -55,24 +52,10 @@ async function runUploadAmazon(task, name, pathOfUploadable, path) {
     // TODO sanitize
     await exec(uploadCmd)
     await new Promise((resolve) => setTimeout(resolve, 3000))
-    spinnies.succeed(path, { text: `Deployed ${name}` })
+    spinnies.succeed(options.path, { text: `Deployed ${options.name}` })
   } catch (e) {
-    spinnies.fail(path, { text: `Deploy Error for ${name}: ` })
+    spinnies.fail(options.path, { text: `Deploy Error for ${options.name}: ` })
     throw e
-  }
-
-  // clean up: delete the uploadable to force rebuilding on next deploy, 
-  // and not get into self-zipping rabbithole
-
-  try {
-    // TODO could be dangerous .. 
-    // only do if "do" was specified?
-    // user may point to irreplacable jar lol
-    // conserative solution: check if it existed before do, if not delete it afterwards
-    await fsp.unlink(pathOfUploadable)
-    console.log(`Cleaned up ${pathOfUploadable}`)
-  } catch (e) {
-    throw new Error('Could not clean up (delete uploadable)')
   }
 }
 
