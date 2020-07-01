@@ -1,15 +1,90 @@
 ![Hyperform Banner](https://github.com/qngapparat/hyperform/blob/master/hyperform-banner.png)
 
+
+<p align="center">Unopinionated JavaScript => AWS Lambda, Google Cloud Functions</div>
+
 ## Install
 
 ```sh
 $ npm install -g hyperform-cli
 ```
 
-## A simple serverless App
+## Basic Example
+
+#### Write code
 
 ```js
 // index.js
+
+function echo(input) {
+  return {
+    msg: `Hi from AWS Lambda or Google Cloud Functions!
+          GET or POST body received: ${input}
+         `
+  }
+}
+
+module.exports = {
+  endpointEcho: echo // Hyperform looks for exports that match '*endpoint*'
+}
+```
+
+#### Infer your cloud credentials
+
+```sh
+$ hf init
+✓ Inferred cloud credentials
+✓ Created hyperform.json
+```
+
+#### Deploy 
+
+
+```sh 
+$ hf deploy                                 # GET and POST-able
+✓  AWS Lambda                endpointEcho   https://ltlpjhayh9.execute-api.us-east-2.amazonaws.com
+✓  Google Cloud Functions    endpointEcho   https://us-central1-firstnodefunc.cloudfunctions.net/endpointEcho
+```
+
+#### Invoke 
+
+
+```sh
+#######
+# GET #
+#######
+
+$ curl https://us-central1-firstnodefunc.cloudfunctions.net/endpointEcho?a=1
+> {"Hi from AWS Lambda or Google Cloud Functions!
+      GET or POST body received: {\"a\":1}}"
+
+########
+# POST #
+########
+
+$ curl \
+  -X POST \
+  -H "Content-Type: application/json" \ 
+  -d '{"a":1}' \
+  https://us-central1-firstnodefunc.cloudfunctions.net/endpointEcho
+> {"Hi from AWS Lambda or Google Cloud Functions!
+      GET or POST body received: {\"a\":1}}"
+```
+
+# Tips
+
+* Hyperform deploys CommonJS exports named `*endpoint*` as functions to AWS Lambda or Google Cloud
+* Import anything. Webpack is used to bundle all dependencies.
+* Export anywhere. Your endpoints can be spread over multiple files.
+* Included per default: 'aws-sdk' and '@google/'.
+* Your endpoints will receive one object: the parsed POST JSON body, or the parsed GET query string (or `{}`).
+
+
+## More complex example
+
+```js
+// index.js
+
 const AWS = require('aws-sdk')
 const s3 = new AWS.S3()
 const bucket = 'my-todo-s3-bucket'
@@ -17,13 +92,6 @@ const bucket = 'my-todo-s3-bucket'
 /**
  * Endpoints should be exported using 'exports' or 'module.exports' (CommonJS)
  * Add 'endpoint' into their name.
- * 
- * Quick Start:
- * 
- * A) Import anything. Hyperform will bundle using Webpack.
- * B) Export anywhere. Your endpoints can be spread over multiple files.
- * C) Included per default: 'aws-sdk' and '@google/'.
- * D) Your endpoints will receive one argument: the parsed POST JSON body, or the GET query string
 */
 
 exports.endpoint_addTodo = async ({ id, text }) => {
@@ -45,66 +113,22 @@ exports.endpoint_getTodo = async ({ id }) => {
     Key: id,
   })
     .promise()
-    .then((res) => JSON.parse(Buffer.from(res.Body).toString())) // TODO
+    .then((res) => JSON.parse(Buffer.from(res.Body).toString()))
 
   return todo
-}
-
-exports.endpoint_deleteTodo = async ({ id }) => {
-  await s3.deleteObject({
-    Bucket: bucket,
-    Key: id,
-  }).promise()
 }
 
 ```
 
 That's it!
 
-#### Infer your cloud credentials
-```
-$ hyperform init
-✓ Inferred cloud credentials
-✓ Created hyperform.json
-```
-
-#### Deploy TODO
-
-should be more, and adapt names
-
-```sh 
-$ hyperform deploy --allow-unauthenticated
-✓  Amazon  endpointGreet https://gmlpjhayh9.execute-api.us-east-2.amazonaws.com
-✓  Google  endpointGreet https://us-central1-firstnodefunc.cloudfunctions.net/endpointGreet
-```
-
-#### Invoke TODO
-
-You can `GET` or `POST` to your functions. 
-
-Functions are secured per default. Unless you specified `--allow-unauthenticated`, `$ hyperform deploy` will generate a Bearer token for you. Include it as `Authorization: Bearer {token}` in your requests.
-
-```sh
-# Google
-$ curl https://us-central1-firstnodefunc.cloudfunctions.net/endpoint_addTodo?id=1&text=Pick%20up%tomatoes
-> null
-$ curl https://us-central1-firstnodefunc.cloudfunctions.net/endpoint_getTodo?id=1
-> {"id":1,"text":"Pick up tomatoes","completed":false}
-
-# Amazon
-$ curl https://a82n8xkixj.execute-api.us-east-2.amazonaws.com?id=1&text=Pick%20up%tomatoes # addTodo
-> null
-$ curl https://gmlpjhieh9.execute-api.us-east-2.amazonaws.com?id=1 # getTodo
-> {"id":1,"text":"Pick up tomatoes","completed":false}
-```
-
 ## Opening Issues
 
-If you encounter any bugs with Hyperform, you can open an Issue. Please include the stack trace of the error, if possible.
+Feel free to open an issue if you find bugs or have questions or feature requests.
 
 ## Contributing
 
-Please see CONTRIBUTING.md
+Always welcome! Please see CONTRIBUTING.md
 
 ## License
 
