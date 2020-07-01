@@ -1,6 +1,8 @@
 #!/usr/bin/env node
 
-const { main } = require('./index')
+const { recruiter } = require('./index')
 
 const root = process.cwd()
-main(root)
+const lang = 'js'
+const whitelist = ['notthatobv']
+recruiter(root, lang, whitelist)
