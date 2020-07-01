@@ -12,9 +12,10 @@ function validateInput(input) {
   if (input.constructor === Array) {
     throw new Error(`HF input must be object, but is Array: ${input}`)
   }
-  if (isFunction(input)) {
-    throw new Error(`HF input must be object, but is function: ${input}`)
-  }
+  // checked by !== 'object'
+  // if (isFunction(input)) {
+  //   throw new Error(`HF input must be object, but is function: ${input}`)
+  // }
   // ensure no input field is a function
   // (would  lead to weird behavior because they too will be called )
   const flattened = flattenObject(input)
@@ -36,9 +37,10 @@ function validateStep(step) {
   if (step.constructor === Array) {
     throw new Error(`HF step must be object, but is Array: ${step}`)
   }
-  if (isFunction(step)) {
-    throw new Error(`HF step must be object, but is function: ${step}`)
-  }
+  // checked by !== 'object'
+  // if (isFunction(step)) {
+  //   throw new Error(`HF step must be object, but is function: ${step}`)
+  // }
 }
 
 module.exports = {

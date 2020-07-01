@@ -1,7 +1,7 @@
-const { validateInput, validateStep } = require('./index')
-
+/* eslint-disable global-require */
 describe('validators', () => {
   describe('validateInput', () => {
+    const { validateInput } = require('./index')
     describe('accepts valid', () => {
       test('obj', () => {
         const input = { 
@@ -59,8 +59,28 @@ describe('validators', () => {
 
       test('function', () => {
         const input = () => { }
-        const toBeTested = () => validateStep(input)
+        const toBeTested = () => validateInput(input)
         expect(toBeTested).toThrow()
+      })
+
+      describe('primitives', () => {
+        test('number', () => {
+          const input = 1
+          const toBeTested = () => validateInput(input)
+          expect(toBeTested).toThrow()
+        })
+       
+        test('string', () => {
+          const input = 'input'
+          const toBeTested = () => validateInput(input)
+          expect(toBeTested).toThrow()
+        })
+
+        test('boolean', () => {
+          const input = 1
+          const toBeTested = () => validateInput(input)
+          expect(toBeTested).toThrow()
+        })
       })
       // allow passing something like new Date()
       // it is a bit nonsensical but it does work as input 
@@ -97,6 +117,7 @@ describe('validators', () => {
   })
 
   describe('validateStep', () => {
+    const { validateStep } = require('./index')
     describe('accepts valid', () => {
       test('obj', () => {
         const input = { 
