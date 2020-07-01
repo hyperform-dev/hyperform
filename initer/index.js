@@ -207,8 +207,9 @@ function init(absdir) {
     path.join(absdir, 'hyperform.json'),
     JSON.stringify(hyperformJsonContents, null, 2),
   )
+  log('✓ Inferred cloud credentials') // TODO ask for defaults guide through in init
 
-  log('Created hyperform.json') // TODO ask for defaults guide through in init
+  log('✓ Created hyperform.json') // TODO ask for defaults guide through in init
 }
 
 module.exports = {
