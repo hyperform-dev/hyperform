@@ -1,5 +1,4 @@
 [
-  { "run": "myinc"},
-  { "run": "myinc"},
-  { "run": "myincpython"}
+  { "run": "myreturnarray" },
+  { "run": "myconsolelog" }
 ]

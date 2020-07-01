@@ -10,28 +10,24 @@ const invert = (p) => new Promise((res, rej) => p.then(rej, res));
 const firstOf = (ps) => invert(Promise.all(ps.map(invert)));
 
 /**
- * Checks some things about envoyOutput. Throws if not successful.
+ * Checks some things about what the fn returned. Throws if not successful.
  * @param {Object} envoyOutput 
  * @returns {void}
  */
 function validateOutput(response, name) {
+  // Enforce it's either null or undefined
   if (response == null) {
     return
   }
-  // throw if envoyOutput is JSON-parseable AGAIN
-  // indicates a user programming error; that he manually stringified it in the lambda
-  let parsedtwice 
-  try {
-    parsedtwice = JSON.parse(response)
-  } catch (e) { }
 
-  if (typeof parsedtwice === 'object') {
-    throw new Error(`${EOL} Error: Output of ${name} was parseable twice. This indicates a programming error. Make sure you don't manually JSON.stringify() or json.dumps in your function ${name}. ${EOL}`)
+  // ... or an object or array
+  if (typeof response === 'object') {
+    return
   }
-  // TODO write tests
 
-  // allow numbers, strings, objects, arrays
-  // TODO check if that conflicts in some langs / providers)
+  // Throw on strings, and numbers
+  // sorry amazon, google & ibm do not support it
+  throw new Error(`Function ${name} must return null, or object, or array, but returned type: ${typeof response}`)
 }
 
 module.exports = {
