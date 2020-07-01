@@ -18,7 +18,7 @@
         "object-shorthand": "off",
         "no-unused-vars": "warn",
         "no-useless-catch": "warn",
-        "no-underscore-dangle": "warn",
+        "no-underscore-dangle": "off",
         "no-await-in-loop": "warn",
         "max-classes-per-file": "warn",
         "no-else-return": "off",
