@@ -16,14 +16,14 @@ const bucket = 'my-todo-s3-bucket'
 
 /**
  * Endpoints should be exported using 'exports' or 'module.exports' (CommonJS)
- * Add 'endpoint' into their name, to mark them for Hyperform.
+ * Add 'endpoint' into their name.
  * 
  * Quick Start:
  * 
- * A) You can import any dependencies and code. Hyperform will bundle using Webpack.
- * B) You can define endpoints in many files, not just index.js
- * C) 'aws-sdk' and '@google/' are included per default
- * D) Your endpoints will receive one argument: the parsed POST JSON body, or the GET query string
+ * A) Import anything. Hyperform will bundle using Webpack.
+ * B) Export anywhere. Your endpoints can be spread over multiple files.
+ * C) Included per default: 'aws-sdk' and '@google/'.
+ * D) One Argument: Your endpoints will receive the parsed POST JSON body, or the parsed GET query string
 */
 
 exports.endpoint_addTodo = async ({ id, text }) => {
