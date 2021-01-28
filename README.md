@@ -10,7 +10,7 @@ TODO put code first
 
 ## 🧪 Basic Example
 
-### Create a `hyperform.json`
+#### 1. Create a `hyperform.json`
 ```
 hyperform init
 ✓ Inferred cloud credentials
@@ -19,7 +19,7 @@ hyperform init
 
 :warning: You should not commit `hyperform.json` to version control. Hyperform will add `hyperform.json` to `.gitignore`.
 
-### Mark endpoints in your code
+#### 2. Mark endpoints in your code
 
 To tell Hyperform which endpoints to deploy, include `endpoint` in their name, and export them using `exports` or `module.exports`:
 
@@ -29,7 +29,7 @@ exports.endpointGreet = ({ name }) => {
 }
 ```
 
-### Deploy to the Cloud
+#### 3. Deploy to the Cloud
 
 ```sh 
 $ hyperform deploy --allow-unauthenticated
