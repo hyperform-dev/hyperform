@@ -37,6 +37,8 @@ exports.endpointGreet = ({ name }) => {
 $ hyperform deploy --allow-unauthenticated
 
 ✓  Amazon  endpointGreet https://gmlpjhayh9.execute-api.us-east-2.amazonaws.com
+✓  Google  endpointGreet https://us-central1-firstnodefunc.cloudfunctions.net/endpointGreet
+
 
 ```
 
