@@ -10,13 +10,11 @@ TODO put code first
 
 ## 🧪 Basic Example
 
-### Infer your Cloud Credentials
-
-Hyperform deploys code to the cloud accounts it finds in `hyperform.json`. Hyperform can infer them from your machine:
-
+### Create a `hyperform.json`
 ```
 hyperform init
-> Created hyperform.json
+✓ Inferred cloud credentials
+✓ Created hyperform.json
 ``` 
 
 :warning: You should not commit `hyperform.json` to version control. Hyperform will add `hyperform.json` to `.gitignore`.
