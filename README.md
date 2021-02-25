@@ -3,7 +3,6 @@
 
 <p align="center">The easiest way to deploy your serverless code<br>For AWS Lambda & Google Cloud Functions</p>
 
-
 ## Install
 
 ```sh
@@ -12,20 +11,29 @@ $ npm install -g hyperform-cli
 
 ## Basic Example
 
-```js
-// index.js
+#### Write normal code
 
-function echo(input) {
-  return {
-    msg: `Hi from AWS Lambda or Google Cloud Functions!
-          GET or POST body received: ${input}
-         `
-  }
+
+```js
+/**
+ * This function will run on AWS Lambda or Google Cloud Functions
+ * It does not care how it's called (GET, POST, AWS SNS, Google PubSub, Google Storage trigger ...)
+ * 
+ * @param {object} input 
+ *   GET:  the parsed query string
+ *   POST: the parsed body (query string or JSON)
+ *   otherwise: what the provider passed
+ * @param { {method: string, headers: object }? } http A subset of the HTTP headers if called via GET or POST
+ **/
+
+function greet({ name }, http) {
+  return { greeting: `Hi from AWS Lambda or Google Cloud Functions, ${name} !` }
 }
+
 
 // Hyperform looks for CommonJS exports that match '*endpoint*'
 module.exports = {
-  endpointEcho: echo 
+  endpointGreet: greet 
 }
 ```
 
@@ -47,6 +55,8 @@ $ hf deploy
    # If you use Google Cloud Function
 ✓  endpointEcho 🟢 https://us-central1-myproject.cloudfunctions.net/endpointEcho
 ```
+
+That's it!
 
 #### Invoke 
 
@@ -84,28 +94,9 @@ $ curl \
 * Import anything. Webpack is used to bundle all dependencies.
 * Export anywhere. Your endpoints can be spread over multiple files.
 * Included per default: `aws-sdk` and `@google/`.
-* Your endpoints will receive one object: the parsed POST JSON body, or the parsed GET query string (or `{}`).
+* Thefirst argument is the parsed POST body, the parsed GET query string, or the unchanged SNS, Google PubSub, Google Storage (...) event. The default is `{}`.
+* The second argument if called via HTTP is `{ method: GET|POST, headers: { ... } }`.
 
-
-## Access HTTP headers
-
-As second argument a subset of HTTP headers is passed, if you invoke the function via GET or POST. Namely `method` and `headers`. Otherwise it is `{}`.
-
-```js
-function endpointEcho(event, http) {
-  console.log(http)
-}
-
-> {
-  "method": "GET",
-  "headers": {
-    "host": "us-central1-firstnodefunc.cloudfunctions.net",
-    "user-agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/85.0.4183.121 Safari/537.36",
-    "accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9",
-    ...
-  }
-}
-```
 
 
 
