@@ -16,33 +16,29 @@ $ npm install -g hyperform-cli
 
 ```js
 /**
- * How you pass input to it depends on how you call it (GET, POST, AWS SNS, Google PubSub, Google Storage trigger...)
- * 
- * @param {object} input 
- * @param {{ method: string, headers: object }?} http
+ * How you pass input to it depends on how you call it 
  **/
-
 function greet({ name }, http) {
   if(http.method != null) {
-    console.log("Apparently I was invoked via GET or POST")
-    console.log(`With these headers: ${http.headers}`)
+    console.log(`Apparently I was invoked via ${http.method}`)
+    console.log(`HTTP headers: ${http.headers}`)
   }
 
   return { greeting: `Hi from AWS Lambda or Google Cloud Functions, ${name} !` }
 }
 
 
-// Hyperform looks for CommonJS exports that match '*endpoint*'
 module.exports = {
+// Hyperform looks for CommonJS exports matching '*endpoint*'
   endpointGreet: greet 
 }
 ```
 
-### 2. Infer your cloud credentials
+### 2. Infer your AWS or Google Cloud credentials
 
 ```sh
 $ hf init
-✓ Inferred cloud credentials
+
 ✓ Created hyperform.json
 ```
 
@@ -50,20 +46,20 @@ $ hf init
 
 ```sh 
 $ hf deploy  
-   
-   # If you use AWS Lambda    # The URLs are GET and POST-able
-✓  endpointEcho 🟢 https://ltirihayh9.execute-api.us-east-2.amazonaws.com/endpointEcho
-   # If you use Google Cloud Function
-✓  endpointEcho 🟢 https://us-central1-myproject.cloudfunctions.net/endpointEcho
+
+🟢 endpointEcho https://ltirihayh9.execute-api.us-east-2.amazonaws.com/endpointEcho
+   # or
+🟢 endpointEcho https://us-central1-myproject.cloudfunctions.net/endpointEcho
 ```
 
 That's it!
-
+<!-- 
 ## Invoke 
 
 Your functions  detect from where they are invoked (GET, POST, Provider console, SNS event) so they always receive the same payload.
 
-For instance, you can GET or POST to them:
+For instance, you can GET or POST to them.
+Or you can use them internally with the provider.
 
 ```sh
 #######
@@ -87,7 +83,7 @@ $ curl \
 
 > {"Hi from AWS Lambda or Google Cloud Functions!
       GET or POST body received: {\"a\":1}}"
-```
+``` -->
 
 ## Tips
 
@@ -95,15 +91,14 @@ $ curl \
 * Import anything. Webpack is used to bundle all dependencies.
 * Export anywhere. Your endpoints can be spread over multiple files.
 * Included per default: `aws-sdk` and `@google/`.
-* Thefirst argument is the parsed POST body, the parsed GET query string, or the unchanged SNS, Google PubSub, Google Storage (...) event. The default is `{}`.
+* The first argument is the parsed POST body, the parsed GET query string, or the unchanged SNS, Google PubSub, Google Storage (...) event. The default is `{}`.
 * The second argument if called via HTTP is `{ method: GET|POST, headers: { ... } }`.
-
 
 
 
 ## Opening Issues
 
-Feel free to open an issue if you find bugs or have questions or feature requests.
+Feel free to open issues if you find bugs.
 
 ## Contributing
 
