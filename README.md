@@ -1,7 +1,7 @@
 ![Hyperform Banner](https://github.com/qngapparat/hyperform/blob/master/hyperform-banner.png)
 
 
-<p align="center">A next-generation serverless deployer
+<p align="center">Deploys JavaScript functions as serverless functions
 <br>For AWS Lambda & Google Cloud Functions</p>
 
 ## Install
