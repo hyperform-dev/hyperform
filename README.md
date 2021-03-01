@@ -88,11 +88,11 @@ $ curl \
 ## Tips
 
 * Hyperform deploys each CommonJS export named `*endpoint*` as function
+* The first argument always an object. It is the parsed POST body, the parsed GET query string, or the unchanged SNS, Google PubSub, Google Storage (...) event. The default is `{}`.
+* The second argument, if called via HTTP is `{ method: GET|POST, headers: { ... } }`. The default is `{}`.
 * You can import anything. Webpack is used to bundle all dependencies.
 * You can export anywhere. Your endpoints can be spread over multiple files.
 * Included per default are `aws-sdk` and `@google/`.
-* The first argument always an object. It is the parsed POST body, the parsed GET query string, or the unchanged SNS, Google PubSub, Google Storage (...) event. The default is `{}`.
-* The second argument, if called via HTTP is `{ method: GET|POST, headers: { ... } }`. The default is `{}`.
 
 
 ## Opening Issues
