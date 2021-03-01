@@ -10,14 +10,8 @@
 $ npm install -g hyperform-cli
 ```
 
-## Synopsis
 
-```
-$ hf init    # Creates a `hyperform.json` config file
-$ hf deploy  # Deploys all functions according to `hyperform.json`
-```
-
-## Basic Example
+## Usage
 
 ### ✍️ Write normal JavaScript
 
@@ -50,17 +44,15 @@ $ hf init
 ✓ Created hyperform.json
 ```
 
-### 🚀 Deploy 
+### 🚀 Deploy exports as functions
 
 ```sh 
 $ hf deploy  
 
-🟢 endpointEcho https://ltirihayh9.execute-api.us-east-2.amazonaws.com/endpointEcho
+🟢 endpointGreet https://ltirihayh9.execute-api.us-east-2.amazonaws.com/endpointGreet
    # or
-🟢 endpointEcho https://us-central1-myproject.cloudfunctions.net/endpointEcho
+🟢 endpointGreet https://us-central1-myproject.cloudfunctions.net/endpointGreet
 ```
-
-That's it!
 <!-- 
 ## Invoke 
 
@@ -93,9 +85,9 @@ $ curl \
       GET or POST body received: {\"a\":1}}"
 ``` -->
 
-## 💡 Tips
+## Tips
 
-* Hyperform deploys CommonJS exports named `*endpoint*` as functions to AWS Lambda or Google Cloud
+* Hyperform deploys each CommonJS export named `*endpoint*` as function
 * Import anything. Webpack is used to bundle all dependencies.
 * Export anywhere. Your endpoints can be spread over multiple files.
 * Included per default: `aws-sdk` and `@google/`.
