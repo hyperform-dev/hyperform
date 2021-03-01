@@ -1,7 +1,7 @@
 ![Hyperform Banner](https://github.com/qngapparat/hyperform/blob/master/hyperform-banner.png)
 
 
-<p align="center">The easiest way to deploy your serverless code<br>For AWS Lambda & Google Cloud Functions</p>
+<p align="center">A next-generation serverless deployer<br>For AWS Lambda & Google Cloud Functions</p>
 
 ## Install
 
@@ -11,22 +11,23 @@ $ npm install -g hyperform-cli
 
 ## Basic Example
 
-#### Write normal code
+### 1. Write normal JavaScript
 
 
 ```js
 /**
- * This function will run on AWS Lambda or Google Cloud Functions
- * It does not care how it's called (GET, POST, AWS SNS, Google PubSub, Google Storage trigger ...)
+ * How you pass input to it depends on how you call it (GET, POST, AWS SNS, Google PubSub, Google Storage trigger...)
  * 
  * @param {object} input 
- *   GET:  the parsed query string
- *   POST: the parsed body (query string or JSON)
- *   otherwise: what the provider passed
- * @param { {method: string, headers: object }? } http A subset of the HTTP headers if called via GET or POST
+ * @param {{ method: string, headers: object }?} http
  **/
 
 function greet({ name }, http) {
+  if(http.method != null) {
+    console.log("Apparently I was invoked via GET or POST")
+    console.log(`With these headers: ${http.headers}`)
+  }
+
   return { greeting: `Hi from AWS Lambda or Google Cloud Functions, ${name} !` }
 }
 
@@ -37,7 +38,7 @@ module.exports = {
 }
 ```
 
-#### Infer your cloud credentials
+### 2. Infer your cloud credentials
 
 ```sh
 $ hf init
@@ -45,7 +46,7 @@ $ hf init
 ✓ Created hyperform.json
 ```
 
-#### Deploy 
+### 3. Deploy 
 
 ```sh 
 $ hf deploy  
@@ -58,7 +59,7 @@ $ hf deploy
 
 That's it!
 
-#### Invoke 
+## Invoke 
 
 Your functions  detect from where they are invoked (GET, POST, Provider console, SNS event) so they always receive the same payload.
 
@@ -88,7 +89,7 @@ $ curl \
       GET or POST body received: {\"a\":1}}"
 ```
 
-# Tips
+## Tips
 
 * Hyperform deploys CommonJS exports named `*endpoint*` as functions to AWS Lambda or Google Cloud
 * Import anything. Webpack is used to bundle all dependencies.
