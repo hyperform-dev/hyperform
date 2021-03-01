@@ -10,15 +10,16 @@ const { maybeShowSurvey, answerSurvey } = require('./surveyor/index')
 
 const args = process.argv.slice(2)
 
-if ((/init|deploy/.test(args[0]) === false) || (args.length > 1)) {
+if ((/init|deploy/.test(args[0]) === false) || (args.length === 2 && args[1] !== '--url') || args.length > 2) {
   log(`Usage: 
  $ hf init
- $ hf deploy
+ $ hf deploy [--url]
 `)
   process.exit(1)
 }
 
 const mode = args[0]
+const isPublic = (args[1] === '--url')
 // $ hf should always be invoked in the desired directory
 const absdir = process.cwd()
 
@@ -76,7 +77,7 @@ try {
   // Do not import earlier, it needs to absorb process.env set above
   // TODO: make less sloppy
   const { main } = require('./index')
-  main(absdir, fnregex, parsedHyperformJson)
+  main(absdir, fnregex, parsedHyperformJson, isPublic)
     // show anonymous survey question with 1/30 percent probability
     .then(() => maybeShowSurvey())
 } catch (e) {

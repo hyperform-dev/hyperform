@@ -186,7 +186,8 @@ async function _allowPublicInvokeGoogle(options) {
  * it creates a new GCF with given code ("pathToZip") and "options". 
  * If GCF exists already, it updates its code with "pathToZip". 
  * If other options are specified, it can update those too (currently only "runtime"). 
- * Returns URL immediately, but Cloud Function takes another 1-2 minutes to be invokable.
+ * Returns IAM-protected URL immediately, but Cloud Function takes another 1-2 minutes to be invokable.
+ * To remove IAM protection to allow anyone with the URL to call it, use publishGoogle afterwards.
  * @param {string} pathToZip 
  * @param {{
  * name: string,
@@ -236,15 +237,7 @@ async function deployGoogle(pathToZip, options) {
     }
     await _updateGoogle(signedUploadUrl, updateParams)
   }
-
-  // allow anyone to invoke function 
-  const allowPublicInvokeOptions = {
-    name: options.name,
-    project: options.project, 
-    region: options.region, 
-  }
-  await _allowPublicInvokeGoogle(allowPublicInvokeOptions)
-    
+   
   // Construct endpoint URL (it's deterministic)
   const endpointUrl = `https://${options.region}-${options.project}.cloudfunctions.net/${options.name}`
 
@@ -252,7 +245,25 @@ async function deployGoogle(pathToZip, options) {
   return endpointUrl 
 }
 
+/**
+ * @description Allows anyone to call function via its HTTP endpoint. 
+ * Does so by turning IAM checking of Google off. 
+ * Unlike publishAmazon, publishgoogle it does not return an URL, deployGoogle does that already.
+ *  @param {*} name 
+  * @param {*} project 
+  * @param {*} region 
+ */
+async function publishGoogle(name, project, region) {
+  const allowPublicInvokeOptions = {
+    name: name,
+    project: project, 
+    region: region, 
+  }
+  await _allowPublicInvokeGoogle(allowPublicInvokeOptions)
+}
+
 module.exports = {
   deployGoogle,
+  publishGoogle,
   _only_for_testing_isExistsGoogle: isExistsGoogle,
 }

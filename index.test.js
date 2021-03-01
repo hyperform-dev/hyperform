@@ -73,10 +73,12 @@ describe('System tests (takes 1-2 minutes)', () => {
           },
 
         }
+
+        const isPublic = true
       
         let err
         try {
-          amazonMainRes = await main(dir, fnregex, amazonParsedHyperformJson)
+          amazonMainRes = await main(dir, fnregex, amazonParsedHyperformJson, isPublic)
         } catch (e) {
           console.log(e)
           err = e
@@ -102,10 +104,13 @@ describe('System tests (takes 1-2 minutes)', () => {
           },
 
         }
+
+        // to test publishing too
+        const isPublic = true
      
         let err
         try {
-          googleMainRes = await main(dir, fnregex, googleParsedHyperformJson)
+          googleMainRes = await main(dir, fnregex, googleParsedHyperformJson, isPublic)
         } catch (e) {
           console.log(e)
           err = e

@@ -8,7 +8,7 @@ const { deployAmazon } = require('./deployer/amazon/index')
 const { publishAmazon } = require('./publisher/amazon/index')
 const { spinnies, log, logdev } = require('./printers/index')
 const { zip } = require('./zipper/index')
-const { deployGoogle } = require('./deployer/google/index')
+const { deployGoogle, publishGoogle } = require('./deployer/google/index')
 const { transpile } = require('./transpiler/index')
 const schema = require('./schemas/index').hyperformJsonSchema
 
@@ -73,9 +73,10 @@ async function bundleTranspileZipGoogle(fpath) {
  * @param {string} name 
  * @param {string} region 
  * @param {string} zipPath 
- * @returns {string} URL of the endpoint of the Lambda
+ * @param {boolean} isPublic whether to publish 
+ * @returns {string?} If isPublic was true, URL of the endpoint of the Lambda
  */
-async function deployPublishAmazon(name, region, zipPath) {
+async function deployPublishAmazon(name, region, zipPath, isPublic) {
   const amazonSpinnieName = `amazon-main-${name}`
   try {
     spinnies.add(amazonSpinnieName, { text: `Deploying ${name}` })
@@ -86,11 +87,14 @@ async function deployPublishAmazon(name, region, zipPath) {
       region: region,
     }
     const amazonArn = await deployAmazon(zipPath, amazonDeployOptions)
-    // Publish it
-    const amazonUrl = await publishAmazon(amazonArn, region)
+    let amazonUrl 
+    // Publish it if isPpublic
+    if (isPublic === true) {
+      amazonUrl = await publishAmazon(amazonArn, region)
+    }
     spinnies.succ(amazonSpinnieName, { text: `🟢 ${name} ${chalk.rgb(255, 255, 255).bgWhite(amazonUrl)}` })
 
-    // return url 
+    // (return url)
     return amazonUrl
   } catch (e) {
     spinnies.f(amazonSpinnieName, {
@@ -107,9 +111,10 @@ async function deployPublishAmazon(name, region, zipPath) {
  * @param {string} region 
  * @param {string} project 
  * @param {string} zipPath 
- * @returns {string} URL of the Google Cloud Function 
+ * @param {boolean} isPublic whether to publish
+ * @returns {string?} If isPublic was true, URL of the Google Cloud Function 
  */
-async function deployPublishGoogle(name, region, project, zipPath) {
+async function deployPublishGoogle(name, region, project, zipPath, isPublic) {
   const googleSpinnieName = `google-main-${name}`
   try {
     spinnies.add(googleSpinnieName, { text: `Deploying ${name}` })
@@ -120,6 +125,11 @@ async function deployPublishGoogle(name, region, project, zipPath) {
       runtime: 'nodejs12',
     }
     const googleUrl = await deployGoogle(zipPath, googleOptions)
+    
+    if (isPublic === true) {
+      // enables anyone with the URL to call the function
+      await publishGoogle(name, project, region)
+    }
     spinnies.succ(googleSpinnieName, { text: `🟢 ${name} ${chalk.rgb(255, 255, 255).bgWhite(googleUrl)}` })
     console.log('Google takes another 1 - 2m for changes to take effect')
 
@@ -138,9 +148,10 @@ async function deployPublishGoogle(name, region, project, zipPath) {
  * @param {string} dir 
  * @param {Regex} fnregex 
  * @param {*} parsedHyperformJson
+ * @param {boolean} isPublic Controls whether (Amazon) to create URL endpoint and (Google) whether to remove IAM protection on the URL
  * @returns {{ urls: string[] }} urls: Mixed, nested Array of endpoint URLs.
  */
-async function main(dir, fnregex, parsedHyperformJson) {
+async function main(dir, fnregex, parsedHyperformJson, isPublic) {
   const infos = await getInfos(dir, fnregex)
   /*
     [
@@ -203,6 +214,7 @@ async function main(dir, fnregex, parsedHyperformJson) {
               exp,
               parsedHyperformJson.amazon.aws_default_region,
               amazonZipPath,
+              isPublic,
             )
           }
 
@@ -216,6 +228,7 @@ async function main(dir, fnregex, parsedHyperformJson) {
               'us-central1', 
               'firstnodefunc', 
               googleZipPath,
+              isPublic,
             )
           }
           

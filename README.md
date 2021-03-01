@@ -1,7 +1,7 @@
 ![Hyperform Banner](https://github.com/qngapparat/hyperform/blob/master/hyperform-banner.png)
 
 
-<p align="center">Deploys JavaScript functions as serverless functions
+<p align="center">A next-gen serverless deployer
 <br>For AWS Lambda & Google Cloud Functions</p>
 
 ## Install
@@ -12,6 +12,11 @@ $ npm install -g hyperform-cli
 
 
 ## Usage
+
+```
+$ hf init 
+$ hf deploy [--url]
+```
 
 ### ✍️ Write normal JavaScript
 
@@ -47,12 +52,15 @@ $ hf init
 ### 🚀 Deploy exports as functions
 
 ```sh 
-$ hf deploy  
+$ hf deploy --url
 
 🟢 endpointGreet https://ltirihayh9.execute-api.us-east-2.amazonaws.com/endpointGreet
    # or
 🟢 endpointGreet https://us-central1-myproject.cloudfunctions.net/endpointGreet
 ```
+
+If you don't want to make your functions public, omit the `--url` flag.
+
 <!-- 
 ## Invoke 
 
