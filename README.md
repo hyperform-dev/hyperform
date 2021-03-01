@@ -1,7 +1,8 @@
 ![Hyperform Banner](https://github.com/qngapparat/hyperform/blob/master/hyperform-banner.png)
 
 
-<p align="center">A next-generation serverless deployer<br>For AWS Lambda & Google Cloud Functions</p>
+<p align="center">A next-generation serverless deployer
+<br>For AWS Lambda & Google Cloud Functions</p>
 
 ## Install
 
@@ -9,9 +10,16 @@
 $ npm install -g hyperform-cli
 ```
 
+## Synopsis
+
+```
+$ hf init    # Creates a `hyperform.json` config file
+$ hf deploy  # Deploys all functions according to `hyperform.json`
+```
+
 ## Basic Example
 
-### 1. Write normal JavaScript
+### ✍️ Write normal JavaScript
 
 
 ```js
@@ -34,7 +42,7 @@ module.exports = {
 }
 ```
 
-### 2. Infer your AWS or Google Cloud credentials
+### 🔍 Infer your AWS or Google Cloud credentials
 
 ```sh
 $ hf init
@@ -42,7 +50,7 @@ $ hf init
 ✓ Created hyperform.json
 ```
 
-### 3. Deploy 
+### 🚀 Deploy 
 
 ```sh 
 $ hf deploy  
@@ -85,7 +93,7 @@ $ curl \
       GET or POST body received: {\"a\":1}}"
 ``` -->
 
-## Tips
+## 💡 Tips
 
 * Hyperform deploys CommonJS exports named `*endpoint*` as functions to AWS Lambda or Google Cloud
 * Import anything. Webpack is used to bundle all dependencies.
