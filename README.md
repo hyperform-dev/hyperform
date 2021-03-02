@@ -20,6 +20,8 @@ $ hf deploy [--url]
 
 ### ✍️ Write normal JavaScript
 
+The first argument always an object. It is the parsed POST body, the parsed GET query string, or the unchanged SNS, Google PubSub, Google Storage (...) event. The default is `{}`.
+
 
 ```js
 /**
