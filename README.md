@@ -23,7 +23,8 @@ $ hf deploy [--url]
 
 ```js
 /**
- * How you pass input to it depends on how you call it 
+ * @param {*} input Function input. How you pass it depends on how you call it.
+ * @param {{ method: string, headers: {*} }?} http Only populated if called via GET or POST
  **/
 function greet({ name }, http) {
   if(http.method != null) {
@@ -45,7 +46,6 @@ module.exports = {
 
 ```sh
 $ hf init
-
 ✓ Created hyperform.json
 ```
 
@@ -53,7 +53,6 @@ $ hf init
 
 ```sh 
 $ hf deploy --url
-
 🟢 endpointGreet https://ltirihayh9.execute-api.us-east-2.amazonaws.com/endpointGreet
    # or
 🟢 endpointGreet https://us-central1-myproject.cloudfunctions.net/endpointGreet
