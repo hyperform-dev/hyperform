@@ -23,21 +23,26 @@ $ hf deploy [--url]
 
 ```js
 /**
- * @param {*} input Function input. How you pass it depends on how you call it.
+ * @param {*} input 
  * @param {{ method: string, headers: {*} }?} http Only populated if called via GET or POST
  **/
-function greet({ name }, http) {
+function greet(input, http) {
+  
   if(http.method != null) {
-    console.log(`Apparently I was invoked via ${http.method}`)
-    console.log(`HTTP headers: ${http.headers}`)
+    console.log(`
+      Apparently I was invoked via ${http.method}. 
+      Headers: ${http.headers}
+    `)
   }
-
-  return { greeting: `Hi from AWS Lambda or Google Cloud Functions, ${name} !` }
+  
+  return { 
+    greeting: `Hi from AWS Lambda or Google Cloud Functions, ${input.name} !` 
+  }
 }
 
 
 module.exports = {
-// Hyperform looks for CommonJS exports matching '*endpoint*'
+  // Hyperform looks for CommonJS exports matching 'endpoint'
   endpointGreet: greet 
 }
 ```
@@ -61,6 +66,8 @@ $ hf deploy --url
 If you don't want to make your functions public, omit the `--url` flag.
 
 <!-- 
+
+TODO remove this? Esp with --url optional
 ## Invoke 
 
 Your functions  detect from where they are invoked (GET, POST, Provider console, SNS event) so they always receive the same payload.
@@ -94,7 +101,7 @@ $ curl \
 
 ## Tips
 
-* Hyperform deploys each CommonJS export named `*endpoint*` as function
+* Hyperform deploys every CommonJS export named `*endpoint*` as function
 * The first argument always an object. It is the parsed POST body, the parsed GET query string, or the unchanged SNS, Google PubSub, Google Storage (...) event. The default is `{}`.
 * The second argument, if called via HTTP is `{ method: GET|POST, headers: { ... } }`. The default is `{}`.
 * You can import anything. Webpack is used to bundle all dependencies.
