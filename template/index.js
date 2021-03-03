@@ -72,8 +72,24 @@ module.exports = () => {
           }
 
           // Invoke user function
-          const res = await userfunc(event, httpsubset); // TODO add context.fail?
-          context.succeed(res);
+          let res;
+          try {
+            res = await userfunc(event, httpsubset); // TODO add context.fail?
+            context.succeed(res);
+          } catch (e) {
+            if (e.code === 'AccessDeniedException') {
+              // return details for debugging
+              context.succeed({
+                statusCode: 200,
+                body: JSON.stringify({
+                  ...e,
+                  notice: 'Error details returned by Hyperform wrapper because it is an AccessDeniedException. Hyperform always returns the Error details for: [AccessDeniedException] .',
+                }),
+              });
+            } else {
+              throw e; // return non-descriptive 500
+            }
+          }
         };
       }
       if (platform === 'google') {
