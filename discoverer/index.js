@@ -1,6 +1,7 @@
 const findit = require('findit')
 const path = require('path')
 const { EOL } = require('os')
+const fs = require('fs')
 const { log } = require('../printers/index')
 
 const BLACKLIST = [
@@ -69,6 +70,18 @@ function getNamedExportKeys(filepath) {
 }
 
 /**
+ * Checks if file contents match a regex
+ * @param {*} fpath 
+ * @param {*} regex 
+ * @returns {boolean}
+ */
+function isFileContains(fpath, regex) {
+  const contents = fs.readFileSync(fpath, { encoding: 'utf-8' })
+  const res = regex.test(contents) 
+  return res 
+}
+
+/**
  * @description Scouts "dir" and its subdirectories for .js files named 
  * exports that match "fnregex"
  * @param {string} dir 
@@ -77,7 +90,11 @@ function getNamedExportKeys(filepath) {
  *  and its named exports that match fnregex ("exps")
  */
 async function getInfos(dir, fnregex) {
-  const jsFilePaths = await getJsFilepaths(dir)
+  let jsFilePaths = await getJsFilepaths(dir)
+  // First check - filter out files that don't even contain a string matching fnregex (let alone export it)
+  jsFilePaths = jsFilePaths
+    .filter((p) => isFileContains(p, fnregex))
+  // Second check - determine exports by running file, and keep those that export sth matching fnregex
   const infos = jsFilePaths
     .map((p) => ({
       p: p,
