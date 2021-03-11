@@ -2,7 +2,7 @@ const webpack = require('webpack')
 const path = require('path')
 const fsp = require('fs').promises
 const os = require('os')
-const { logdev } = require('../printers/index')
+const { log } = require('../printers/index')
 
 /**
  * @description Bundles a given .js files with its dependencies using webpack. 
@@ -20,7 +20,7 @@ async function _bundle(inpath, externals) {
   return new Promise((resolve, reject) => {
     webpack(
       {
-        mode: 'production',
+        mode: 'development',
         entry: inpath,
         target: 'node',
         output: {
@@ -28,18 +28,23 @@ async function _bundle(inpath, externals) {
           filename: 'bundle.js',
           // so amazon sees it
           libraryTarget: 'commonjs',
+          // Make webpack perform identical as node
+          // See https://github.com/node-fetch/node-fetch/issues/450#issuecomment-494475397
+          // extensions: ['.js'],
+          // mainFields: ['main'],
+
+          // Fixes "global"
+          // See https://stackoverflow.com/a/64639975
+          //     globalObject: 'this',
         },
         // aws-sdk is already provided in lambda
         externals: externals,
       },
       (err, stats) => {
-        if (err || stats.hasErrors()) {
-          logdev(`Bundling ${inpath} failed: `)
-          try {
-            logdev(stats.compilation.errors)
-          } catch (e) {
-            logdev(stats)
-          }
+        if (err || stats.hasErrors() || (stats.compilation.errors.length > 0)) {
+          // always show bundling error it's useful
+          log(`Bundling ${inpath} did not work: `)
+          log(stats.compilation.errors)
           reject(err, stats)
         } else {
           // return the bundle code
