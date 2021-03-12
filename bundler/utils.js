@@ -16,11 +16,12 @@ async function _bundle(inpath, externals) {
   // create out dir (silly webpack)
   const outdir = await fsp.mkdtemp(path.join(os.tmpdir(), 'bundle-'))
   const outpath = path.join(outdir, 'bundle.js')
-
+  
+  console.log(`bundling to ${outpath}`)
   return new Promise((resolve, reject) => {
     webpack(
       {
-        mode: 'development',
+        mode: 'production',
         entry: inpath,
         target: 'node',
         output: {

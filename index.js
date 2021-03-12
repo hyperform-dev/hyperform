@@ -11,7 +11,11 @@ const { zip } = require('./zipper/index')
 const { deployGoogle, publishGoogle } = require('./deployer/google/index')
 const { transpile } = require('./transpiler/index')
 const schema = require('./schemas/index').hyperformJsonSchema
-
+const fs = require('fs')
+const fsp = require('fs').promises
+const path = require('path')
+const { createCopy } = require('./copier/index')
+const { zipDir } = require('./zipper/google/index')
 /**
  * 
  * @param {string} fpath Path to .js file
@@ -40,32 +44,82 @@ async function bundleTranspileZipAmazon(fpath) {
   }
 }
 
-/**
- * 
- * @param {string} fpath Path to .js file
- */
-async function bundleTranspileZipGoogle(fpath) {
-  // Bundle 
-  let googleBundledCode
-  try {
-    googleBundledCode = await bundleGoogle(fpath)
-  } catch (e) {
-    log(`Errored bundling ${fpath} for Google: ${e}`)
-    return // just skip that file 
+async function bundleTranspileZipGoogle(dir, infos) {
+  // warn if package.json does not exist
+  // (Google won't install npm dependencies then)
+  if (fs.existsSync(path.join(dir, 'package.json')) === false) {
+    log(`No package.json found in this directory. 
+      On Google, therefore no dependencies will be included`)
+  }
+  
+  // copy whole dir to /tmp so we can tinker with it
+  const googlecopyDir = await createCopy(
+    dir,
+    ['node_modules', '.git', '.github'],
+  )
+
+  console.log(googlecopyDir)
+
+  /* 
+    Create appendix for index.js that imports & immediately exports all endpoints
+    Something like
+      
+      module.exports = {
+        a: require('./path/to/file.js').a,
+        b: require('./path/to/other/file.js').b,
+        ...
+      }
+      
+      * */
+  /* eslint-disable arrow-body-style */
+  let contents = `
+  ;module.exports = {
+    ${
+  // for each file
+  infos.map(({ p, exps }) => {
+    // for each endpoint export
+    return exps.map((exp) => {
+      const relPath = path.relative(dir, p)
+      return `${exp}: require('./${relPath}').${exp},`
+    })
+      .join('\n')
+  })
+    .join('\n')
+}
+  };
+  `
+
+  console.log(contents)
+
+  // add platform appendix
+
+  contents = transpile(contents)
+
+  console.log(contents)
+
+  // Add import-export appendix and platform appeidnx to index.js 
+
+  // [maybe original code]
+  // import-export appendix
+  // platform appendix
+  // end of file
+  const indexJsPath = path.join(googlecopyDir, 'index.js')
+  if (fs.existsSync(indexJsPath) === false) {
+    console.log('index.js does not exist')
+    await fsp.writeFile(indexJsPath, contents, { encoding: 'utf-8' })
+  } else {
+    console.log('index.js exists')
+    await fsp.appendFile(indexJsPath, contents, { encoding: 'utf-8' })
   }
 
-  // Transpile 
-  const googleTranspiledCode = transpile(googleBundledCode)
+  // zip folder
+  const googleZipPath = await zipDir(
+    googlecopyDir, 
+    ['node_modules', '.git', '.github'], // superfluous we didnt copy them in the first place
+  )
 
-  // Zip
-  try {
-    const googleZipPath = await zip(googleTranspiledCode)
-    return googleZipPath
-  } catch (e) {
-    // probably underlying issue with the zipping library or OS
-    // skip that file 
-    log(`Errored zipping ${fpath}: ${e}`)
-  }
+  console.log(googleZipPath)
+  return googleZipPath
 }
 
 /**
@@ -104,6 +158,11 @@ async function deployPublishAmazon(name, region, zipPath, isPublic) {
     return null
   }
 }
+
+// TODO probieren
+// TODO tests anpassen
+// TODO testen
+// TODO tests schreiben, refactoren
 
 /**
  * @description Deploys and publishes a give code .zip to Google Cloud Functions
@@ -173,6 +232,17 @@ async function main(dir, fnregex, parsedHyperformJson, isPublic) {
     return [] // no endpoint URLs created
   }
 
+  /// //////////////////////////////////////////////////////////
+  // Bundle and zip for Google  (once) //
+  /// //////////////////////////////////////////////////////////
+
+  const googleZipPath = bundleTranspileZipGoogle(dir, infos)
+
+  // TODO 
+  
+  // NOTE that google and amazon now work fundamentally different
+  // Google - 1 deployment package
+  
   // For each file 
   //   bundle
   //   transpile 
@@ -180,6 +250,8 @@ async function main(dir, fnregex, parsedHyperformJson, isPublic) {
   //     zip
   //     deployAmazon 
   //     publishAmazon  
+
+  // Later instead of N times, just create 1 deployment package for all functions
 
   const endpoints = await Promise.all(
     // For each file
@@ -196,15 +268,16 @@ async function main(dir, fnregex, parsedHyperformJson, isPublic) {
 
       /// //////////////////////////////////////////////////////////
       // Bundle and zip for Google //
+      // NOW DONE ABOVE
       /// //////////////////////////////////////////////////////////
-      let googleZipPath 
-      if (toGoogle === true) {
-        googleZipPath = await bundleTranspileZipGoogle(info.p)
-      }
+      // let googleZipPath 
+      // if (toGoogle === true) {
+      //   googleZipPath = await bundleTranspileZipGoogle(info.p)
+      // }
 
       // For each matching export
       const endpts = await Promise.all(
-        info.exps.map(async (exp) => {
+        info.exps.map(async (exp, idx) => {
           /// //////////////////////////////////////////////////////////
           /// Deploy to Amazon
           /// //////////////////////////////////////////////////////////
@@ -226,7 +299,7 @@ async function main(dir, fnregex, parsedHyperformJson, isPublic) {
             googleUrl = await deployPublishGoogle(
               exp, 
               'us-central1', 
-              'firstnodefunc', 
+              'firstnodefunc', // TODO
               googleZipPath,
               isPublic,
             )
