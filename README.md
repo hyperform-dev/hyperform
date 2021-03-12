@@ -24,15 +24,11 @@ The first argument always an object. It is the parsed POST body, the parsed GET 
 
 
 ```js
-/**
- * @param {*} input 
- * @param {{ method: string, headers: {*} }?} http Only populated if called via GET or POST
- **/
 function greet(input, http) {
   
   if(http.method != null) {
     console.log(`
-      Apparently I was invoked via ${http.method}. 
+      I was invoked via ${http.method}. 
       Headers: ${http.headers}
     `)
   }
@@ -60,8 +56,9 @@ $ hf init
 
 ```sh 
 $ hf deploy --url
+   # Amazon AWS
 🟢 endpointGreet https://ltirihayh9.execute-api.us-east-2.amazonaws.com/endpointGreet
-   # or
+   # Google Cloud
 🟢 endpointGreet https://us-central1-myproject.cloudfunctions.net/endpointGreet
 ```
 
