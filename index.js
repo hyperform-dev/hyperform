@@ -16,6 +16,7 @@ const fsp = require('fs').promises
 const path = require('path')
 const { createCopy } = require('./copier/index')
 const { zipDir } = require('./zipper/google/index')
+const { kindle } = require('./kindler/index')
 /**
  * 
  * @param {string} fpath Path to .js file
@@ -44,6 +45,11 @@ async function bundleTranspileZipAmazon(fpath) {
   }
 }
 
+/**
+ * 
+ * @param {string} dir Sufficiently parent directory so it encompasses all the functions. Usually with package.json in it.
+ * @param {[ { p: string, exps: string[] } ]} infos 
+ */
 async function bundleTranspileZipGoogle(dir, infos) {
   // warn if package.json does not exist
   // (Google won't install npm dependencies then)
@@ -55,70 +61,30 @@ async function bundleTranspileZipGoogle(dir, infos) {
   // copy whole dir to /tmp so we can tinker with it
   const googlecopyDir = await createCopy(
     dir,
-    ['node_modules', '.git', '.github'],
+    ['node_modules', '.git', '.github', 'hyperform.json'],
   )
 
-  console.log(googlecopyDir)
-
-  /* 
-    Create appendix for index.js that imports & immediately exports all endpoints
-    Something like
-      
-      module.exports = {
-        a: require('./path/to/file.js').a,
-        b: require('./path/to/other/file.js').b,
-        ...
-      }
-      
-      * */
-  /* eslint-disable arrow-body-style */
-  let contents = `
-  ;module.exports = {
-    ${
-  // for each file
-  infos.map(({ p, exps }) => {
-    // for each endpoint export
-    return exps.map((exp) => {
-      const relPath = path.relative(dir, p)
-      return `${exp}: require('./${relPath}').${exp},`
-    })
-      .join('\n')
-  })
-    .join('\n')
-}
-  };
-  `
-
-  console.log(contents)
-
-  // add platform appendix
-
-  contents = transpile(contents)
-
-  console.log(contents)
-
-  // Add import-export appendix and platform appeidnx to index.js 
-
-  // [maybe original code]
-  // import-export appendix
-  // platform appendix
-  // end of file
   const indexJsPath = path.join(googlecopyDir, 'index.js')
+  
+  let indexJsAppendix = '' 
+  // add import-export appendix
+  indexJsAppendix = kindle(indexJsAppendix, dir, infos)
+  // add platform appendix
+  indexJsAppendix = transpile(indexJsAppendix)
+
+  // write or append to index.js in our tinker folder
   if (fs.existsSync(indexJsPath) === false) {
-    console.log('index.js does not exist')
-    await fsp.writeFile(indexJsPath, contents, { encoding: 'utf-8' })
+    await fsp.writeFile(indexJsPath, indexJsAppendix, { encoding: 'utf-8' })
   } else {
-    console.log('index.js exists')
-    await fsp.appendFile(indexJsPath, contents, { encoding: 'utf-8' })
+    await fsp.appendFile(indexJsPath, indexJsAppendix, { encoding: 'utf-8' })
   }
 
-  // zip folder
+  // zip tinker folder
   const googleZipPath = await zipDir(
     googlecopyDir, 
-    ['node_modules', '.git', '.github'], // superfluous we didnt copy them in the first place
+    ['node_modules', '.git', '.github', 'hyperform.json'], // superfluous we didnt copy them in the first place
   )
 
-  console.log(googleZipPath)
   return googleZipPath
 }
 
@@ -236,7 +202,7 @@ async function main(dir, fnregex, parsedHyperformJson, isPublic) {
   // Bundle and zip for Google  (once) //
   /// //////////////////////////////////////////////////////////
 
-  const googleZipPath = bundleTranspileZipGoogle(dir, infos)
+  const googleZipPath = await bundleTranspileZipGoogle(dir, infos)
 
   // TODO 
   
