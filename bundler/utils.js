@@ -21,7 +21,7 @@ async function _bundle(inpath, externals) {
   return new Promise((resolve, reject) => {
     webpack(
       {
-        mode: 'production',
+        mode: 'development',
         entry: inpath,
         target: 'node',
         output: {
