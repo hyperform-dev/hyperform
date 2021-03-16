@@ -83,7 +83,8 @@ describe('utils', () => {
         const getres = await fetch(fullurl, {
           method: 'GET',
         })
-        const statusCode = getres.status
+        const statusCode = `${getres.status}`
+        console.log(statusCode)
         // GET route returns 2XX
         expect(/^2/.test(statusCode)).toBe(true)
       }
@@ -92,7 +93,7 @@ describe('utils', () => {
         const getres = await fetch(fullurl, {
           method: 'POST',
         })
-        const statusCode = getres.status
+        const statusCode = `${getres.status}`
         // POST route returns 2XX
         expect(/^2/.test(statusCode)).toBe(true)
       }
