@@ -97,6 +97,18 @@ function transpile(bundleCode) {
       }
       if (platform === 'google') {
         wrappedfunc = async function handler(req, resp) {
+          // allow to be called from anywhere (also localhost)
+          resp.set('Access-Control-Allow-Origin', '*');
+          // If it's a  preflight request
+          // See https://cloud.google.com/functions/docs/writing/http#preflight_request
+          if (req.method === 'OPTIONS') {
+            // Send response to OPTIONS requests
+            resp.set('Access-Control-Allow-Methods', 'GET, POST');
+            resp.set('Access-Control-Allow-Headers', '*');
+            resp.set('Access-Control-Max-Age', '3600');
+            resp.status(204).send('');
+          }
+          // resp.set('Access-Control-Allow-Methods', 'GET, POST');
           //            GET          POST
           const event = req.query || JSON.parse(JSON.stringify(req.body));
           const httpsubset = {
