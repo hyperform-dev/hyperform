@@ -265,7 +265,7 @@ async function main(dir, fnregex, parsedHyperformJson, isPublic) {
             googleUrl = await deployPublishGoogle(
               exp, 
               'us-central1', 
-              'firstnodefunc', // TODO
+              'hyperform-7fd42', // TODO
               googleZipPath,
               isPublic,
             )
