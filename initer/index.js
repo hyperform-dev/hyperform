@@ -122,11 +122,11 @@ function init(absdir) {
       aws_secret_access_key: '',
       aws_default_region: '', // TODO
     },
-    google: {
-      gc_project: '',
-      gc_client_email: '',
-      gc_private_key: '',
-    },
+    // google: {
+    //   gc_project: '',
+    //   gc_client_email: '',
+    //   gc_private_key: '',
+    // },
   }
 
   const filedest = path.join(absdir, 'hyperform.json')
