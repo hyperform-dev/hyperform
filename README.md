@@ -4,6 +4,9 @@
 <p align="center">A next-gen serverless deployer
 <br>For AWS Lambda & Google Cloud Functions</p>
 
+<!-- TODO bullet list (similar to JS cookie -->
+
+
 ## Install
 
 ```sh
@@ -40,8 +43,7 @@ $ hf init
 
 #### 🚀 Deploy as cloud functions
 
-* Every export from `index.js` is deployed as separate function
-* You can import anything. Webpack is used to bundle all dependencies
+Every export from `index.js` is deployed as separate function.
 
 ```sh
 $ hf deploy --url index.js
@@ -54,8 +56,18 @@ If you don't want to make your functions public, omit the `--url` flag.
 
 #### 📡 Call it
 
+For instance via GET: 
+
 ```sh
 curl  https://us-central1-myproject.cloudfunctions.net/greet?name=John
+
+>>> {"message":"Hi, John!"}
+```
+
+Or via POST: 
+
+```sh
+curl -X POST -d '{"name":"John"}' -H "Content-Type: application/json" https://us-central1-myproject.cloudfunctions.net/greet?name=John
 
 >>> {"message":"Hi, John!"}
 ```
