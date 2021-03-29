@@ -48,7 +48,9 @@ Every export from `index.js` is deployed as separate function.
 ```sh
 $ hf deploy --url index.js
 
+>>> # If you use AWS:
 >>> 🟢 greet https://ltirihayh9.execute-api.us-east-2.amazonaws.com/greet
+>>> # Or, if you use Google Cloud: 
 >>> 🟢 greet https://us-central1-myproject.cloudfunctions.net/greet
 ```
 
