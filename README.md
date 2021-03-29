@@ -21,7 +21,7 @@ $ hf init
 $ hf deploy [--url]
 ```
 
-#### ✍️ Write normal JavaScript
+### ✍️ Write a function
 
 
 ```js
@@ -41,7 +41,7 @@ $ hf init
 >>> ✓ Created hyperform.json
 ```
 
-#### 🚀 Deploy as cloud functions
+### 🚀 Deploy 
 
 Every export from `index.js` is deployed as separate function.
 
@@ -54,7 +54,7 @@ $ hf deploy --url index.js
 
 If you don't want to make your functions public, omit the `--url` flag.
 
-#### 📡 Call it
+### 📡 Call
 
 For instance via GET: 
 
@@ -72,7 +72,7 @@ curl -X POST -d '{"name":"John"}' -H "Content-Type: application/json" https://us
 >>> {"message":"Hi, John!"}
 ```
 
-### Advanced
+## Advanced
 
 #### Accessing HTTP headers
 
