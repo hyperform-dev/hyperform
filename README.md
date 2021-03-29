@@ -34,7 +34,7 @@ module.exports = {
 } 
 ```
 
-🔍 Infer your AWS or Google Cloud credentials
+### 🔍 Infer your AWS or Google Cloud credentials
 
 ```sh
 $ hf init
