@@ -21,16 +21,21 @@ $ hf init
 $ hf deploy [--url]
 ```
 
-### ✍️ Write a function
+### ✍️ Write functions
 
 
 ```js
-function greet(event) {
-  return { greeting: `Hi, ${event.name}`
+function greetMorning(event) {
+  return { greeting: `Good morning, ${event.name}`
+}
+
+function greetEvening(event) {
+  return { greeting: `Good evening, ${event.name}`
 }
 
 module.exports = {
-  greet 
+  greetMorning,
+  greetEvening
 } 
 ```
 
@@ -41,24 +46,23 @@ $ hf init
 >>> ✓ Created hyperform.json
 ```
 
-### 🚀 Deploy 
-
-Every export from `index.js` is deployed as separate function.
+### 🚀 Deploy each
 
 ```sh
 $ hf deploy --url index.js
 
->>> # If you use AWS:
->>> 🟢 greet https://ltirihayh9.execute-api.us-east-2.amazonaws.com/greet
->>> # Or, if you use Google Cloud: 
->>> 🟢 greet https://us-central1-myproject.cloudfunctions.net/greet
+>>> 🟢 greetMorning https://ltirihayh9.execute-api.us-east-2.amazonaws.com/greetMorning 
+>>> 🟢 greetEvening https://ltirihayh9.execute-api.us-east-2.amazonaws.com/greetEvening
 ```
 
-If you don't want to make your functions public, omit the `--url` flag.
+If you just want to use it internally, you can omit `--url`.
 
 ### 📡 Call
 
-For instance via GET: 
+Your functions run the same anywhere, regardless whether you call them via GET, POST, or use them internally. 
+How you pass input depends on how you call them.
+
+For instance via GET:
 
 ```sh
 curl  https://us-central1-myproject.cloudfunctions.net/greet?name=John
