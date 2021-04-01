@@ -5,6 +5,8 @@ const hyperformJsonSchema = joi.object({
     aws_access_key_id: joi.string().required().allow(''),
     aws_secret_access_key: joi.string().required().allow(''), 
     aws_default_region: joi.string().required().allow(''),
+    // allow if user enters it
+    aws_session_token: joi.string().allow(''),
   }),
   google: joi.object({
     gc_project: joi.string().required().allow(''),

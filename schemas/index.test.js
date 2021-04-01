@@ -17,6 +17,22 @@ describe('schemas', () => {
         expect(error).not.toBeDefined()
       })
 
+      test('allows aws_session_token field', () => {
+        const { hyperformJsonSchema } = require('./index')
+
+        const input = {
+          amazon: {
+            aws_access_key_id: '',
+            aws_secret_access_key: '',
+            aws_default_region: '',
+            aws_session_token: '',
+          },
+        }
+
+        const { error } = hyperformJsonSchema.validate(input)
+        expect(error).not.toBeDefined()
+      })
+
       test('allows normal string fields in google', () => {
         const { hyperformJsonSchema } = require('./index')
 
