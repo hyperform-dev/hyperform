@@ -10,22 +10,28 @@ const { maybeShowSurvey, answerSurvey } = require('./surveyor/index')
 
 const args = process.argv.slice(2)
 
-if ((/init|deploy/.test(args[0]) === false) || (args.length === 2 && args[1] !== '--url') || args.length > 2) {
+if (
+  (/init|deploy/.test(args[0]) === false) 
+|| (args.length <= 1) 
+|| (args.length === 3 && args[2] !== '--url') 
+|| args.length >= 4) {
   log(`Usage: 
- $ hf init
- $ hf deploy [--url]
+ $ hf init                          # Creates config in current directory
+ $ hf deploy some/file.js [--url]   # Deploys exports of a Javascript file
 `)
   process.exit(1)
 }
 
+// $ hf MODE FPATH [--url]
 const mode = args[0]
-const isPublic = (args[1] === '--url')
-// $ hf should always be invoked in the desired directory
-const absdir = process.cwd()
+const fpath = args[1]
+const isPublic = (args[2] === '--url')
+
+const currdir = process.cwd() 
 
 // Mode is init
 if (mode === 'init') {
-  init(absdir)
+  init(currdir)
   process.exit()
 }
 
@@ -40,14 +46,14 @@ if (mode === 'answer') {
 // Mode is deploy
 
 // try to read hyperform.json
-const hyperformJsonExists = fs.existsSync(path.join(absdir, 'hyperform.json'))
+const hyperformJsonExists = fs.existsSync(path.join(currdir, 'hyperform.json'))
 if (hyperformJsonExists === false) {
   log(`No hyperform.json found. You can create one with:
  $ hf init`)
   process.exit(1)
 }
 // parse and validate hyperform.json
-const parsedHyperformJson = getParsedHyperformJson(absdir)
+const parsedHyperformJson = getParsedHyperformJson(currdir)
 
 // Dev Note: Do this as early as possible
 
@@ -68,17 +74,14 @@ if (parsedHyperformJson.google != null) {
   process.env.GC_PROJECT = parsedHyperformJson.google.gc_project
 }
 
-// The regex that determines whether a function will be uploaded as serverless function
-const fnregex = /endpoint/
-
 // Top-level error boundary
 try {
   // Main
   // Do not import earlier, it needs to absorb process.env set above
   // TODO: make less sloppy
   const { main } = require('./index')
-  main(absdir, fnregex, parsedHyperformJson, isPublic)
-    // show anonymous survey question with 1/30 percent probability
+  main(currdir, fpath, parsedHyperformJson, isPublic)
+    // show anonymous survey question with 1/30 probability
     .then(() => maybeShowSurvey())
 } catch (e) {
   log(e)

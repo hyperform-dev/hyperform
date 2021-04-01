@@ -3,7 +3,7 @@
 const chalk = require('chalk')
 const { bundleAmazon } = require('./bundler/amazon/index')
 const { bundleGoogle } = require('./bundler/google/index')
-const { getInfos } = require('./discoverer/index')
+const { getNamedExportKeys } = require('./discoverer/index')
 const { deployAmazon } = require('./deployer/amazon/index')
 const { publishAmazon } = require('./publisher/amazon/index')
 const { spinnies, log, logdev } = require('./printers/index')
@@ -14,6 +14,7 @@ const schema = require('./schemas/index').hyperformJsonSchema
 const fs = require('fs')
 const fsp = require('fs').promises
 const path = require('path')
+const { EOL } = require('os')
 const { createCopy } = require('./copier/index')
 const { zipDir } = require('./zipper/google/index')
 const { kindle } = require('./kindler/index')
@@ -45,48 +46,75 @@ async function bundleTranspileZipAmazon(fpath) {
   }
 }
 
+// TODO those are basically the same now
+// but for later it may be good to have them separate
+// in case they start to diverge
+
 /**
  * 
- * @param {string} dir Sufficiently parent directory so it encompasses all the functions. Usually with package.json in it.
- * @param {[ { p: string, exps: string[] } ]} infos 
+ * @param {string} fpath Path to .js file
  */
-async function bundleTranspileZipGoogle(dir, infos) {
-  // warn if package.json does not exist
-  // (Google won't install npm dependencies then)
-  if (fs.existsSync(path.join(dir, 'package.json')) === false) {
-    log(`No package.json found in this directory. 
-      On Google, therefore no dependencies will be included`)
-  }
-  
-  // copy whole dir to /tmp so we can tinker with it
-  const googlecopyDir = await createCopy(
-    dir,
-    ['node_modules', '.git', '.github', 'hyperform.json'],
-  )
-
-  const indexJsPath = path.join(googlecopyDir, 'index.js')
-  
-  let indexJsAppendix = '' 
-  // add import-export appendix
-  indexJsAppendix = kindle(indexJsAppendix, dir, infos)
-  // add platform appendix
-  indexJsAppendix = transpile(indexJsAppendix)
-
-  // write or append to index.js in our tinker folder
-  if (fs.existsSync(indexJsPath) === false) {
-    await fsp.writeFile(indexJsPath, indexJsAppendix, { encoding: 'utf-8' })
-  } else {
-    await fsp.appendFile(indexJsPath, indexJsAppendix, { encoding: 'utf-8' })
+async function bundleTranspileZipGoogle(fpath) {
+  // Bundle 
+  let googleBundledCode
+  try {
+    googleBundledCode = await bundleGoogle(fpath)
+  } catch (e) {
+    log(`Errored bundling ${fpath} for Google: ${e}`)
+    return // just skip that file 
   }
 
-  // zip tinker folder
-  const googleZipPath = await zipDir(
-    googlecopyDir, 
-    ['node_modules', '.git', '.github', 'hyperform.json'], // superfluous we didnt copy them in the first place
-  )
+  // Transpile 
+  const googleTranspiledCode = transpile(googleBundledCode)
 
-  return googleZipPath
+  // Zip
+  try {
+    const googleZipPath = await zip(googleTranspiledCode)
+    return googleZipPath
+  } catch (e) {
+    // probably underlying issue with the zipping library or OS
+    // skip that file 
+    log(`Errored zipping ${fpath} for Google: ${e}`)
+  }
 }
+
+// async function bundleTranspileZipGoogle(fpath) {
+//   // warn if package.json does not exist
+//   // (Google won't install npm dependencies then)
+//   if (fs.existsSync(path.join(dir, 'package.json')) === false) {
+//     log(`No package.json found in this directory. 
+//       On Google, therefore no dependencies will be included`)
+//   }
+
+//   // copy whole dir to /tmp so we can tinker with it
+//   const googlecopyDir = await createCopy(
+//     dir,
+//     ['node_modules', '.git', '.github', 'hyperform.json'],
+//   )
+
+//   const indexJsPath = path.join(googlecopyDir, 'index.js')
+
+//   let indexJsAppendix = '' 
+//   // add import-export appendix
+//   indexJsAppendix = kindle(indexJsAppendix, dir, infos)
+//   // add platform appendix
+//   indexJsAppendix = transpile(indexJsAppendix)
+
+//   // write or append to index.js in our tinker folder
+//   if (fs.existsSync(indexJsPath) === false) {
+//     await fsp.writeFile(indexJsPath, indexJsAppendix, { encoding: 'utf-8' })
+//   } else {
+//     await fsp.appendFile(indexJsPath, indexJsAppendix, { encoding: 'utf-8' })
+//   }
+
+//   // zip tinker folder
+//   const googleZipPath = await zipDir(
+//     googlecopyDir, 
+//     ['node_modules', '.git', '.github', 'hyperform.json'], // superfluous we didnt copy them in the first place
+//   )
+
+//   return googleZipPath
+// }
 
 /**
  *  @description Deploys a given code .zip to AWS Lambda, and gives it a HTTP endpoint via API Gateway
@@ -99,7 +127,7 @@ async function bundleTranspileZipGoogle(dir, infos) {
 async function deployPublishAmazon(name, region, zipPath, isPublic) {
   const amazonSpinnieName = `amazon-main-${name}`
   try {
-    spinnies.add(amazonSpinnieName, { text: `Deploying ${name}` })
+    spinnies.add(amazonSpinnieName, { text: `Deploying ${name} to AWS Lambda` })
 
     // Deploy it
     const amazonDeployOptions = {
@@ -107,18 +135,18 @@ async function deployPublishAmazon(name, region, zipPath, isPublic) {
       region: region,
     }
     const amazonArn = await deployAmazon(zipPath, amazonDeployOptions)
-    let amazonUrl 
+    let amazonUrl
     // Publish it if isPpublic
     if (isPublic === true) {
       amazonUrl = await publishAmazon(amazonArn, region)
     }
-    spinnies.succ(amazonSpinnieName, { text: `🟢 ${name} ${chalk.rgb(255, 255, 255).bgWhite(amazonUrl)}` })
+    spinnies.succ(amazonSpinnieName, { text: `🟢 ${name} ${chalk.rgb(255, 255, 255).bgWhite(amazonUrl || '(no URL. Add --url if you want one)')}` })
 
     // (return url)
     return amazonUrl
   } catch (e) {
     spinnies.f(amazonSpinnieName, {
-      text: `Error deploying ${name}: ${e.stack}`,
+      text: `Error deploying ${name} to AWS Lambda: ${e.stack}`,
     })
     logdev(e, e.stack)
     return null
@@ -142,7 +170,7 @@ async function deployPublishAmazon(name, region, zipPath, isPublic) {
 async function deployPublishGoogle(name, region, project, zipPath, isPublic) {
   const googleSpinnieName = `google-main-${name}`
   try {
-    spinnies.add(googleSpinnieName, { text: `Deploying ${name}` })
+    spinnies.add(googleSpinnieName, { text: `Deploying ${name} to Google Cloud Functions` })
     const googleOptions = {
       name: name,
       project: project, // process.env.GC_PROJECT,
@@ -150,12 +178,12 @@ async function deployPublishGoogle(name, region, project, zipPath, isPublic) {
       runtime: 'nodejs12',
     }
     const googleUrl = await deployGoogle(zipPath, googleOptions)
-    
+
     if (isPublic === true) {
       // enables anyone with the URL to call the function
       await publishGoogle(name, project, region)
     }
-    spinnies.succ(googleSpinnieName, { text: `🟢 ${name} ${chalk.rgb(255, 255, 255).bgWhite(googleUrl)}` })
+    spinnies.succ(googleSpinnieName, { text: `🟢 ${name} ${chalk.rgb(255, 255, 255).bgWhite(googleUrl || '(no URL. Specify --url if you want one)')}` })
     console.log('Google takes another 1 - 2m for changes to take effect')
 
     // return url
@@ -171,13 +199,13 @@ async function deployPublishGoogle(name, region, project, zipPath, isPublic) {
 /**
  * 
  * @param {string} dir 
- * @param {Regex} fnregex 
+ * @param {Regex} fpath the path to the .js file whose exports should be deployed 
  * @param {*} parsedHyperformJson
  * @param {boolean} isPublic Controls whether (Amazon) to create URL endpoint and (Google) whether to remove IAM protection on the URL
- * @returns {{ urls: string[] }} urls: Mixed, nested Array of endpoint URLs.
+ * @returns {{ urls: string[] }} urls: Mixed Array of endpoint URLs.
  */
-async function main(dir, fnregex, parsedHyperformJson, isPublic) {
-  const infos = await getInfos(dir, fnregex)
+async function main(dir, fpath, parsedHyperformJson, isPublic) {
+  // const infos = await getInfos(dir, fnregex)
   /*
     [
       {
@@ -193,92 +221,151 @@ async function main(dir, fnregex, parsedHyperformJson, isPublic) {
     throw new Error(`${error} ${value}`)
   }
 
-  if (infos.length === 0) {
-    log(`No exports found matching ${fnregex}`)
+  const absfpath = path.resolve(dir, fpath)
+
+  // determine named exports
+  const exps = getNamedExportKeys(absfpath)
+
+  if (exps.length === 0) {
+    log(`No named CommonJS exports found in ${absfpath}. ${EOL}Named exports have the form 'module.exports = { ... }' or 'exports.... = ...' `)
     return [] // no endpoint URLs created
   }
+
+  const isToAmazon = parsedHyperformJson.amazon != null
+  const isToGoogle = parsedHyperformJson.google != null
+
+  let amazonZipPath
+  let googleZipPath
+
+  if (isToAmazon === true) {
+    amazonZipPath = await bundleTranspileZipAmazon(absfpath)
+  }
+
+  if (isToGoogle === true) {
+    googleZipPath = await bundleTranspileZipGoogle(absfpath)
+  }
+
+  /// ///////////////////////////////////////////////////
+  /// Each  export, deploy as function & publish. Obtain URL.
+  /// ///////////////////////////////////////////////////
+
+  let endpoints = await Promise.all(
+    // For each export
+    exps.map(async (exp) => {
+      /// //////////////////////////////////////////////////////////
+      /// Deploy to Amazon
+      /// //////////////////////////////////////////////////////////
+      let amazonUrl
+      if (isToAmazon === true) {
+        amazonUrl = await deployPublishAmazon(
+          exp,
+          parsedHyperformJson.amazon.aws_default_region,
+          amazonZipPath,
+          isPublic,
+        )
+      }
+
+      /// //////////////////////////////////////////////////////////
+      /// Deploy to Google
+      /// //////////////////////////////////////////////////////////
+      let googleUrl
+      if (isToGoogle === true) {
+        googleUrl = await deployPublishGoogle(
+          exp,
+          'us-central1',
+          'hyperform-7fd42', // TODO
+          googleZipPath,
+          isPublic,
+        )
+      }
+
+      return amazonUrl || googleUrl // for tests etc
+    }),
+  )
+
+  endpoints = endpoints.filter((el) => el)
+
+  return { urls: endpoints }
 
   /// //////////////////////////////////////////////////////////
   // Bundle and zip for Google  (once) //
   /// //////////////////////////////////////////////////////////
 
-  const googleZipPath = await bundleTranspileZipGoogle(dir, infos)
-
   // TODO 
-  
+
   // NOTE that google and amazon now work fundamentally different
   // Google - 1 deployment package
-  
+
   // For each file 
   //   bundle
   //   transpile 
-  //   Amazon
-  //     zip
-  //     deployAmazon 
-  //     publishAmazon  
+  // //   Amazon
+  // //     zip
+  // //     deployAmazon 
+  // //     publishAmazon  
 
-  // Later instead of N times, just create 1 deployment package for all functions
+  // // Later instead of N times, just create 1 deployment package for all functions
 
-  const endpoints = await Promise.all(
-    // For each file
-    infos.map(async (info) => {
-      const toAmazon = parsedHyperformJson.amazon != null 
-      const toGoogle = parsedHyperformJson.google != null 
-      /// //////////////////////////////////////////////////////////
-      // Bundle and zip for Amazon //
-      /// //////////////////////////////////////////////////////////
-      let amazonZipPath
-      if (toAmazon === true) {
-        amazonZipPath = await bundleTranspileZipAmazon(info.p)
-      } 
+  // const endpoints = await Promise.all(
+  //   // For each file
+  //   infos.map(async (info) => {
+  //     const toAmazon = parsedHyperformJson.amazon != null
+  //     const toGoogle = parsedHyperformJson.google != null
+  //     /// //////////////////////////////////////////////////////////
+  //     // Bundle and zip for Amazon //
+  //     /// //////////////////////////////////////////////////////////
+  //     let amazonZipPath
+  //     if (toAmazon === true) {
+  //       amazonZipPath = await bundleTranspileZipAmazon(info.p)
+  //     }
 
-      /// //////////////////////////////////////////////////////////
-      // Bundle and zip for Google //
-      // NOW DONE ABOVE
-      /// //////////////////////////////////////////////////////////
-      // let googleZipPath 
-      // if (toGoogle === true) {
-      //   googleZipPath = await bundleTranspileZipGoogle(info.p)
-      // }
+  //     /// //////////////////////////////////////////////////////////
+  //     // Bundle and zip for Google //
+  //     // NOW DONE ABOVE
+  //     /// //////////////////////////////////////////////////////////
+  //     // let googleZipPath 
+  //     // if (toGoogle === true) {
+  //     //   googleZipPath = await bundleTranspileZipGoogle(info.p)
+  //     // }
 
-      // For each matching export
-      const endpts = await Promise.all(
-        info.exps.map(async (exp, idx) => {
-          /// //////////////////////////////////////////////////////////
-          /// Deploy to Amazon
-          /// //////////////////////////////////////////////////////////
-          let amazonUrl 
-          if (toAmazon === true) {
-            amazonUrl = await deployPublishAmazon(
-              exp,
-              parsedHyperformJson.amazon.aws_default_region,
-              amazonZipPath,
-              isPublic,
-            )
-          }
+  //     // For each matching export
+  //     const endpts = await Promise.all(
+  //       info.exps.map(async (exp, idx) => {
+  //         /// //////////////////////////////////////////////////////////
+  //         /// Deploy to Amazon
+  //         /// //////////////////////////////////////////////////////////
+  //         let amazonUrl
+  //         if (toAmazon === true) {
+  //           amazonUrl = await deployPublishAmazon(
+  //             exp,
+  //             parsedHyperformJson.amazon.aws_default_region,
+  //             amazonZipPath,
+  //             isPublic,
+  //           )
+  //         }
 
-          /// //////////////////////////////////////////////////////////
-          /// Deploy to Google
-          /// //////////////////////////////////////////////////////////
-          let googleUrl
-          if (toGoogle === true) {
-            googleUrl = await deployPublishGoogle(
-              exp, 
-              'us-central1', 
-              'hyperform-7fd42', // TODO
-              googleZipPath,
-              isPublic,
-            )
-          }
-          
-          return [amazonUrl, googleUrl].filter((el) => el) // for tests etc
-        }),
-      )
+  //         /// //////////////////////////////////////////////////////////
+  //         /// Deploy to Google
+  //         /// //////////////////////////////////////////////////////////
+  //         let googleUrl
+  //         if (toGoogle === true) {
+  //           googleUrl = await deployPublishGoogle(
+  //             exp,
+  //             'us-central1',
+  //             'hyperform-7fd42', // TODO
+  //             googleZipPath,
+  //             isPublic,
+  //           )
+  //         }
 
-      return [].concat(...endpts)
-    }),
-  )
-  return { urls: endpoints }
+  //         return [amazonUrl, googleUrl].filter((el) => el) // for tests etc
+  //       }),
+  //     )
+
+  //     return [].concat(...endpts)
+  //   }),
+  // )
+  // return { urls: endpoints }
 }
 
 module.exports = {
