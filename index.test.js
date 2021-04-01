@@ -44,41 +44,41 @@ describe('System tests (takes 1-2 minutes)', () => {
           return 100
         }
         
-        function endpoint_systemtest_echo(event, http) {
+        function jest_systemtest_echo(event, http) {
           return { event: event, http: http }
         }
         
         module.exports = {
-          endpoint_systemtest_echo
+          jest_systemtest_echo
         }
         `
 
       const tmpcodepath = path.join(tmpdir, 'index.js')
       await fsp.writeFile(tmpcodepath, code, { encoding: 'utf-8' })
     
-      const dir = tmpdir
-      const fnregex = /endpoint/
-        
+      const arg1 = tmpdir
+      const arg2 = tmpcodepath
       /// ////////////////////////////////////////////
       // Run main for Amazon
       /// ////////////////////////////////////////////
-
       let amazonMainRes
+
       {
-        const amazonParsedHyperformJson = {
+        const amazonarg3 = {
           amazon: {
             aws_access_key_id: process.env.AWS_ACCESS_KEY_ID,
             aws_secret_access_key: process.env.AWS_SECRET_ACCESS_KEY,
             aws_default_region: process.env.AWS_REGION,
           },
-
+          
         }
-
-        const isPublic = true
-      
+        
+        // isPublic
+        const amazonarg4 = true
+        
         let err
         try {
-          amazonMainRes = await main(dir, fnregex, amazonParsedHyperformJson, isPublic)
+          amazonMainRes = await main(arg1, arg2, amazonarg3, amazonarg4)
         } catch (e) {
           console.log(e)
           err = e
@@ -96,7 +96,7 @@ describe('System tests (takes 1-2 minutes)', () => {
       /// ////////////////////////////////////////////  
       let googleMainRes
       {
-        const googleParsedHyperformJson = {
+        const googlearg3 = {
           google: {
             gc_client_email: '',
             gc_private_key: '',
@@ -106,11 +106,11 @@ describe('System tests (takes 1-2 minutes)', () => {
         }
 
         // to test publishing too
-        const isPublic = true
+        const googlearg4 = true
      
         let err
         try {
-          googleMainRes = await main(dir, fnregex, googleParsedHyperformJson, isPublic)
+          googleMainRes = await main(arg1, arg2, googlearg3, googlearg4)
         } catch (e) {
           console.log(e)
           err = e
