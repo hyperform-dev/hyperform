@@ -1,6 +1,11 @@
 /* eslint-disable max-len */
 
 const chalk = require('chalk')
+const semver = require('semver')
+const fs = require('fs')
+const fsp = require('fs').promises
+const path = require('path')
+const { EOL } = require('os')
 const { bundleAmazon } = require('./bundler/amazon/index')
 const { bundleGoogle } = require('./bundler/google/index')
 const { getNamedExportKeys } = require('./discoverer/index')
@@ -11,10 +16,7 @@ const { zip } = require('./zipper/index')
 const { deployGoogle, publishGoogle } = require('./deployer/google/index')
 const { transpile } = require('./transpiler/index')
 const schema = require('./schemas/index').hyperformJsonSchema
-const fs = require('fs')
-const fsp = require('fs').promises
-const path = require('path')
-const { EOL } = require('os')
+const packagejson = require('./package.json')
 const { createCopy } = require('./copier/index')
 const { zipDir } = require('./zipper/google/index')
 const { kindle } = require('./kindler/index')
@@ -214,6 +216,13 @@ async function main(dir, fpath, parsedHyperformJson, isPublic) {
       }
     ]
   */
+
+  // Check node version (again)
+  const version = packagejson.engines.node 
+  if (semver.satisfies(process.version, version) !== true) {
+    console.log(`Hyperform needs node ${version} or newer, but version is ${process.version}.`);
+    process.exit(1);
+  }
 
   // verify parsedHyperformJson (again)
   const { error, value } = schema.validate(parsedHyperformJson)

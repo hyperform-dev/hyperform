@@ -1,14 +1,24 @@
 #!/usr/bin/env node
 const path = require('path')
 const fs = require('fs')
+const semver = require('semver')
 const { init } = require('./initer/index')
 const { getParsedHyperformJson } = require('./parser/index')
 const { log } = require('./printers/index')
 const { maybeShowSurvey, answerSurvey } = require('./surveyor/index')
+const packagejson = require('./package.json')
+
 // Ingest CLI arguments
 // DEV NOTE: Keep it brief and synchronious
 
 const args = process.argv.slice(2)
+
+// Check node version
+const version = packagejson.engines.node 
+if (semver.satisfies(process.version, version) !== true) {
+  console.log(`Hyperform needs node ${version} or newer, but version is ${process.version}.`);
+  process.exit(1);
+}
 
 if (
   (/init|deploy/.test(args[0]) === false) 
@@ -64,6 +74,8 @@ if (parsedHyperformJson.amazon != null) {
   process.env.AWS_ACCESS_KEY_ID = parsedHyperformJson.amazon.aws_access_key_id,
   process.env.AWS_SECRET_ACCESS_KEY = parsedHyperformJson.amazon.aws_secret_access_key,
   process.env.AWS_REGION = parsedHyperformJson.amazon.aws_default_region
+  // may, may not be defined.
+  process.env.AWS_SESSION_TOKEN = parsedHyperformJson.amazon.aws_session_token
 }
 
 // Load GC Credentials from hyperform.json into process.env
