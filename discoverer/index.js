@@ -64,7 +64,7 @@ function getNamedExportKeys(filepath) {
   } catch (e) {
     // if js file isn't parseable, top level code throws, etc
     // ignore it
-    log(`Could not determine named exports of ${filepath}, ignoring it. ${EOL} Error: ${e}`)
+    log(`Could not determine named exports of ${filepath}. Try to fix the error and try again: ${EOL} Error: ${e}`)
     return []
   }
 }
@@ -112,4 +112,5 @@ async function getInfos(dir, fnregex) {
 
 module.exports = {
   getInfos,
+  getNamedExportKeys,
 }
