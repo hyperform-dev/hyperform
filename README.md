@@ -4,6 +4,9 @@
 <p align="center">A next-gen serverless deployer
 <br>For AWS Lambda & Google Cloud Functions</p>
 
+<!-- TODO bullet list (similar to JS cookie -->
+
+
 ## Install
 
 ```sh
@@ -11,96 +14,90 @@ $ npm install -g hyperform-cli
 ```
 
 
-## Usage
+## Basic Usage
 
 ```
 $ hf init 
 $ hf deploy [--url]
 ```
 
-### ✍️ Write normal JavaScript
-
-The first argument always an object. It is the parsed POST body, the parsed GET query string, or the unchanged SNS, Google PubSub, Google Storage (...) event. The default is `{}`.
+### ✍️ Write functions
 
 
 ```js
-function greet(input, http) {
-  
-  if(http.method != null) {
-    console.log(`
-      I was invoked via ${http.method}. 
-      Headers: ${http.headers}
-    `)
-  }
-  
-  return { 
-    greeting: `Hi from AWS Lambda or Google Cloud Functions, ${input.name} !` 
-  }
+function greetMorning(event) {
+  return { greeting: `Good morning, ${event.name}`
 }
 
+function greetEvening(event) {
+  return { greeting: `Good evening, ${event.name}`
+}
 
 module.exports = {
-  // Hyperform looks for CommonJS exports matching 'endpoint'
-  endpointGreet: greet 
-}
+  greetMorning,
+  greetEvening
+} 
 ```
 
 ### 🔍 Infer your AWS or Google Cloud credentials
 
 ```sh
 $ hf init
-✓ Created hyperform.json
+>>> ✓ Created hyperform.json
 ```
 
-### 🚀 Deploy exports as functions
-
-```sh 
-$ hf deploy --url
-   # Amazon AWS
-🟢 endpointGreet https://ltirihayh9.execute-api.us-east-2.amazonaws.com/endpointGreet
-   # Google Cloud
-🟢 endpointGreet https://us-central1-myproject.cloudfunctions.net/endpointGreet
-```
-
-If you don't want to make your functions public, omit the `--url` flag.
-
-<!-- 
-
-TODO remove this? Esp with --url optional
-## Invoke 
-
-Your functions  detect from where they are invoked (GET, POST, Provider console, SNS event) so they always receive the same payload.
-
-For instance, you can GET or POST to them.
-Or you can use them internally with the provider.
+### 🚀 Deploy each
 
 ```sh
-#######
-# GET #
-#######
+$ hf deploy --url index.js
 
-$ curl https://us-central1-myproj.cloudfunctions.net/endpointEcho?a=1
+>>> 🟢 greetMorning https://ltirihayh9.execute-api.us-east-2.amazonaws.com/greetMorning 
+>>> 🟢 greetEvening https://ltirihayh9.execute-api.us-east-2.amazonaws.com/greetEvening
+```
 
-> {"Hi from AWS Lambda or Google Cloud Functions!
-      GET or POST body received: {\"a\":1}}"
+If you just want to use it internally, you can omit `--url`.
 
-########
-# POST #
-########
+### 📡 Call
 
-$ curl \
-  -X POST \
-  -H "Content-Type: application/json" \ 
-  -d '{"a":1}' \
-  https://us-central1-myproj.cloudfunctions.net/endpointEcho
+Your functions run the same anywhere, regardless whether you call them via GET, POST, or use them internally. 
+How you pass input depends on how you call them.
 
-> {"Hi from AWS Lambda or Google Cloud Functions!
-      GET or POST body received: {\"a\":1}}"
-``` -->
+For instance via GET:
+
+```sh
+curl  https://us-central1-myproject.cloudfunctions.net/greet?name=John
+
+>>> {"message":"Hi, John!"}
+```
+
+Or via POST: 
+
+```sh
+curl -X POST -d '{"name":"John"}' -H "Content-Type: application/json" https://us-central1-myproject.cloudfunctions.net/greet?name=John
+
+>>> {"message":"Hi, John!"}
+```
+
+## Advanced
+
+#### Accessing HTTP headers
+
+When you call your functions via HTTP, they receive HTTP details as second argument. Otherwise it is `{}`
+
+```sh
+function viaHTTP(input, http) {
+
+  if(http.method != null) {
+    console.log(`
+      I was invoked via ${http.method}! 
+      Headers: ${http.headers}
+    `)
+  }
+}
+```
 
 ## Tips
 
-* Hyperform deploys every CommonJS export named `*endpoint*` as function
 * The first argument always an object. It is the parsed POST body, the parsed GET query string, or the unchanged SNS, Google PubSub, Google Storage (...) event. The default is `{}`.
 * The second argument, if called via HTTP is `{ method: GET|POST, headers: { ... } }`. The default is `{}`.
 * You can import anything. Webpack is used to bundle all dependencies.
