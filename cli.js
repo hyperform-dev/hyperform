@@ -22,7 +22,6 @@ if (semver.satisfies(process.version, version) !== true) {
 
 if (
   (/init|deploy/.test(args[0]) === false) 
-|| (args.length <= 1) 
 || (args.length === 3 && args[2] !== '--url') 
 || args.length >= 4) {
   log(`Usage: 
