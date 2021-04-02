@@ -16,15 +16,16 @@ $ npm install -g hyperform-cli
 ## Basic Usage
 
 ```
-$ hf init                           # Infer AWS / Google Cloud credentials
+$ hf init                           # Create config in this directory
 $ hf deploy some/file.js [--url]    # Deploy exports to AWS Lambda / Google Cloud Functions
 ```
 
 ### ✍️ Write functions
 
+Each exported function will be deployed as serverless function. You can name your functions anything.
 
 ```js
-// index.js
+// file.js
 function greetMorning(event) {
   return { greeting: `Good morning, ${event.name}`
 }
@@ -46,7 +47,7 @@ $ hf init
 >>> ✓ Created hyperform.json
 ```
 
-### 🚀 Deploy
+### 🚀 Deploy the functions
 
 ```sh
 $ hf deploy index.js --url
@@ -59,9 +60,16 @@ If you just want to use it internally, you can omit `--url`.
 
 ### 📡 Call
 
-Your functions run the same anywhere, regardless whether you call them via GET, POST, or use them internally. 
-How you pass input depends on how you call them:
+You can call the functions via HTTP (GET, POST), and use them internally (SNS, Google PubSub, Google Storage Trigger).
 
+How you pass inputs to them depends on how you call them:
+
+method |  example
+---- | ----
+GET | curl URL?name=John
+POST | curl -X POST -d '{"name":"John"}' -H "Content-Type: application/json" URL
+
+<!--
 For instance via GET:
 
 ```sh
@@ -77,6 +85,7 @@ curl -X POST -d '{"name":"John"}' -H "Content-Type: application/json" https://us
 
 >>> {"message":"Hi, John!"}
 ```
+-->
 
 ## Advanced
 
