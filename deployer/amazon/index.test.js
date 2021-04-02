@@ -42,8 +42,9 @@ describe('deployer', () => {
         // Setup: create code zip
 
         const code = `module.exports = { ${LAMBDANAME}: () => ({a: 1}) }`
- 
-        const zipPath = await zip(code)
+        const zipPath = await zip({
+          'index.js': code, 
+        })
  
         /// ////////////////////////////////////////////////////
  
@@ -79,7 +80,9 @@ describe('deployer', () => {
         
         const code = `module.exports = { ${LAMBDANAME}: () => ({a: 1}) }`
         
-        const zipPath = await zip(code)
+        const zipPath = await zip({
+          'index.js': code,
+        })
 
         /// //////////////////////////////////////////////
         // Setup: ensure function exists 

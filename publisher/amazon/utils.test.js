@@ -94,6 +94,7 @@ describe('utils', () => {
           method: 'POST',
         })
         const statusCode = `${getres.status}`
+        console.log(statusCode)
         // POST route returns 2XX
         expect(/^2/.test(statusCode)).toBe(true)
       }

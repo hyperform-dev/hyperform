@@ -1,13 +1,17 @@
 describe('zipper', () => {
-  test('completes and returns valid path', async () => {
+  test('completes with multiple files and returns valid path', async () => {
     const path = require('path')
     const fs = require('fs')
     const { zip } = require('./index')
-    const code = 'module.exports = () => { }'
+
+    const inp = {
+      'fileWithinZip.txt': 'abc',
+    }
+
     let err
     let res 
     try {
-      res = await zip(code)
+      res = await zip(inp)
     } catch (e) {
       console.log(e)
       err = e

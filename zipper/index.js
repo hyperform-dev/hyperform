@@ -7,11 +7,11 @@ const { Readable } = require('stream')
 
 const yazl = require('yazl')
 /**
- * @description Creates a .zip that contains a single file, 'index.js' with given code in it
- * @param {string} code index.js code
+ * @description Creates a .zip that contains given filecontents, within given filenames. All at the zip root
+ * @param {{}} filesobj For instance { 'file.txt': 'abc' }
  * @returns {Promise<string>} Path to the created .zip
  */
-async function zip(code) {
+async function zip(filesobj) {
   const uid = `${Math.ceil(Math.random() * 10000)}`
   const zipfile = new yazl.ZipFile()
 
@@ -20,23 +20,32 @@ async function zip(code) {
   const outdir = await fsp.mkdtemp(path.join(os.tmpdir(), 'zipped-'))
   const outpath = path.join(outdir, 'deploypackage.zip')
 
-  // set up stream
-  const s = new Readable();
-  s._read = () => {};
-  s.push(code);
-  s.push(null);
-  
   zipfile.outputStream.pipe(fs.createWriteStream(outpath))
-  // In zip, set last-modified header to 01-01-2020
-  // this way, rezipping identical files is deterministic (gives the same codesha256)
-  // that way we can skip uploading zips that haven't changed
-  const options = {
-    mtime: new Date(1577836),
-    // note: spare setting unix permissions with mode:
-    // indicates a different PC and does not hurt to actually redeploy 
+
+  // filesobj is like { 'file.txt': 'abc', 'file2.txt': '123' }
+  // for each such destination file,...
+  const fnames = Object.keys(filesobj)
+  for (let i = 0; i < fnames.length; i += 1) {
+    const fname = fnames[i]
+    const fcontent = filesobj[fname]
+
+    // set up stream
+    const s = new Readable();
+    s._read = () => {};
+    s.push(fcontent);
+    s.push(null);
+
+    // In zip, set last-modified header to 01-01-2020
+    // this way, rezipping identical files is deterministic (gives the same codesha256)
+    // that way we can skip uploading zips that haven't changed
+    const options = {
+      mtime: new Date(1577836),
+    }
+
+    zipfile.addReadStream(s, fname, options); // place code in index.js inside zip
+    console.log(`created ${fname} in zip`)
   }
 
-  zipfile.addReadStream(s, 'index.js', options); // place code in index.js inside zip
   zipfile.end()
   
   console.timeEnd(`zip-${uid}`)

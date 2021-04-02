@@ -39,7 +39,9 @@ async function bundleTranspileZipAmazon(fpath) {
 
   // Zip
   try {
-    const amazonZipPath = await zip(amazonTranspiledCode)
+    const amazonZipPath = await zip({
+      'index.js': amazonTranspiledCode,
+    })
     return amazonZipPath
   } catch (e) {
     // probably underlying issue with the zipping library or OS
@@ -55,9 +57,10 @@ async function bundleTranspileZipAmazon(fpath) {
 /**
  * 
  * @param {string} fpath Path to .js file
+ * @param {string} dir
  */
-async function bundleTranspileZipGoogle(fpath) {
-  // Bundle 
+async function bundleTranspileZipGoogle(fpath, dir) {
+  // Bundle (omits any npm packages) 
   let googleBundledCode
   try {
     googleBundledCode = await bundleGoogle(fpath)
@@ -69,14 +72,28 @@ async function bundleTranspileZipGoogle(fpath) {
   // Transpile 
   const googleTranspiledCode = transpile(googleBundledCode)
 
-  // Zip
+  // Try to locate a package.json
+  // Needed so google installs the npm packages
+  const packageJsonPath = path.join(dir, 'package.json')
+  let packageJsonContent
+  if (fs.existsSync(packageJsonPath)) {
+    packageJsonContent = fs.readFileSync(packageJsonPath, { encoding: 'utf-8' })
+  } else {
+    // warn
+    log(`No package.json found in this directory. 
+      On Google, therefore no dependencies will be included`)
+  }
+
+  // Zip code and package.json
   try {
-    const googleZipPath = await zip(googleTranspiledCode)
+    const googleZipPath = await zip({
+      'index.js': googleTranspiledCode,
+      'package.json': packageJsonContent || undefined,
+    })
     return googleZipPath
   } catch (e) {
     // probably underlying issue with the zipping library or OS
-    // skip that file 
-    log(`Errored zipping ${fpath} for Google: ${e}`)
+    throw new Error(`Errored zipping ${fpath} for Google: ${e}`)
   }
 }
 
@@ -207,16 +224,6 @@ async function deployPublishGoogle(name, region, project, zipPath, isPublic) {
  * @returns {{ urls: string[] }} urls: Mixed Array of endpoint URLs.
  */
 async function main(dir, fpath, parsedHyperformJson, isPublic) {
-  // const infos = await getInfos(dir, fnregex)
-  /*
-    [
-      {
-        p: '/home/qng/dir/somefile.js',
-        exps: [ 'endpoint_hello' ]
-      }
-    ]
-  */
-
   // Check node version (again)
   const version = packagejson.engines.node 
   if (semver.satisfies(process.version, version) !== true) {
@@ -251,7 +258,7 @@ async function main(dir, fpath, parsedHyperformJson, isPublic) {
   }
 
   if (isToGoogle === true) {
-    googleZipPath = await bundleTranspileZipGoogle(absfpath)
+    googleZipPath = await bundleTranspileZipGoogle(absfpath, dir)
   }
 
   /// ///////////////////////////////////////////////////

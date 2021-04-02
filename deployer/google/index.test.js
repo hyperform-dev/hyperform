@@ -21,7 +21,9 @@ describe('deployer', () => {
         
         const name = 'jest_reserved_deployGoogle_A'
         const code = `module.exports = { ${name}: () => ({a: 1}) }`
-        const zipPath = await zip(code)
+        const zipPath = await zip({
+          'index.js': code,
+        })
 
         /// ////////////////////////////////////////////////////
 
