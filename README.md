@@ -74,8 +74,8 @@ How you pass inputs to them depends on how you call them:
 
 method |  example
 ---- | ----
-GET | curl URL?name=John
-POST | curl -X POST -d '{"name":"John"}' -H "Content-Type: application/json" URL
+GET | `curl ...?name=John`
+POST | `curl  -d '{"name":"John"}' -X POST -H "Content-Type: application/json" ...`
 
 <!--
 For instance via GET:
