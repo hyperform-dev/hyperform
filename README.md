@@ -19,12 +19,7 @@ $ npm install -g hyperform-cli
 ```
 
 
-## Basic Usage
-
-```
-$ hf init                      
-$ hf deploy some/file.js [--url]   
-```
+## Example
 
 ### ✍️ Write functions
 
