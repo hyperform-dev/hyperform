@@ -22,7 +22,7 @@ $ hf deploy some/file.js [--url]    # Deploy exports to AWS Lambda / Google Clou
 
 ### ✍️ Write functions
 
-Each exported function will be deployed as serverless function. You can name your functions anything.
+Export each function you want to deploy. You can name them anything.
 
 ```js
 // file.js
