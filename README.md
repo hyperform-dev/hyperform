@@ -7,9 +7,7 @@
 
 <!-- TODO bullet list (similar to JS cookie -->
 
-
-![Video](https://user-images.githubusercontent.com/28540311/113402372-30a5ef00-93a5-11eb-9573-cff79c2595b8.mp4)
-
+![GIF](https://user-images.githubusercontent.com/28540311/113402825-fb4dd100-93a5-11eb-9769-4558e837def7.gif)
 
 
 ## Install
