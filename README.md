@@ -3,7 +3,7 @@
 ![Hyperform Banner](https://github.com/qngapparat/hyperform/blob/master/hyperform-banner.png)
 
 
-<p align="center">A simple deployer for AWS Lambda / Google Cloud Functions</p>
+<p align="center">Deploy code as serverless function (AWS, Google Cloud)</p>
 
 <!-- TODO bullet list (similar to JS cookie -->
 
