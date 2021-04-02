@@ -3,7 +3,7 @@
 ![Hyperform Banner](https://github.com/qngapparat/hyperform/blob/master/hyperform-banner.png)
 
 
-<p align="center">The simplest way to use AWS Lambda / Google Cloud Functions</p>
+<p align="center">A simple deployer for AWS Lambda / Google Cloud Functions</p>
 
 <!-- TODO bullet list (similar to JS cookie -->
 
@@ -20,6 +20,7 @@ $ npm install -g hyperform-cli
 
 
 ## Basic Usage
+
 
 ### ✍️ Write functions
 
@@ -44,7 +45,7 @@ module.exports = {
 
 ### 🔍 Infer your AWS or Google Cloud credentials
 
-Hyperform reads your AWS or Google Cloud credentials from a file called `hyperform.json`. You can use `hf init` to guess automatically guess them.
+Hyperform reads AWS or Google Cloud credentials from a file called `hyperform.json`. You can type `hf init` to create it automatically (consults first `ENV`, then `.aws` and `.gcloud`.
 
 
 ```sh
@@ -54,8 +55,8 @@ $ hf init
 
 ### 🚀 Deploy the functions
 
-Use `hf deploy` to deploy each export as serverless function.
-Add `--url` to get an URL to call it from the web.
+Use `hf deploy` to deploy.
+Add `--url` to get an URL for each function.
 
 ```sh
 $ hf deploy file.js --url
