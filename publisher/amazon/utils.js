@@ -1,13 +1,19 @@
 const AWS = require('aws-sdk')
 const { log, logdev } = require('../../printers/index')
 
-AWS.config.update({
+const conf = {
   accessKeyId: process.env.AWS_ACCESS_KEY_ID,
   secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
-  region: process.env.AWS_REGION,
+  region: process.env.AWS_REGION, 
   // may, may not be defined
-  sessionToken: process.env.AWS_SESSION_TOKEN || undefined,
-})
+  // sessionToken: process.env.AWS_SESSION_TOKEN || undefined, 
+}
+
+if (process.env.AWS_SESSION_TOKEN != null && process.env.AWS_SESSION_TOKEN !== 'undefined') {
+  conf.sessionToken = process.env.AWS_SESSION_TOKEN
+}
+
+AWS.config.update(conf)
 
 /**
  * @description Creates a new REGIONAL API in "region" named "apiName"
