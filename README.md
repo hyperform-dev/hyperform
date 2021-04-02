@@ -19,12 +19,11 @@ $ npm install -g hyperform-cli
 ```
 
 
-## Example
+## Basic Usage
 
 ### ✍️ Write functions
 
 You can name them anything. Just export them from the file.
-
 
 
 ```js
@@ -45,12 +44,18 @@ module.exports = {
 
 ### 🔍 Infer your AWS or Google Cloud credentials
 
+Hyperform reads your AWS or Google Cloud credentials from a file called `hyperform.json`. You can use `hf init` to guess automatically guess them.
+
+
 ```sh
 $ hf init
 >>> ✓ Created hyperform.json
 ```
 
 ### 🚀 Deploy the functions
+
+Use `hf deploy` to deploy each export as serverless function.
+Add `--url` to get an URL to call it from the web.
 
 ```sh
 $ hf deploy file.js --url
@@ -59,12 +64,10 @@ $ hf deploy file.js --url
 >>> 🟢 greetEvening https://ltirihayh9.execute-api.us-east-2.amazonaws.com/greetEvening
 ```
 
-If you just want to use it internally, you can omit `--url`.
 
 ### 📡 Call
 
 You can call the functions via HTTP (GET, POST), and use them internally (SNS, Google PubSub, Google Storage Trigger).
-
 How you pass inputs to them depends on how you call them:
 
 method |  example
