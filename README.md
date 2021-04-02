@@ -7,8 +7,10 @@
 
 <!-- TODO bullet list (similar to JS cookie -->
 
-![GIF](https://user-images.githubusercontent.com/28540311/113403443-f3426100-93a6-11eb-9e51-5f048b77be88.gif)
+<p align="center">
+    <img src="https://user-images.githubusercontent.com/28540311/113403443-f3426100-93a6-11eb-9e51-5f048b77be88.gif" alt="GIF" />
 
+</p>
 
 ## Install
 
