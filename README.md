@@ -35,11 +35,11 @@ You can name them anything. Just export them from the file.
 ```js
 // file.js
 function greetMorning(event) {
-  return { greeting: `Good morning, ${event.name}`
+  return { greeting: `Good morning, ${event.name}` }
 }
 
 function greetEvening(event) {
-  return { greeting: `Good evening, ${event.name}`
+  return { greeting: `Good evening, ${event.name}` }
 }
 
 module.exports = {
@@ -58,7 +58,7 @@ $ hf init
 ### 🚀 Deploy the functions
 
 ```sh
-$ hf deploy index.js --url
+$ hf deploy file.js --url
 
 >>> 🟢 greetMorning https://ltirihayh9.execute-api.us-east-2.amazonaws.com/greetMorning 
 >>> 🟢 greetEvening https://ltirihayh9.execute-api.us-east-2.amazonaws.com/greetEvening
@@ -102,7 +102,7 @@ curl -X POST -d '{"name":"John"}' -H "Content-Type: application/json" https://us
 When you call your functions via HTTP, they receive HTTP details as second argument. Otherwise it is `{}`
 
 ```js
-function viaHTTP(input, http) {
+function calledViaHTTP(input, http) {
 
   if(http.method != null) {
     console.log(`
