@@ -1,9 +1,15 @@
+
+
 ![Hyperform Banner](https://github.com/qngapparat/hyperform/blob/master/hyperform-banner.png)
 
 
 <p align="center">The simplest way to use AWS Lambda / Google Cloud Functions</p>
 
 <!-- TODO bullet list (similar to JS cookie -->
+
+
+![Video](https://user-images.githubusercontent.com/28540311/113402372-30a5ef00-93a5-11eb-9573-cff79c2595b8.mp4)
+
 
 
 ## Install
@@ -23,6 +29,8 @@ $ hf deploy some/file.js [--url]    # Deploy exports to AWS Lambda / Google Clou
 ### ✍️ Write functions
 
 Export each function you want to deploy. You can name them anything.
+
+
 
 ```js
 // file.js
