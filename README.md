@@ -20,13 +20,13 @@ $ npm install -g hyperform-cli
 ## Basic Usage
 
 ```
-$ hf init                           # Create config in this directory
-$ hf deploy some/file.js [--url]    # Deploy exports to AWS Lambda / Google Cloud Functions
+$ hf init                      
+$ hf deploy some/file.js [--url]   
 ```
 
 ### ✍️ Write functions
 
-Export each function you want to deploy. You can name them anything.
+You can name them anything. Just export them from the file.
 
 
 
