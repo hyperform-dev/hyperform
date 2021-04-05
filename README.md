@@ -117,7 +117,7 @@ curl -X POST -d '{"name":"John"}' -H "Content-Type: application/json" https://us
 
 #### Accessing HTTP headers
 
-When you call your functions via HTTP, they receive HTTP details as second argument. Otherwise it is `{}`
+When you call your functions via HTTP, they receive { [headers](https://nodejs.org/api/http.html#http_message_headers), [method](https://nodejs.org/api/http.html#http_message_method) } as second argument. Otherwise it is `{}`
 
 ```js
 function calledViaHTTP(input, http) {
