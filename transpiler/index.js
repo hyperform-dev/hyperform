@@ -11,7 +11,6 @@ function transpile(bundleCode) {
 ;module.exports = (() => {
 
 
-
   /**
     * This is the Hyperform wrapper
     * Plain-text for better readability
@@ -100,20 +99,34 @@ function transpile(bundleCode) {
       if (platform === 'google') {
         wrappedfunc = async function handler(req, resp) {
           // allow to be called from anywhere (also localhost)
-          resp.set('Access-Control-Allow-Origin', '*');
-          resp.set('Access-Control-Allow-Methods', 'GET, POST');
-          resp.set('Access-Control-Allow-Headers', '*');
-          // preflight cached for 5s // TODO chagne
-          resp.set('Access-Control-Max-Age', '5');
 
-          // If it's a  preflight request
-          // See https://cloud.google.com/functions/docs/writing/http#preflight_request
+          //    resp.header('Content-Type', 'application/json');
+          resp.header('Access-Control-Allow-Origin', '*');
+          resp.header('Access-Control-Allow-Headers', '*');
+          resp.set('Access-Control-Allow-Methods', 'GET, POST');
+
+          // respond to CORS preflight requests
           if (req.method === 'OPTIONS') {
-            resp.status(200).send('');
+            resp.status(204).send('');
           } else {
-            // resp.set('Access-Control-Allow-Methods', 'GET, POST');
-            //            GET          POST
-            const event = req.query || JSON.parse(JSON.stringify(req.body));
+            // Warn at common Express mistake
+            // (No content-type header will lead to body-parser not parsing the body)
+            // User will POST but function will receive no input
+            console.log('req.headers:', JSON.stringify(req.headers));
+            console.log('req.method: ', req.method);
+            if (
+              req.method.toLowerCase() === 'post'
+               && req.headers['content-type'] !== 'application/json'
+            ) {
+              console.warn('Dont forget to specify the Content-Type header in case you are POSTing JSON. This is a common mistake; the function will not receive input');
+            }
+
+            // First argument
+            const event = {
+              ...req.query,
+              ...JSON.parse(JSON.stringify(req.body)),
+            };
+            // Second argument
             const httpsubset = {
               // may be undefined fields, and thus httpsubset be {}
               method: req.method,
@@ -141,6 +154,7 @@ function transpile(bundleCode) {
   }
   return curr; // Export unchanged (local, fallback)
 
+  
 })();
 `
 
