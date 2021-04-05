@@ -17,6 +17,7 @@ const HFAPINAME = 'hyperform-v1'
  * @returns {Promise<string>} Full endpoint URL, eg. https://48ytz1e6f3.execute-api.us-east-2.amazonaws.com/endpoint-hello
  */
 async function publishAmazon(lambdaArn, region) {
+  // console.log('received lambdaar', lambdaArn)
   const lambdaName = lambdaArn.split(':').slice(-1)[0]
   // Lambda 'endpoint-hello' should be at 'https://.../endpoint-hello'
   const routePath = `/${lambdaName}`

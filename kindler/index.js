@@ -3,7 +3,7 @@ const path = require('path')
 
 /**
  * Appends code to an index.js ("code") in "dir" that imports 
- * and immediately exports given exports.  Has no side effects.
+ * and immediately exports given "infos".  Has no side effects.
  * Needed for Google that only looks into index.js
  * @param {string} code
  * @param {string} dir

@@ -54,86 +54,91 @@ async function bundleTranspileZipAmazon(fpath) {
 // but for later it may be good to have them separate
 // in case they start to diverge
 
-/**
- * 
- * @param {string} fpath Path to .js file
- * @param {string} dir
- */
-async function bundleTranspileZipGoogle(fpath, dir) {
-  // Bundle (omits any npm packages) 
-  let googleBundledCode
-  try {
-    googleBundledCode = await bundleGoogle(fpath)
-  } catch (e) {
-    log(`Errored bundling ${fpath} for Google: ${e}`)
-    return // just skip that file 
-  }
+// /**
+//  * 
+//  * @param {string} fpath Path to .js file
+//  * @param {string} dir
+//  */
+// async function bundleTranspileZipGoogle(fpath, dir) {
+//   // Bundle (omits any npm packages) 
+//   let googleBundledCode
+//   try {
+//     googleBundledCode = await bundleGoogle(fpath)
+//   } catch (e) {
+//     log(`Errored bundling ${fpath} for Google: ${e}`)
+//     return // just skip that file 
+//   }
 
-  // Transpile 
-  const googleTranspiledCode = transpile(googleBundledCode)
+//   // Transpile 
+//   const googleTranspiledCode = transpile(googleBundledCode)
 
-  // Try to locate a package.json
-  // Needed so google installs the npm packages
-  const packageJsonPath = path.join(dir, 'package.json')
-  let packageJsonContent
-  if (fs.existsSync(packageJsonPath)) {
-    packageJsonContent = fs.readFileSync(packageJsonPath, { encoding: 'utf-8' })
-  } else {
-    // warn
-    log(`No package.json found in this directory. 
-      On Google, therefore no dependencies will be included`)
-  }
-
-  // Zip code and package.json
-  try {
-    const googleZipPath = await zip({
-      'index.js': googleTranspiledCode,
-      'package.json': packageJsonContent || undefined,
-    })
-    return googleZipPath
-  } catch (e) {
-    // probably underlying issue with the zipping library or OS
-    throw new Error(`Errored zipping ${fpath} for Google: ${e}`)
-  }
-}
-
-// async function bundleTranspileZipGoogle(fpath) {
-//   // warn if package.json does not exist
-//   // (Google won't install npm dependencies then)
-//   if (fs.existsSync(path.join(dir, 'package.json')) === false) {
+//   // Try to locate a package.json
+//   // Needed so google installs the npm packages
+//   const packageJsonPath = path.join(dir, 'package.json')
+//   let packageJsonContent
+//   if (fs.existsSync(packageJsonPath)) {
+//     packageJsonContent = fs.readFileSync(packageJsonPath, { encoding: 'utf-8' })
+//   } else {
+//     // warn
 //     log(`No package.json found in this directory. 
 //       On Google, therefore no dependencies will be included`)
 //   }
 
-//   // copy whole dir to /tmp so we can tinker with it
-//   const googlecopyDir = await createCopy(
-//     dir,
-//     ['node_modules', '.git', '.github', 'hyperform.json'],
-//   )
-
-//   const indexJsPath = path.join(googlecopyDir, 'index.js')
-
-//   let indexJsAppendix = '' 
-//   // add import-export appendix
-//   indexJsAppendix = kindle(indexJsAppendix, dir, infos)
-//   // add platform appendix
-//   indexJsAppendix = transpile(indexJsAppendix)
-
-//   // write or append to index.js in our tinker folder
-//   if (fs.existsSync(indexJsPath) === false) {
-//     await fsp.writeFile(indexJsPath, indexJsAppendix, { encoding: 'utf-8' })
-//   } else {
-//     await fsp.appendFile(indexJsPath, indexJsAppendix, { encoding: 'utf-8' })
+//   // Zip code and package.json
+//   try {
+//     const googleZipPath = await zip({
+//       'index.js': googleTranspiledCode,
+//       'package.json': packageJsonContent || undefined,
+//     })
+//     return googleZipPath
+//   } catch (e) {
+//     // probably underlying issue with the zipping library or OS
+//     throw new Error(`Errored zipping ${fpath} for Google: ${e}`)
 //   }
-
-//   // zip tinker folder
-//   const googleZipPath = await zipDir(
-//     googlecopyDir, 
-//     ['node_modules', '.git', '.github', 'hyperform.json'], // superfluous we didnt copy them in the first place
-//   )
-
-//   return googleZipPath
 // }
+
+async function bundleTranspileZipGoogle(fpath, dir, exps) {
+  // warn if package.json does not exist
+  // (Google won't install npm dependencies then)
+  if (fs.existsSync(path.join(dir, 'package.json')) === false) {
+    log(`No package.json found in this directory. 
+      On Google, therefore no dependencies will be included`)
+  }
+
+  // copy whole dir to /tmp so we can tinker with it
+  const googlecopyDir = await createCopy(
+    dir,
+    ['node_modules', '.git', '.github', 'hyperform.json'],
+  )
+
+  const indexJsPath = path.join(googlecopyDir, 'index.js')
+
+  let indexJsAppendix = '' 
+  // add import-export appendix
+  indexJsAppendix = kindle(indexJsAppendix, dir, [
+    {
+      p: fpath,
+      exps: exps,
+    },
+  ])
+  // add platform appendix
+  indexJsAppendix = transpile(indexJsAppendix)
+
+  // write or append to index.js in our tinker folder
+  if (fs.existsSync(indexJsPath) === false) {
+    await fsp.writeFile(indexJsPath, indexJsAppendix, { encoding: 'utf-8' })
+  } else {
+    await fsp.appendFile(indexJsPath, indexJsAppendix, { encoding: 'utf-8' })
+  }
+
+  // zip tinker folder
+  const googleZipPath = await zipDir(
+    googlecopyDir, 
+    ['node_modules', '.git', '.github', 'hyperform.json'], // superfluous we didnt copy them in the first place
+  )
+
+  return googleZipPath
+}
 
 /**
  *  @description Deploys a given code .zip to AWS Lambda, and gives it a HTTP endpoint via API Gateway
@@ -258,7 +263,7 @@ async function main(dir, fpath, parsedHyperformJson, isPublic) {
   }
 
   if (isToGoogle === true) {
-    googleZipPath = await bundleTranspileZipGoogle(absfpath, dir)
+    googleZipPath = await bundleTranspileZipGoogle(absfpath, dir, exps)
   }
 
   /// ///////////////////////////////////////////////////

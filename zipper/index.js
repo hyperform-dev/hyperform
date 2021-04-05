@@ -43,7 +43,7 @@ async function zip(filesobj) {
     }
 
     zipfile.addReadStream(s, fname, options); // place code in index.js inside zip
-    console.log(`created ${fname} in zip`)
+  //  console.log(`created ${fname} in zip`)
   }
 
   zipfile.end()
