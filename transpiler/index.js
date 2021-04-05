@@ -136,9 +136,9 @@ function transpile(bundleCode) {
             // Invoke user function
             try {
               const output = await userfunc(event, httpsubset);
-              resp.json(output);
+              resp.json(output || {});
             } catch (e) {
-              resp.status(500).send('');
+              resp.status(500).send(''); // TODO generate URL to logs (similar to GH)
             }
           }
         };
