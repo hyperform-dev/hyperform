@@ -135,6 +135,7 @@ module.exports = () => {
               const output = await userfunc(event, httpsubset);
               resp.json(output || {});
             } catch (e) {
+              console.error(e);
               resp.status(500).send(''); // TODO generate URL to logs (similar to GH)
             }
           }
