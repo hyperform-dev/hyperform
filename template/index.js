@@ -100,6 +100,7 @@ module.exports = () => {
           resp.header('Access-Control-Allow-Origin', '*');
           resp.header('Access-Control-Allow-Headers', '*');
           resp.set('Access-Control-Allow-Methods', 'GET, POST');
+          resp.set('Access-Control-Max-Age', 30);
 
           // respond to CORS preflight requests
           if (req.method === 'OPTIONS') {
@@ -130,8 +131,12 @@ module.exports = () => {
             };
 
             // Invoke user function
-            const output = await userfunc(event, httpsubset);
-            resp.json(output);
+            try {
+              const output = await userfunc(event, httpsubset);
+              resp.json(output);
+            } catch (e) {
+              resp.status(500).send('');
+            }
           }
         };
       }

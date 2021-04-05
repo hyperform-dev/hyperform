@@ -10,7 +10,6 @@ function transpile(bundleCode) {
 
 ;module.exports = (() => {
 
-
   /**
     * This is the Hyperform wrapper
     * Plain-text for better readability
@@ -104,6 +103,7 @@ function transpile(bundleCode) {
           resp.header('Access-Control-Allow-Origin', '*');
           resp.header('Access-Control-Allow-Headers', '*');
           resp.set('Access-Control-Allow-Methods', 'GET, POST');
+          resp.set('Access-Control-Max-Age', 30);
 
           // respond to CORS preflight requests
           if (req.method === 'OPTIONS') {
@@ -118,7 +118,7 @@ function transpile(bundleCode) {
               req.method.toLowerCase() === 'post'
                && req.headers['content-type'] !== 'application/json'
             ) {
-              console.warn('Dont forget to specify the Content-Type header in case you are POSTing JSON. This is a common mistake; the function will not receive input');
+              console.warn('Dont forget to specify the Content-Type header in case you are POSTing JSON.');
             }
 
             // First argument
@@ -134,8 +134,12 @@ function transpile(bundleCode) {
             };
 
             // Invoke user function
-            const output = await userfunc(event, httpsubset);
-            resp.json(output);
+            try {
+              const output = await userfunc(event, httpsubset);
+              resp.json(output);
+            } catch (e) {
+              resp.status(500).send('');
+            }
           }
         };
       }
