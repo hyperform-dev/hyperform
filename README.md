@@ -5,6 +5,7 @@
 
 >A simple deployer for AWS Lambda, Google Cloud Functions
 
+
 <!-- TODO bullet list (similar to JS cookie -->
 
 <!--
@@ -20,7 +21,6 @@
 ```sh
 $ npm install -g hyperform-cli
 ```
-
 
 
 ## Basic Usage
@@ -49,8 +49,7 @@ module.exports = {
 
 ### 🔍 Infer your cloud credentials
 
-Hyperform looks for credentials in a file called `hyperform.json`. You can create it automatically with `hf init` (looks first at `ENV`, then `.aws` and `.config/gcloud`).
-
+Hyperform looks for credentials in a file called `hyperform.json`. `hf init` tries to create it automatically, by looking at `ENV`, then `.aws` and `.config/gcloud`.
 
 ```
 // hyperform.json
@@ -73,8 +72,8 @@ Hyperform looks for credentials in a file called `hyperform.json`. You can creat
 
 ### 🚀 Deploy the functions
 
-Use `hf deploy` to deploy each export as function to AWS Lambda or Google Cloud Function.
-Add `--url` to get an URL for each function. On AWS this creates an API Gateway API and binds it. On Google every function has an URL, so `--url` removes the IAM check to make it publicly callable.
+`hf deploy` deploys each CommonJS export (`module.exports`, `exports`) as serverless function (256MB, 60 seconds timeout).
+Specify `--url` to get an URL for each function you can `GET` and `POST` to. On AWS this creates an API Gateway API and binds it. On Google every function has an URL, so `--url` removes the IAM check to make it publicly callable.
 
 ```sh
 $ hf deploy file.js --url
@@ -86,7 +85,7 @@ $ hf deploy file.js --url
 
 ### 📡 Call
 
-You can call the functions via HTTP (GET, POST), and use them internally (SNS, Google PubSub, Google Storage Trigger).
+You can call functions via HTTP (GET, POST), and use them internally (SNS, Google PubSub, Google Storage Trigger).
 How you pass inputs to them depends on how you call them:
 
 method |  example
