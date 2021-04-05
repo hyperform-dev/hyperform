@@ -49,7 +49,9 @@ module.exports = {
 
 ### 🔍 Infer your cloud credentials
 
-Hyperform looks for credentials in a file called `hyperform.json`. `hf init` tries to create it automatically, by looking at `ENV`, then `.aws` and `.config/gcloud`.
+Hyperform looks for credentials in a file called `hyperform.json`. 
+<br>
+`hf init` tries to create it automatically, by looking at `ENV`, then `.aws` and `.config/gcloud`.
 
 ```
 // hyperform.json
