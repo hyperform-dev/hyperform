@@ -3,7 +3,7 @@
 ![Hyperform Banner](https://github.com/qngapparat/hyperform/blob/master/hyperform-banner.png)
 
 
-<p align="center">Easiest way to create serverless functions</p>
+<p align="center">Easy way to create serverless functions</p>
 <p align="center">For AWS Lambda and Google Cloud Functions</p>
 
 <!-- TODO bullet list (similar to JS cookie -->
