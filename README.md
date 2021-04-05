@@ -3,7 +3,8 @@
 ![Hyperform Banner](https://github.com/qngapparat/hyperform/blob/master/hyperform-banner.png)
 
 
-<p align="center">Deploy code as serverless function (AWS, Google Cloud)</p>
+<p align="center">Easiest way to create serverless functions</p>
+<p align="center">For AWS Lambda and Google Cloud Functions</p>
 
 <!-- TODO bullet list (similar to JS cookie -->
 
@@ -43,7 +44,7 @@ module.exports = {
 } 
 ```
 
-### 🔍 Infer your AWS or Google Cloud credentials
+### 🔍 Infer your cloud credentials
 
 Hyperform looks for credentials in a file called `hyperform.json`. You can create it automatically with `hf init` (looks first at `ENV`, then `.aws` and `.config/gcloud`).
 
@@ -69,8 +70,8 @@ Hyperform looks for credentials in a file called `hyperform.json`. You can creat
 
 ### 🚀 Deploy the functions
 
-Use `hf deploy` to deploy.
-Add `--url` to get an URL for each function.
+Use `hf deploy` to deploy each export as function to AWS Lambda or Google Cloud Function.
+Add `--url` to get an URL for each function. On AWS this creates an API Gateway API and binds it. On Google every function has an URL, so `--url` removes the IAM check to make it publicly callable.
 
 ```sh
 $ hf deploy file.js --url
