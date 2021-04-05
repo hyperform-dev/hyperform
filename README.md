@@ -45,13 +45,27 @@ module.exports = {
 
 ### 🔍 Infer your AWS or Google Cloud credentials
 
-Hyperform reads AWS or Google Cloud credentials from a file called `hyperform.json`. You can type `hf init` to create it automatically (consults first `ENV`, then `.aws` and `.gcloud`.
+Hyperform looks for credentials in a file called `hyperform.json`. You can create it automatically with `hf init` (looks first at `ENV`, then `.aws` and `.config/gcloud`).
 
 
-```sh
-$ hf init
->>> ✓ Created hyperform.json
 ```
+// hyperform.json
+{
+  "amazon": {
+    "aws_access_key_id": "",
+    "aws_secret_access_key": "",
+    "aws_default_region": ""
+  }
+  // or 
+  "google": {
+    "gc_project": "",
+    "gc_client_email": "",
+    "gc_private_key": ""
+  }
+}
+```
+
+
 
 ### 🚀 Deploy the functions
 
