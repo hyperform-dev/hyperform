@@ -3,14 +3,18 @@
 ![Hyperform Banner](https://github.com/qngapparat/hyperform/blob/master/hyperform-banner.png)
 
 
-<p align="center">Deploy code as serverless function (AWS, Google Cloud)</p>
+>A simple deployer for AWS Lambda, Google Cloud Functions
+
 
 <!-- TODO bullet list (similar to JS cookie -->
+
+
 
 <p align="center">
     <img src="https://user-images.githubusercontent.com/28540311/113403443-f3426100-93a6-11eb-9e51-5f048b77be88.gif" alt="GIF" />
 
 </p>
+
 
 ## Install
 
@@ -43,20 +47,35 @@ module.exports = {
 } 
 ```
 
-### 🔍 Infer your AWS or Google Cloud credentials
+### 🔍 Infer your cloud credentials
 
-Hyperform reads AWS or Google Cloud credentials from a file called `hyperform.json`. You can type `hf init` to create it automatically (consults first `ENV`, then `.aws` and `.gcloud`.
+Hyperform looks for credentials in a file called `hyperform.json`. 
+<br>
+`hf init` tries to create it automatically, by looking at `ENV`, then `.aws` and `.config/gcloud`.
 
-
-```sh
-$ hf init
->>> ✓ Created hyperform.json
 ```
+// hyperform.json
+{
+  "amazon": {
+    "aws_access_key_id": "",
+    "aws_secret_access_key": "",
+    "aws_default_region": ""
+  }
+  // or 
+  "google": {
+    "gc_project": "",
+    "gc_client_email": "",
+    "gc_private_key": ""
+  }
+}
+```
+
+
 
 ### 🚀 Deploy the functions
 
-Use `hf deploy` to deploy.
-Add `--url` to get an URL for each function.
+`hf deploy` deploys each CommonJS export (`module.exports`, `exports`) as serverless function (256MB, 60 seconds timeout).
+Specify `--url` to get an URL for each function you can `GET` and `POST` to. On AWS this creates an API Gateway API and binds it. On Google every function has an URL, so `--url` removes the IAM check to make it publicly callable.
 
 ```sh
 $ hf deploy file.js --url
@@ -68,7 +87,7 @@ $ hf deploy file.js --url
 
 ### 📡 Call
 
-You can call the functions via HTTP (GET, POST), and use them internally (SNS, Google PubSub, Google Storage Trigger).
+You can call functions via HTTP (GET, POST), and use them internally (SNS, Google PubSub, Google Storage Trigger).
 How you pass inputs to them depends on how you call them:
 
 method |  example
@@ -98,7 +117,7 @@ curl -X POST -d '{"name":"John"}' -H "Content-Type: application/json" https://us
 
 #### Accessing HTTP headers
 
-When you call your functions via HTTP, they receive HTTP details as second argument. Otherwise it is `{}`
+When you call your functions via HTTP, they receive { [headers](https://nodejs.org/api/http.html#http_message_headers), [method](https://nodejs.org/api/http.html#http_message_method) } as second argument. Otherwise it is `{}`
 
 ```js
 function calledViaHTTP(input, http) {
