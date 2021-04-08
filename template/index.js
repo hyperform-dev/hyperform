@@ -9,6 +9,14 @@ module.exports = () => {
 
   /**
     * This is the Hyperform wrapper
+    * It provides some usability features
+    * Amazon:
+    *    - Return error codes of common development mistakes
+    * Google:
+    *    - Send pre-flight headers
+    *    - console.warn on missing headers
+    *    - console.error on error
+    *
     * Plain-text for better readability
     */
   global.alreadyWrappedNames = [];
@@ -27,63 +35,23 @@ module.exports = () => {
       global.alreadyWrappedNames.push(expkey);
       let wrappedfunc;
       if (platform === 'amazon') {
-        wrappedfunc = async function handler(input, context) {
-          // first argument
-          let event = {};
-          // second argument
-          let httpsubset = {};
-
-          /// ///////////////////////////////
-          // We are invoked from console, or via SDK ///////
+        wrappedfunc = async function handler(event, context, callback) {
           /// ////////////////////////////////
-          if (input == null || input.routeKey === undefined || input.rawPath === undefined || input.headers === undefined) {
-            event = input;
-            httpsubset = {};
-          }
-
+          // Invoke user function ///////
           /// ////////////////////////////////
-          // We are invoked from HTTP ///////
-          /// ////////////////////////////////
-          else {
-            httpsubset = {
-              // fields will all be undefined when invoked from console
-              method: input.requestContext && input.requestContext.http && input.requestContext.http.method,
-              headers: input.headers,
-            };
-            // check for GET query string
-            if (input.queryStringParameters != null) {
-              event = input.queryStringParameters;
-            }
-            // check for POST body
-            else if (input.body != null) {
-              event = (input.isBase64Encoded === true)
-                ? Buffer.from(input.body, 'base64').toString('utf-8')
-                : input.body;
-              // try to parse as JSON first
-              try {
-                event = JSON.parse(event);
-              } catch (e) {
-                // try to parse as query string second
-                event = Object.fromEntries(new URLSearchParams(event));
-              }
-            } else {
-              console.log("Warn: No query string, or 'body' field found in input."); // visible in CloudWatch and on Google
-            }
-          }
 
-          // Invoke user function
           let res;
           try {
-            res = await userfunc(event, httpsubset); // TODO add context.fail?
+            res = await userfunc(event, context, callback); // TODO add context.fail?
             context.succeed(res);
           } catch (e) {
             if (e.code === 'AccessDeniedException') {
               // return details for debugging
               context.succeed({
-                statusCode: 200,
+                statusCode: 500,
                 body: JSON.stringify({
-                  ...e,
-                  notice: 'Error details returned by Hyperform wrapper because it is an AccessDeniedException. Hyperform always returns the Error details for: [AccessDeniedException] .',
+                  code: e.code,
+                  notice: 'For easier development, Hyperform always openly returns the error code for: [AccessDeniedException].',
                 }),
               });
             } else {
@@ -93,14 +61,13 @@ module.exports = () => {
         };
       }
       if (platform === 'google') {
-        wrappedfunc = async function handler(req, resp) {
+        wrappedfunc = async function handler(req, resp, ...rest) {
           // allow to be called from anywhere (also localhost)
-
           //    resp.header('Content-Type', 'application/json');
           resp.header('Access-Control-Allow-Origin', '*');
           resp.header('Access-Control-Allow-Headers', '*');
-          resp.set('Access-Control-Allow-Methods', 'GET, POST');
-          resp.set('Access-Control-Max-Age', 30);
+          resp.header('Access-Control-Allow-Methods', '*');
+          resp.header('Access-Control-Max-Age', 30);
 
           // respond to CORS preflight requests
           if (req.method === 'OPTIONS') {
@@ -109,8 +76,6 @@ module.exports = () => {
             // Warn at common Express mistake
             // (No content-type header will lead to body-parser not parsing the body)
             // User will POST but function will receive no input
-            console.log('req.headers:', JSON.stringify(req.headers));
-            console.log('req.method: ', req.method);
             if (
               req.method.toLowerCase() === 'post'
                && req.headers['content-type'] !== 'application/json'
@@ -118,22 +83,10 @@ module.exports = () => {
               console.warn('Dont forget to specify the Content-Type header in case you are POSTing JSON.');
             }
 
-            // First argument
-            const event = {
-              ...req.query,
-              ...JSON.parse(JSON.stringify(req.body)),
-            };
-            // Second argument
-            const httpsubset = {
-              // may be undefined fields, and thus httpsubset be {}
-              method: req.method,
-              headers: req.headers,
-            };
-
             // Invoke user function
+            // (user must .json or .send himself)
             try {
-              const output = await userfunc(event, httpsubset);
-              resp.json(output || {});
+              await userfunc(req, resp, ...rest);
             } catch (e) {
               console.error(e);
               resp.status(500).send(''); // TODO generate URL to logs (similar to GH)
