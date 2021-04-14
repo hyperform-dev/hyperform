@@ -25,7 +25,8 @@ if (
  || ((args.length === 1)) 
 || (args.length === 2)
 || (args.length === 3 && args[2] !== '--amazon' && args[2] !== '--google') 
-|| args.length >= 4) {
+|| (args.length === 4 && ([args[2], args[3]].includes('--url') === false))
+|| args.length >= 5) {
   log(`Usage: 
  $ hf deploy ./some/file.js --amazon  # Deploy exports to AWS Lambda
  $ hf deploy ./some/file.js --google  # Deploy exports to Google Cloud Functions
@@ -36,7 +37,9 @@ if (
 // $ hf MODE FPATH [--url]
 // const mode = args[0]
 const fpath = args[1]
-// const isPublic = (args[2] === '--url')
+const isPublic = (args.length === 4 
+  ? ([args[2], args[3]].includes('--url'))
+  : false)
 
 const currdir = process.cwd() 
 
@@ -116,7 +119,7 @@ try {
   // Do not import earlier, it needs to absorb process.env set above
   // TODO: make less sloppy
   const { main } = require('./index')
-  main(currdir, fpath, platform, parsedHyperformJson)
+  main(currdir, fpath, platform, parsedHyperformJson, isPublic)
   // show anonymous survey question with 1/30 probability
   //  .then(() => maybeShowSurvey())
 } catch (e) {

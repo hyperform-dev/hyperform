@@ -164,7 +164,7 @@ async function deployPublishAmazon(name, region, zipPath, isPublic) {
     if (isPublic === true) {
       amazonUrl = await publishAmazon(amazonArn, region)
     }
-    spinnies.succ(amazonSpinnieName, { text: `🟢 Deployed ${name} to AWS Lambda` })
+    spinnies.succ(amazonSpinnieName, { text: `🟢 Deployed ${name} to AWS Lambda ${amazonUrl || ''}` })
 
     // (return url)
     return amazonUrl
@@ -207,7 +207,7 @@ async function deployPublishGoogle(name, region, project, zipPath, isPublic) {
       // enables anyone with the URL to call the function
       await publishGoogle(name, project, region)
     }
-    spinnies.succ(googleSpinnieName, { text: `🟢 Deployed ${name} to Google Cloud Functions` })
+    spinnies.succ(googleSpinnieName, { text: `🟢 Deployed ${name} to Google Cloud Functions ${googleUrl || ''}` })
     console.log('Google takes another 1 - 2m for changes to take effect')
 
     // return url
@@ -224,9 +224,10 @@ async function deployPublishGoogle(name, region, project, zipPath, isPublic) {
  * @param {string} dir 
  * @param {Regex} fpath the path to the .js file whose exports should be deployed 
  * @param {amazon|google} platform
+ * @param {boolean?} _isPublic
  * @param {{amazon: {aws_access_key_id:string, aws_secret_access_key: string, aws_region: string}}} parsedHyperformJson 
  */
-async function main(dir, fpath, platform, parsedHyperformJson) {
+async function main(dir, fpath, platform, parsedHyperformJson, _isPublic) {
   // Check node version (again)
   const version = packagejson.engines.node 
   if (semver.satisfies(process.version, version) !== true) {
@@ -270,7 +271,7 @@ async function main(dir, fpath, platform, parsedHyperformJson) {
   /// ///////////////////////////////////////////////////
   /// Each  export, deploy as function & publish. Obtain URL.
   /// ///////////////////////////////////////////////////
-  const isPublic = false
+  const isPublic = _isPublic || false
 
   let endpoints = await Promise.all(
     // For each export
