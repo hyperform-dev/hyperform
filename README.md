@@ -21,7 +21,7 @@ Create a `hyperform.json` in the current directory with `$ hf init` (or per hand
   "amazon": {
     "aws_access_key_id": "",
     "aws_secret_access_key": "",
-    "aws_default_region": ""
+    "aws_region": ""
   }
 }
 ```
