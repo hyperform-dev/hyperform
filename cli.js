@@ -26,8 +26,8 @@ if (
 || (args.length === 3 && args[2] !== '--url') 
 || args.length >= 4) {
   log(`Usage: 
- $ hf init                          # Creates config in current directory
- $ hf deploy some/file.js [--url]   # Deploys exports of a Javascript file
+ $ hf init                    # Creates 'hyperform.json' in current directory
+ $ hf deploy ./some/file.js   # Deploys exports of a Javascript file
 `)
   process.exit(1)
 }
@@ -93,8 +93,8 @@ try {
   // TODO: make less sloppy
   const { main } = require('./index')
   main(currdir, fpath, parsedHyperformJson, isPublic)
-    // show anonymous survey question with 1/30 probability
-    .then(() => maybeShowSurvey())
+  // show anonymous survey question with 1/30 probability
+  //  .then(() => maybeShowSurvey())
 } catch (e) {
   log(e)
   process.exit(1)
