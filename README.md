@@ -14,19 +14,19 @@ $ npm install -g hyperform-cli
 
 ### Deploy to AWS Lambda
 
-Create a `hyperform.json` in the current directory with `$ hf init` (or per hand).
+Create a `hyperform.json` in your folder (next to `package.json` and so on) with the these fields:
 
-```
+```json
 {
   "amazon": {
-    "aws_access_key_id": "",
-    "aws_secret_access_key": "",
-    "aws_region": ""
+    "aws_access_key_id": "...",
+    "aws_secret_access_key": "...",
+    "aws_region": "..."
   }
 }
 ```
 
-Export your AWS Lambda functions from any file via `exports` or `module.exports`. The entire folder with `hyperform.json` will be uploaded (excluding `.git`, `.github`), so you can import npm packages spread your code just like normal.
+Export your AWS Lambda functions from any file via `exports` or `module.exports`. You can import npm packages and other files just like normal, since the entire folder with `hyperform.json` will be uploaded (excluding `.git`, `.github`),
 
 ```js
 // file.js
@@ -44,7 +44,7 @@ exports.greetEvening = (event, context, callback) => {
 ```
 
 Deploy or update all functions with the following command.
-The setting for new functions is 256MB RAM, 60 second timeout.
+New functions are deployed with 256MB RAM, 60 second timeout.
 
 `$ hf deploy ./file.js`
 
@@ -57,11 +57,22 @@ You will see something like this:
 
 ### Deploy to Google Cloud Functions
 
-Hyperform uses your default Google project and region configured in your CLI.
-You can view it with `gcloud config list`
+Create a `hyperform.json` (usually at the root, next to `package.json`) with the these fields:
 
+```json
+{
+  "amazon": {
+    "gc_project": "...",
+    "gc_region": "...",
+  }
+}
+```
 
-Export your Google Cloud Functions from any file via `exports` or `module.exports`. The entire folder with `hyperform.json` will be uploaded (excluding `node_modules` which Google installs, `.git`, `.github`), so you can import npm packages and other files just like normal.
+Hyperform uses your default Google account configured in the CLI.
+You can view it with `gcloud config get-value account`
+
+Export your Google Cloud Functions from any file via `exports` or `module.exports`. You can import npm packages and other files just like normal, since the entire folder with `hyperform.json` will be uploaded (excluding `.git`, `.github`, and `node_modules` which Google installs),
+
 
 On how to write good Google Cloud Functions, see [Node.js Quickstart | Google Cloud](https://cloud.google.com/functions/docs/quickstart-nodejs)
 
