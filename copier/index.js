@@ -21,7 +21,7 @@ async function createCopy(dir, except) {
   const filterFunc = (p) => {
     for (let i = 0; i < except.length; i += 1) {
       if (p.includes(except[i])) {
-        console.log(`excluding ${p}`)
+        console.log(`Excluding ${p}`)
         return false 
       }
     }
