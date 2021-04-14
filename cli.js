@@ -110,7 +110,7 @@ if (parsedHyperformJson.amazon != null) {
 // These are different from what Google usually occupies (GCLOUD_...)
 if (parsedHyperformJson.google != null) {
   process.env.GC_PROJECT = parsedHyperformJson.google.gc_project
-  process.env.GC_REGION = parsedHyperformJson.google.gc_region,
+  process.env.GC_REGION = parsedHyperformJson.google.gc_region
 }
 
 // Top-level error boundary
