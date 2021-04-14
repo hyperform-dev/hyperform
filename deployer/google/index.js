@@ -4,6 +4,11 @@ const fetch = require('node-fetch')
 const { logdev } = require('../../printers/index')
 
 let gcOptions
+if (process.env.GC_PROJECT) {
+  gcOptions = {
+    projectId: process.env.GC_PROJECT,
+  }
+}
 // Don't consult hyperform.json yet for Google credentials
 
 // if (process.env.GC_CLIENT_EMAIL && process.env.GC_PRIVATE_KEY && process.env.GC_PROJECT) {

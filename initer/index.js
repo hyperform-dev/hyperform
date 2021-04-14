@@ -33,7 +33,7 @@ function getDefaultSectionString(filecontents) {
  * default: { 
   * aws_access_key_id?: string, 
   * aws_secret_access_key?: string, 
-  * aws_default_region?: string 
+  * aws_region?: string 
  * }}
  */
 function parseAwsCredentialsOrConfigFile(filecontents) {
@@ -103,6 +103,47 @@ function parseAwsCredentialsOrConfigFile(filecontents) {
   }
 }
 
+/**
+ * Just creates an empty hyperform.json
+ * @param {string} absdir 
+ */
+function initDumb(absdir, platform) {
+  let json 
+  if (platform === 'amazon') {
+    json = {
+      amazon: {
+        aws_access_key_id: '',
+        aws_secret_access_key: '',
+        aws_region: '', 
+      },
+    }
+  } else if (platform === 'google') {
+    json = {
+      google: {
+        gc_project: '',
+        gc_region: '',
+      },
+    }
+  } else {
+    throw new Error(`platform must be google or amazon but is ${platform}`)
+  }
+
+  // append 'hyperform.json' to .gitignore 
+  // (or create .gitignore if it does not exist yet)
+  fs.appendFileSync(
+    path.join(absdir, '.gitignore'),
+    `${EOL}hyperform.json`,
+  )
+
+  // write results to hyperform.json
+  fs.writeFileSync(
+    path.join(absdir, 'hyperform.json'),
+    JSON.stringify(json, null, 2),
+  )
+  log('✓ Created `hyperform.json` ') //
+  log('✓ Added `hyperform.json` to `.gitignore`') //
+}
+
 // TODO shorten
 /**
  * @description Tries to infer AWS credentials and config, and creates a hyperform.json in "absdir" with what it could infer. If hyperform.json already exists in "absdir" it just prints a message.
@@ -111,7 +152,7 @@ function parseAwsCredentialsOrConfigFile(filecontents) {
  * amazon: { 
  *  aws_access_key_id: string?,
  *  aws_secret_access_key: string?, 
- *  aws_default_region: string? 
+ *  aws_region: string? 
  * }
  * }}
  */
@@ -120,13 +161,12 @@ function init(absdir) {
     amazon: {
       aws_access_key_id: '',
       aws_secret_access_key: '',
-      aws_default_region: '', // TODO
+      aws_region: '', 
     },
-    // google: {
-    //   gc_project: '',
-    //   gc_client_email: '',
-    //   gc_private_key: '',
-    // },
+    google: {
+      gc_project: '',
+      gc_region: '',
+    },
   }
 
   const filedest = path.join(absdir, 'hyperform.json')
@@ -171,7 +211,7 @@ function init(absdir) {
     const configFileContents = fs.readFileSync(possibleConfigPath, { encoding: 'utf-8' })
 
     const parsedConfig = parseAwsCredentialsOrConfigFile(configFileContents)
-    hyperformJsonContents.amazon.aws_default_region = parsedConfig.default.region
+    hyperformJsonContents.amazon.aws_region = parsedConfig.default.region
     logdev(`Inferred AWS region from ${possibleConfigPath}`)
   } else {
     logdev(`Could not guess AWS region. No AWS config file found in ${possibleConfigPath}`) // TODO region will not be a single region, but smartly multiple ones (or?)
@@ -191,7 +231,7 @@ function init(absdir) {
   }
 
   if (typeof process.env.AWS_REGION === 'string' && process.env.AWS_REGION.trim().length > 0) {
-    hyperformJsonContents.amazon.aws_default_region = process.env.AWS_REGION.trim()
+    hyperformJsonContents.amazon.aws_region = process.env.AWS_REGION.trim()
     logdev('Environment variable AWS_REGION set, overriding value from config file')
   }
 
@@ -214,6 +254,7 @@ function init(absdir) {
 
 module.exports = {
   init,
+  initDumb,
   _only_for_testing_getDefaultSectionString: getDefaultSectionString,
   _only_for_testing_parseAwsCredentialsOrConfigFile: parseAwsCredentialsOrConfigFile,
 }

@@ -15,11 +15,11 @@ const { spinnies, log, logdev } = require('./printers/index')
 const { zip } = require('./zipper/index')
 const { deployGoogle, publishGoogle } = require('./deployer/google/index')
 const { transpile } = require('./transpiler/index')
-const schema = require('./schemas/index').hyperformJsonSchema
 const packagejson = require('./package.json')
 const { createCopy } = require('./copier/index')
 const { zipDir } = require('./zipper/google/index')
 const { kindle } = require('./kindler/index')
+const { amazonSchema, googleSchema } = require('./schemas/index')
 /**
  * 
  * @param {string} fpath Path to .js file
@@ -164,7 +164,7 @@ async function deployPublishAmazon(name, region, zipPath, isPublic) {
     if (isPublic === true) {
       amazonUrl = await publishAmazon(amazonArn, region)
     }
-    spinnies.succ(amazonSpinnieName, { text: `🟢 ${name} ${chalk.rgb(255, 255, 255).bgWhite(amazonUrl || '(no URL. Add --url if you want one)')}` })
+    spinnies.succ(amazonSpinnieName, { text: `🟢 Deployed ${name} to AWS Lambda` })
 
     // (return url)
     return amazonUrl
@@ -207,7 +207,7 @@ async function deployPublishGoogle(name, region, project, zipPath, isPublic) {
       // enables anyone with the URL to call the function
       await publishGoogle(name, project, region)
     }
-    spinnies.succ(googleSpinnieName, { text: `🟢 ${name} ${chalk.rgb(255, 255, 255).bgWhite(googleUrl || '(no URL. Specify --url if you want one)')}` })
+    spinnies.succ(googleSpinnieName, { text: `🟢 Deployed ${name} to Google Cloud Functions` })
     console.log('Google takes another 1 - 2m for changes to take effect')
 
     // return url
@@ -221,14 +221,12 @@ async function deployPublishGoogle(name, region, project, zipPath, isPublic) {
   }
 }
 /**
- * 
  * @param {string} dir 
  * @param {Regex} fpath the path to the .js file whose exports should be deployed 
- * @param {*} parsedHyperformJson
- * @param {boolean} isPublic Controls whether (Amazon) to create URL endpoint and (Google) whether to remove IAM protection on the URL
- * @returns {{ urls: string[] }} urls: Mixed Array of endpoint URLs.
+ * @param {amazon|google} platform
+ * @param {{amazon: {aws_access_key_id:string, aws_secret_access_key: string, aws_region: string}}} parsedHyperformJson 
  */
-async function main(dir, fpath, parsedHyperformJson, isPublic) {
+async function main(dir, fpath, platform, parsedHyperformJson) {
   // Check node version (again)
   const version = packagejson.engines.node 
   if (semver.satisfies(process.version, version) !== true) {
@@ -237,6 +235,9 @@ async function main(dir, fpath, parsedHyperformJson, isPublic) {
   }
 
   // verify parsedHyperformJson (again)
+  let schema 
+  if (platform === 'amazon') schema = amazonSchema
+  if (platform === 'google') schema = googleSchema
   const { error, value } = schema.validate(parsedHyperformJson)
   if (error) {
     throw new Error(`${error} ${value}`)
@@ -252,8 +253,8 @@ async function main(dir, fpath, parsedHyperformJson, isPublic) {
     return [] // no endpoint URLs created
   }
 
-  const isToAmazon = parsedHyperformJson.amazon != null
-  const isToGoogle = parsedHyperformJson.google != null
+  const isToAmazon = platform === 'amazon'
+  const isToGoogle = platform === 'google'
 
   let amazonZipPath
   let googleZipPath
@@ -269,6 +270,7 @@ async function main(dir, fpath, parsedHyperformJson, isPublic) {
   /// ///////////////////////////////////////////////////
   /// Each  export, deploy as function & publish. Obtain URL.
   /// ///////////////////////////////////////////////////
+  const isPublic = false
 
   let endpoints = await Promise.all(
     // For each export
@@ -280,7 +282,7 @@ async function main(dir, fpath, parsedHyperformJson, isPublic) {
       if (isToAmazon === true) {
         amazonUrl = await deployPublishAmazon(
           exp,
-          parsedHyperformJson.amazon.aws_default_region,
+          parsedHyperformJson.amazon.aws_region,
           amazonZipPath,
           isPublic,
         )
@@ -293,8 +295,9 @@ async function main(dir, fpath, parsedHyperformJson, isPublic) {
       if (isToGoogle === true) {
         googleUrl = await deployPublishGoogle(
           exp,
-          'us-central1',
-          'hyperform-7fd42', // TODO
+          // TODO lol
+          parsedHyperformJson.google.gc_region,
+          parsedHyperformJson.google.gc_project, // TODO
           googleZipPath,
           isPublic,
         )
@@ -359,7 +362,7 @@ async function main(dir, fpath, parsedHyperformJson, isPublic) {
   //         if (toAmazon === true) {
   //           amazonUrl = await deployPublishAmazon(
   //             exp,
-  //             parsedHyperformJson.amazon.aws_default_region,
+  //             parsedHyperformJson.amazon.aws_region,
   //             amazonZipPath,
   //             isPublic,
   //           )

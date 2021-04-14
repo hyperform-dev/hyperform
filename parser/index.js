@@ -1,40 +1,24 @@
 // validates and parses hyperform.json 
 
 const path = require('path')
-const fs = require('fs')
-const schema = require('../schemas/index').hyperformJsonSchema
+const { amazonSchema, googleSchema } = require('../schemas/index')
 
 let parsedHyperformJson 
 
 /**
  * @description Parses v,alidates, and returns contents of "dir"/hyperform.json
  * @param {string} dir Directory where to look for hyperform.json
- * @returns {{
- * amazon:  {
- *  aws_access_key_id: string?,
- *  aws_secret_access_key: string?,
- *  aws_default_region: string?
- * },
- * google: {
- *  gc_private_key: string,
- *  gc_client_email: string,
- *  gc_project: string,
- * }
- * }} 
- * @throws ENOENT if could not open hyperform.json, SyntaxError if it contains invalid JSON
+ * @param {string} platform Whether to expect 'amazon' or 'google' content
  * 
  */
-function getParsedHyperformJson(dir) {
-  if (dir == null) {
-    throw new Error(`dir must be defined but is ${dir}`) // HF programmer mistake
-  }
-  
+function getParsedHyperformJson(dir, platform) {
   if (parsedHyperformJson == null) {
-    const fp = path.join(dir, 'hyperform.json')
-    let json = fs.readFileSync(fp, { encoding: 'utf-8' })
-    // parse it as JSON
-    json = JSON.parse(json)
+    const json = require(path.join(dir, 'hyperform.json'))
     // validate its schema
+    let schema 
+    if (platform === 'amazon') schema = amazonSchema
+    if (platform === 'google') schema = googleSchema
+    // throws if platform is not 'amazon' or 'google'
     const { error, value } = schema.validate(json)
     if (error) {
       throw new Error(`${error} ${value}`)
