@@ -14,7 +14,7 @@ $ npm install -g hyperform-cli
 
 ### 🚀 Deploy to AWS Lambda
 
-Create a `hyperform.json` in your folder (next to `package.json` and so on) with the these fields:
+Create a `hyperform.json` in your folder with the these fields:
 
 ```json
 {
@@ -26,7 +26,7 @@ Create a `hyperform.json` in your folder (next to `package.json` and so on) with
 }
 ```
 
-Export your AWS Lambda functions from any file via `exports` or `module.exports`. You can import npm packages and other files just like normal, since the entire folder will be uploaded (excluding `.git`, `.github`).
+Export your AWS Lambda functions from any file via `exports` or `module.exports`. You can import NPM packages and other files just like normal, since the entire folder will be uploaded (excluding `.git`, `.github`).
 
 ```js
 // file.js
@@ -55,7 +55,7 @@ New functions are deployed with 256MB RAM, 60 second timeout.
 
 ### 🚀 Deploy to Google Cloud Functions
 
-Create a `hyperform.json` in your folder (next to `package.json` and so on) with the the following fields:
+Create a `hyperform.json` in your folder with these fields:
 
 ```json
 {
@@ -68,7 +68,7 @@ Create a `hyperform.json` in your folder (next to `package.json` and so on) with
 
 Hyperform uses the default Google Cloud account configured in the CLI (check with `$ gcloud config get-value account`).
 
-Export your Google Cloud Functions from any file via `exports` or `module.exports`. You can import npm packages and other files just like normal, since the entire folder will be uploaded (excluding `.git`, `.github`, and `node_modules` which Google installs).
+Export your Google Cloud Functions from any file via `exports` or `module.exports`. You can import NPM packages and other files just like normal, since the entire folder will be uploaded (excluding `.git`, `.github`, and `node_modules` which Google installs).
 
 On how to write good Google Cloud Functions, see [Node.js Quickstart | Google Cloud](https://cloud.google.com/functions/docs/quickstart-nodejs)
 
