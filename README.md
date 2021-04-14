@@ -3,141 +3,92 @@
 ![Hyperform Banner](https://github.com/qngapparat/hyperform/blob/master/hyperform-banner.png)
 
 
->A simple deployer for AWS Lambda, Google Cloud Functions
-
-
-<!-- TODO bullet list (similar to JS cookie -->
-
-
-
-<p align="center">
-    <img src="https://user-images.githubusercontent.com/28540311/113403443-f3426100-93a6-11eb-9e51-5f048b77be88.gif" alt="GIF" />
-
-</p>
-
-
+>Deploy a directory as serverless functions
 ## Install
 
 ```sh
 $ npm install -g hyperform-cli
 ```
 
+## Usage
 
-## Basic Usage
+### Deploy to AWS Lambda
 
-
-### ✍️ Write functions
-
-You can name them anything. Just export them from the file.
-
-
-```js
-// file.js
-function greetMorning(event) {
-  return { greeting: `Good morning, ${event.name}` }
-}
-
-function greetEvening(event) {
-  return { greeting: `Good evening, ${event.name}` }
-}
-
-module.exports = {
-  greetMorning,
-  greetEvening
-} 
-```
-
-### 🔍 Infer your cloud credentials
-
-Hyperform looks for credentials in a file called `hyperform.json`. 
-<br>
-`hf init` tries to create it automatically, by looking at `ENV`, then `.aws` and `.config/gcloud`.
+Create a `hyperform.json` in the current directory with `$ hf init` (or per hand).
 
 ```
-// hyperform.json
 {
   "amazon": {
     "aws_access_key_id": "",
     "aws_secret_access_key": "",
     "aws_default_region": ""
   }
-  // or 
-  "google": {
-    "gc_project": "",
-    "gc_client_email": "",
-    "gc_private_key": ""
-  }
 }
 ```
 
-
-
-### 🚀 Deploy the functions
-
-`hf deploy` deploys each CommonJS export (`module.exports`, `exports`) as serverless function (256MB, 60 seconds timeout).
-Specify `--url` to get an URL for each function you can `GET` and `POST` to. On AWS this creates an API Gateway API and binds it. On Google every function has an URL, so `--url` removes the IAM check to make it publicly callable.
-
-```sh
-$ hf deploy file.js --url
-
->>> 🟢 greetMorning https://ltirihayh9.execute-api.us-east-2.amazonaws.com/greetMorning 
->>> 🟢 greetEvening https://ltirihayh9.execute-api.us-east-2.amazonaws.com/greetEvening
-```
-
-
-### 📡 Call
-
-You can call functions via HTTP (GET, POST), and use them internally (SNS, Google PubSub, Google Storage Trigger).
-How you pass inputs to them depends on how you call them:
-
-method |  example
----- | ----
-GET | `curl ...?name=John`
-POST | `curl  -d '{"name":"John"}' -X POST -H "Content-Type: application/json" ...`
-
-<!--
-For instance via GET:
-
-```sh
-curl https://us-central1-myproject.cloudfunctions.net/greet?name=John
-
->>> {"message":"Hi, John!"}
-```
-
-Or via POST: 
-
-```sh
-curl -X POST -d '{"name":"John"}' -H "Content-Type: application/json" https://us-central1-myproject.cloudfunctions.net/greet?name=John
-
->>> {"message":"Hi, John!"}
-```
--->
-
-## Advanced
-
-#### Accessing HTTP headers
-
-When you call your functions via HTTP, they receive { [headers](https://nodejs.org/api/http.html#http_message_headers), [method](https://nodejs.org/api/http.html#http_message_method) } as second argument. Otherwise it is `{}`
+Export your AWS Lambda functions from any file via `exports` or `module.exports`. The entire folder with `hyperform.json` will be uploaded (excluding `.git`, `.github`), so you can import npm packages spread your code just like normal.
 
 ```js
-function calledViaHTTP(input, http) {
+// file.js
+exports.greetMorning = (event, context, callback) => {
+  context.succeed({
+    message: "Good morning from AWS Lambda!"
+  })
+}
 
-  if(http.method != null) {
-    console.log(`
-      I was invoked via ${http.method}! 
-      Headers: ${http.headers}
-    `)
-  }
+exports.greetEvening = (event, context, callback) => {
+  context.succeed({
+    message: "Good evening from AWS Lambda!"
+  })
 }
 ```
 
-## Tips
+Deploy or update all functions with the following command.
+The setting for new functions is 256MB RAM, 60 second timeout.
 
-* The first argument always an object. It is the parsed POST body, the parsed GET query string, or the unchanged SNS, Google PubSub, Google Storage (...) event. The default is `{}`.
-* The second argument, if called via HTTP is `{ method: GET|POST, headers: { ... } }`. The default is `{}`.
-* You can import anything. Webpack is used to bundle all dependencies.
-* Included per default are `aws-sdk` and `@google/`.
+`$ hf deploy ./file.js`
 
+You will see something like this:
+
+```
+🟢 Deployed greetMorning to AWS Lambda
+🟢 Deployed greetEvening to AWS Lambda
+```
+
+### Deploy to Google Cloud Functions
+
+Hyperform uses your default Google project and region configured in your CLI.
+You can view it with `gcloud config list`
+
+
+Export your Google Cloud Functions from any file via `exports` or `module.exports`. The entire folder with `hyperform.json` will be uploaded (excluding `node_modules` which Google installs, `.git`, `.github`), so you can import npm packages and other files just like normal.
+
+On how to write good Google Cloud Functions, see [Node.js Quickstart | Google Cloud](https://cloud.google.com/functions/docs/quickstart-nodejs)
+
+```js
+// file.js
+exports.greetMorning = (req, res) => {
+  let message = req.query.message || req.body.message || 'Good evening from Google Cloud Functions';
+  res.status(200).send(message);
+};
+
+exports.greetEvening = (req, res) => {
+  let message = req.query.message || req.body.message || 'Good evening from Google Cloud Functions!';
+  res.status(200).send(message);
+};
+```
+
+Deploy or update all functions with the following command.
+New functions are deployed with 256MB RAM, 60 second timeout.
+
+`$ hf deploy ./file.js`
+
+You will see something like this:
+
+```
+🟢 Deployed greetMorning to Google Cloud Functions
+🟢 Deployed greetEvening to Google Cloud Functions
+```
 
 ## Opening Issues
 
