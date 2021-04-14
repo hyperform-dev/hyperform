@@ -28,6 +28,8 @@ Create a `hyperform.json` in your folder with the these fields:
 
 Export your AWS Lambda functions from any file via `exports` or `module.exports`. You can import NPM packages and other files just like normal, since the entire folder will be uploaded (excluding `.git`, `.github`).
 
+More info about writing good AWS Lambda functions is at [NodeJS function handler | AWS Lambda](https://docs.aws.amazon.com/lambda/latest/dg/nodejs-handler.html)
+
 ```js
 // file.js
 exports.greetMorning = (event, context, callback) => {
