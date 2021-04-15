@@ -3,7 +3,7 @@
 ![Hyperform Banner](https://github.com/qngapparat/hyperform/blob/master/hyperform-banner.png)
 
 
->📚 Deploy a directory as serverless functions
+>📚 Deploy a folder as serverless functions
 ## Install
 
 ```sh
