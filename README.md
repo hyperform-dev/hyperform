@@ -45,6 +45,8 @@ exports.greetEvening = (event, context, callback) => {
 }
 ```
 
+⚠️ Note that the entire folder containing `hyperform.json` will be uploaded with the function.
+
 Deploy or update all functions with 
 
 ```
@@ -88,6 +90,9 @@ exports.greetEvening = (req, res) => {
   res.status(200).send(message);
 };
 ```
+
+⚠️ Note that the entire folder containing `hyperform.json` will be uploaded with the function.
+
 
 Deploy or update all functions with
 
