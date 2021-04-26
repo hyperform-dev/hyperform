@@ -3,7 +3,7 @@
 ![Hyperform Banner](https://github.com/qngapparat/hyperform/blob/master/hyperform-banner.png)
 
 
->📚 Deploy a directory as serverless functions
+>📚 Deploy a folder as serverless functions
 ## Install
 
 ```sh
@@ -28,6 +28,8 @@ Create a `hyperform.json` in your folder with the these fields:
 
 Export your AWS Lambda functions from any file via `exports` or `module.exports`. You can import NPM packages and other files just like normal, since the entire folder will be uploaded (excluding `.git`, `.github`).
 
+More info about writing good AWS Lambda functions can be found at [NodeJS function handler | AWS Lambda](https://docs.aws.amazon.com/lambda/latest/dg/nodejs-handler.html)
+ 
 ```js
 // file.js
 exports.greetMorning = (event, context, callback) => {
@@ -71,6 +73,8 @@ Hyperform uses the default Google Cloud account configured in the CLI (check wit
 Export your Google Cloud Functions from any file via `exports` or `module.exports`. You can import NPM packages and other files just like normal, since the entire folder will be uploaded (excluding `.git`, `.github`, and `node_modules` which Google installs).
 
 On how to write good Google Cloud Functions, see [Node.js Quickstart | Google Cloud](https://cloud.google.com/functions/docs/quickstart-nodejs)
+
+
 
 ```js
 // file.js
