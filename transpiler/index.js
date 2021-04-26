@@ -9,17 +9,15 @@ function transpile(bundleCode) {
 
 ;module.exports = (() => {
 
+  // START PASTE
+
   /**
-    * This is the Hyperform wrapper
-    * It provides some usability features
+    * Start Hyperform wrapper
+    * It provides some simple usability features
     * Amazon:
-    *    - Return error codes of common development mistakes
     * Google:
     *    - Send pre-flight headers
-    *    - console.warn on missing headers
     *    - console.error on error
-    *
-    * Plain-text for better readability
     */
   global.alreadyWrappedNames = [];
 
@@ -42,24 +40,9 @@ function transpile(bundleCode) {
           // Invoke user function ///////
           /// ////////////////////////////////
 
-          let res;
-          try {
-            res = await userfunc(event, context, callback); // TODO add context.fail?
-            context.succeed(res);
-          } catch (e) {
-            if (e.code === 'AccessDeniedException') {
-              // return details for debugging
-              context.succeed({
-                statusCode: 500,
-                body: JSON.stringify({
-                  code: e.code,
-                  notice: 'For easier development, Hyperform always openly returns the error code for: [AccessDeniedException].',
-                }),
-              });
-            } else {
-              throw e; // return non-descriptive 500
-            }
-          }
+          const res = await userfunc(event, context, callback);
+          context.succeed(res);
+          // throwing will call context.fail automatically
         };
       }
       if (platform === 'google') {
@@ -75,16 +58,6 @@ function transpile(bundleCode) {
           if (req.method === 'OPTIONS') {
             resp.status(204).send('');
           } else {
-            // Warn at common Express mistake
-            // (No content-type header will lead to body-parser not parsing the body)
-            // User will POST but function will receive no input
-            if (
-              req.method.toLowerCase() === 'post'
-               && req.headers['content-type'] !== 'application/json'
-            ) {
-              console.warn('Dont forget to specify the Content-Type header in case you are POSTing JSON.');
-            }
-
             // Invoke user function
             // (user must .json or .send himself)
             try {
@@ -111,7 +84,7 @@ function transpile(bundleCode) {
   }
   return curr; // Export unchanged (local, fallback)
 
-  
+
 })();
 `
 
