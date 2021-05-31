@@ -3,7 +3,7 @@
 ![Hyperform Banner](https://github.com/qngapparat/hyperform/blob/master/hyperform-banner.png)
 
 
->📚 Deploy a folder as serverless functions
+>📚 A simple deployer for AWS Lambda & Google Cloud Functions
 ## Install
 
 ```sh
