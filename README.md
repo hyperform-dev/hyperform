@@ -3,7 +3,7 @@
 ![Hyperform Banner](https://github.com/qngapparat/hyperform/blob/master/hyperform-banner.png)
 
 
->Write JavaScript, get serverless functions (uses your AWS Lambda, Google Cloud Functions account)
+>Write JavaScript, get serverless functions (to your AWS Lambda, Google Cloud Functions account)
 
 
 
