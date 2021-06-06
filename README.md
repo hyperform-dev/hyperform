@@ -3,13 +3,11 @@
 ![Hyperform Banner](https://github.com/qngapparat/hyperform/blob/master/hyperform-banner.png)
 
 
->Write JavaScript, get serverless functions (to your AWS Lambda, Google Cloud Functions account)
+>🧪 Write .js code, deploy as serverless functions 
+>(to your AWS Lambda, Google Cloud Functions account)
 
 
-
-
-https://user-images.githubusercontent.com/28540311/120921071-3a5c1380-c6c2-11eb-8427-9556823c9dca.mp4
-
+![demomac2x](https://user-images.githubusercontent.com/28540311/120922670-c83bfc80-c6ca-11eb-9ad8-5688c242ed99.gif)
 
 ## Install
 
@@ -19,12 +17,69 @@ $ npm install -g hyperform-cli
 
 ## Usage
 
+### Have some code
+
+For AWS Lambda: 
+
+```js
+// somefile.js
+
+exports.foo = (event, context, callback) => {
+  context.succeed({
+    message: "I'm Foo on AWS Lambda!"
+  })
+}
+```
+
+For Google Cloud Functions:
+
+```js
+// somefile.js
+exports.foo = (req, res) => {
+  let message = req.query.message || req.body.message || "I'm a Google Cloud Function, Foo";
+  res.status(200).send(message);
+};
+```
+
+### Create a `hyperform.json`
+
+For AWS Lambda: 
+
+```json
+{
+  "amazon": {
+    "aws_access_key_id": "...",
+    "aws_secret_access_key": "...",
+    "aws_region": "..."
+  }
+}
+```
+
+For Google Cloud Functions: 
+
+
+```json
+{
+  "google": {
+    "gc_project": "...",
+    "gc_region": "...",
+  }
+}
+```
+
+
 ### Deploy
+
 
 ```
 $ hyperform deploy somefile.js --amazon  
 $ hyperform deploy somefile.js --google  
 ```
+
+⚠️ Note that the entire folder containing `hyperform.json` will be deployed, minus `.git`, `.gitignore`, `hyperform.json`.
+This means you can use npm packages (`node_modules`) as normal.
+
+
 
 ### Deploy & get URL
 
@@ -37,96 +92,11 @@ $ hyperform deploy somefile.js --google --url
 This gives the function an **unprotected** URL to GET and POST to. On Amazon, it adds a public API gateway route, on Google Cloud it adds `allUsers` to the group "Cloud Function Invokers" to the function.
 
 
-## Examples
+## Hints
 
-### 🚀 Deploy to AWS Lambda
-
-Create a `hyperform.json` in your folder with the these fields:
-
-```json
-{
-  "amazon": {
-    "aws_access_key_id": "...",
-    "aws_secret_access_key": "...",
-    "aws_region": "..."
-  }
-}
-```
-
-Export your AWS Lambda functions from any file via `exports` or `module.exports`. You can import NPM packages and other files just like normal, since the entire folder will be uploaded (excluding `.git`, `.github`).
-
-
- 
-```js
-// somefile.js
-exports.foo = (event, context, callback) => {
-  context.succeed({
-    message: "I'm Foo on AWS Lambda!"
-  })
-}
-
-exports.bar = (event, context, callback) => {
-  context.succeed({
-    message: "I'm Bar on AWS Lambda!"
-  })
-}
-```
-
-⚠️ Note that the entire folder containing `hyperform.json` will be uploaded with the function.
-
-Deploy or update all functions with 
-
-```
-$ hf deploy ./file.js --amazon --url
->>> 🟢 Deployed foo https://s9he82.execute-api.us-east-2.amazonaws.com/foo
->>> 🟢 Deployed bar https://s9he82.execute-api.us-east-2.amazonaws.com/bar
-```
-
-New functions are deployed with 256MB RAM, 60 second timeout.
-
-### 🚀 Deploy to Google Cloud Functions
-
-Create a `hyperform.json` in your folder with these fields:
-
-```json
-{
-  "google": {
-    "gc_project": "...",
-    "gc_region": "...",
-  }
-}
-```
-
-Hyperform uses the default Google Cloud account configured in the CLI (check with `$ gcloud config get-value account`).
-
-Export your Google Cloud Functions from any file via `exports` or `module.exports`. You can import NPM packages and other files just like normal, since the entire folder will be uploaded (excluding `.git`, `.github`, and `node_modules` which Google installs).
-
-
-
-```js
-// somefile.js
-exports.foo = (req, res) => {
-  let message = req.query.message || req.body.message || "I'm a Google Cloud Function, Foo";
-  res.status(200).send(message);
-};
-
-exports.bar = (req, res) => {
-  let message = req.query.message || req.body.message || "I'm a Google Cloud Function, Bar";
-  res.status(200).send(message);
-};
-```
-
-⚠️ Note that the entire folder containing `hyperform.json` will be uploaded with the function.
-
-
-Deploy or update all functions with
-
-```
-$ hf deploy ./file.js --google --url 
->>> 🟢 Deployed foo https://s9he82.execute-api.us-east-2.amazonaws.com/foo
->>> 🟢 Deployed bar https://s9he82.execute-api.us-east-2.amazonaws.com/bar
-```
-New functions are deployed with 256MB RAM, 60 second timeout.
+* New functions are deployed with 256MB RAM, 60s timeouts 
+* Multiple functions can be deployed at once, just specify them with `exports`
+* The entire folder containing `hyperform.json` will be deployed with each function
 
 ## Opening Issues
 
