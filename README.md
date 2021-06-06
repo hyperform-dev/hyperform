@@ -17,7 +17,7 @@ $ npm install -g hyperform-cli
 
 ## Usage
 
-### Have some code
+### Write a function
 
 For AWS Lambda: 
 
