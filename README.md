@@ -6,7 +6,7 @@
 >Write .js code, deploy as serverless functions (to your AWS Lambda, Google Cloud Functions account)
 
 
-![Hyperform Demo](https://github.com/qngapparat/hyperform/blob/master/demomac.mov)
+![Hyperform Demo](https://github.com/qngapparat/hyperform/blob/master/demomac.mp4)
 
 
 ## Install
