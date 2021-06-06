@@ -110,8 +110,13 @@ async function _updateGoogle(signedUploadUrl, options) {
         url: `https://${options.region}-${options.project}.cloudfunctions.net/${options.name}`,
       },
       runtime: options.runtime,
+      // timeout: {
+      //   seconds: 120,
+      // },
       sourceUploadUrl: signedUploadUrl,
     },
+    // TODO use this (POSITIVE SPECIFY, ie specify all fields that shall be updated)
+    // TODOif it's null, it resets all other fields :/
     updateMask: null,
   }
   const res = await client.updateFunction(updateOptions)
@@ -143,7 +148,7 @@ async function _createGoogle(signedUploadUrl, options) {
       runtime: options.runtime,
       sourceUploadUrl: signedUploadUrl,
       timeout: {
-        seconds: 60,
+        seconds: 60, //
       }, // those are the defaults anyway
       availableMemoryMb: 256,
     },
@@ -192,7 +197,6 @@ async function _allowPublicInvokeGoogle(options) {
  * If GCF exists already, it updates its code with "pathToZip". 
  * If other options are specified, it can update those too (currently only "runtime"). 
  * Returns IAM-protected URL immediately, but Cloud Function takes another 1-2 minutes to be invokable.
- * To remove IAM protection to allow anyone with the URL to call it, use publishGoogle afterwards.
  * @param {string} pathToZip 
  * @param {{
  * name: string,

@@ -69,11 +69,13 @@ if (hyperformJsonExists === false) {
   if (platform === 'amazon') {
     log(`No hyperform.json found in current directory. Create it with these fields:
       
-      amazon: {
-        aws_access_key_id: '',
-        aws_secret_access_key: '',
-        aws_region: '', 
+    {
+      "amazon": {
+          "aws_access_key_id": "...",
+          "aws_secret_access_key": "...",
+          "aws_region": "..."
       }
+    }
       
       `)
   }
@@ -81,9 +83,11 @@ if (hyperformJsonExists === false) {
   if (platform === 'google') {
     log(`No hyperform.json found in current directory. Create it with these fields:
       
-    google: {
-      gc_project: '',
-      gc_region: '',
+    { 
+      "google": {
+        "gc_project": "...",
+        "gc_region": "...",
+      }
     }
     
     `)
