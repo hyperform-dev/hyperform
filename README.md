@@ -6,7 +6,10 @@
 >Write JavaScript, get serverless functions (uses your AWS Lambda, Google Cloud Functions account)
 
 
-https://user-images.githubusercontent.com/28540311/120921071-3a5c1380-c6c2-11eb-8427-9556823c9dca.mp4
+![Hyperform Demo](https://github.com/qngapparat/hyperform/blob/master/demomac.gif)
+
+
+<!-- https://user-images.githubusercontent.com/28540311/120921071-3a5c1380-c6c2-11eb-8427-9556823c9dca.mp4 -->
 
 
 ## Install
