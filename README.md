@@ -12,6 +12,25 @@ $ npm install -g hyperform-cli
 
 ## Usage
 
+### Deploy
+
+```
+$ hyperform deploy somefile.js --amazon  
+$ hyperform deploy somefile.js --google  
+```
+
+### Deploy and publish
+
+This gives the function an **unprotected** URL to GET and POST to. On Amazon, it adds a API gateway route, on Google Cloud it removes the IAM checking.
+
+```
+$ hyperform deploy somefile.js --amazon --url
+$ hyperform deploy somefile.js --google --url  
+```
+
+
+## Examples
+
 ### 🚀 Deploy to AWS Lambda
 
 Create a `hyperform.json` in your folder with the these fields:
@@ -32,15 +51,15 @@ More info about writing good AWS Lambda functions can be found at [NodeJS functi
  
 ```js
 // file.js
-exports.greetMorning = (event, context, callback) => {
+exports.foo = (event, context, callback) => {
   context.succeed({
-    message: "Good morning from AWS Lambda!"
+    message: "I'm Foo on AWS Lambda!"
   })
 }
 
-exports.greetEvening = (event, context, callback) => {
+exports.bar = (event, context, callback) => {
   context.succeed({
-    message: "Good evening from AWS Lambda!"
+    message: "I'm Bar on AWS Lambda!"
   })
 }
 ```
@@ -50,9 +69,9 @@ exports.greetEvening = (event, context, callback) => {
 Deploy or update all functions with 
 
 ```
-$ hf deploy ./file.js --amazon
->>> 🟢 Deployed greetMorning to AWS Lambda
->>> 🟢 Deployed greetEvening to AWS Lambda
+$ hf deploy ./file.js --amazon --url
+>>> 🟢 Deployed foo https://s9he82.execute-api.us-east-2.amazonaws.com/foo
+>>> 🟢 Deployed bar https://s9he82.execute-api.us-east-2.amazonaws.com/bar
 ```
 
 New functions are deployed with 256MB RAM, 60 second timeout.
@@ -97,9 +116,9 @@ exports.greetEvening = (req, res) => {
 Deploy or update all functions with
 
 ```
-$ hf deploy ./file.js --google
->>> 🟢 Deployed greetMorning to Google Cloud Functions
->>> 🟢 Deployed greetEvening to Google Cloud Functions
+$ hf deploy ./file.js --google --url 
+>>> 🟢 Deployed foo https://s9he82.execute-api.us-east-2.amazonaws.com/foo
+>>> 🟢 Deployed bar https://s9he82.execute-api.us-east-2.amazonaws.com/bar
 ```
 New functions are deployed with 256MB RAM, 60 second timeout.
 
