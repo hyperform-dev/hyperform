@@ -26,14 +26,15 @@ $ hyperform deploy somefile.js --amazon
 $ hyperform deploy somefile.js --google  
 ```
 
-### Deploy and publish
+### Deploy & get URL
 
-This gives the function an **unprotected** URL to GET and POST to. On Amazon, it adds a API gateway route, on Google Cloud it removes the IAM checking.
 
 ```
 $ hyperform deploy somefile.js --amazon --url
 $ hyperform deploy somefile.js --google --url  
 ```
+
+This gives the function an **unprotected** URL to GET and POST to. On Amazon, it adds a public API gateway route, on Google Cloud it adds `allUsers` to the group "Cloud Function Invokers" to the function.
 
 
 ## Examples
@@ -54,10 +55,10 @@ Create a `hyperform.json` in your folder with the these fields:
 
 Export your AWS Lambda functions from any file via `exports` or `module.exports`. You can import NPM packages and other files just like normal, since the entire folder will be uploaded (excluding `.git`, `.github`).
 
-More info about writing good AWS Lambda functions can be found at [NodeJS function handler | AWS Lambda](https://docs.aws.amazon.com/lambda/latest/dg/nodejs-handler.html)
+
  
 ```js
-// file.js
+// somefile.js
 exports.foo = (event, context, callback) => {
   context.succeed({
     message: "I'm Foo on AWS Lambda!"
@@ -100,19 +101,17 @@ Hyperform uses the default Google Cloud account configured in the CLI (check wit
 
 Export your Google Cloud Functions from any file via `exports` or `module.exports`. You can import NPM packages and other files just like normal, since the entire folder will be uploaded (excluding `.git`, `.github`, and `node_modules` which Google installs).
 
-On how to write good Google Cloud Functions, see [Node.js Quickstart | Google Cloud](https://cloud.google.com/functions/docs/quickstart-nodejs)
-
 
 
 ```js
-// file.js
-exports.greetMorning = (req, res) => {
-  let message = req.query.message || req.body.message || 'Good evening from Google Cloud Functions';
+// somefile.js
+exports.foo = (req, res) => {
+  let message = req.query.message || req.body.message || "I'm a Google Cloud Function, Foo";
   res.status(200).send(message);
 };
 
-exports.greetEvening = (req, res) => {
-  let message = req.query.message || req.body.message || 'Good evening from Google Cloud Functions!';
+exports.bar = (req, res) => {
+  let message = req.query.message || req.body.message || "I'm a Google Cloud Function, Bar";
   res.status(200).send(message);
 };
 ```
