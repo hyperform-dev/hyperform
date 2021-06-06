@@ -1,7 +1,4 @@
 
-https://user-images.githubusercontent.com/28540311/120921071-3a5c1380-c6c2-11eb-8427-9556823c9dca.mp4
-
-
 
 ![Hyperform Banner](https://github.com/qngapparat/hyperform/blob/master/hyperform-banner.png)
 
@@ -9,7 +6,7 @@ https://user-images.githubusercontent.com/28540311/120921071-3a5c1380-c6c2-11eb-
 >Write .js code, deploy as serverless functions (to your AWS Lambda, Google Cloud Functions account)
 
 
-![Hyperform Demo](https://user-images.githubusercontent.com/28540311/120921071-3a5c1380-c6c2-11eb-8427-9556823c9dca.mp4)
+https://user-images.githubusercontent.com/28540311/120921071-3a5c1380-c6c2-11eb-8427-9556823c9dca.mp4
 
 
 ## Install
