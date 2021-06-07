@@ -5,9 +5,9 @@
 
 > 🧪 Lightweight serverless framework for NodeJS
 
-* **Unopinionated** (any NodeJS project works)
+* **Unopinionated** (any NodeJS code works)
 * **1-click deploy** (1 command)
-* **Lightweight** (n wrapping)
+* **Lightweight** (no wrapping)
 * **Multi-Cloud** (for AWS & Google Cloud)
 * **Maintains** (provider's conventions)
 
@@ -30,7 +30,6 @@ exports.foo = (event, context, callback) => {
     message: "I'm Foo on AWS Lambda!"
   })
 }
-// ... more functions
 ```
 
 ```json 
@@ -61,7 +60,7 @@ $ 🟢 foo on AWS Lambda https://w3g434h.execute-api.us-east-2.amazonaws.com/foo
 ## Hints & Caveats
 
 * New functions are deployed with 256MB RAM, 60s timeouts 
-* The flag `--url` gives you **unprotected** URLs. Anyone with that URL can invoke your functions
+* The flag `--url` creates **unprotected** URLs to the functions. Anyone with these URLs can invoke your functions
 * The entire folder containing `hyperform.json` will be deployed with each function
 
 
@@ -181,16 +180,20 @@ exports.bar = (req, res) => {
 }
 ```
 
-### Deploy to Google Cloud Functions
+### FAQ
 
-```
-$ hyperform deploy ./somefile.js --google       # Deploy
-$ hyperform deploy ./somefile.js --google --url # Deploy & get URL via removing IAM
-```
+**Where does deployment happen**
 
-⚠️ Note that the entire folder containing `hyperform.json` will be deployed, minus `.git`, `.gitignore`, `node_modules`, and `hyperform.json`.
+It's a client-side tool, so on your computer. It uses the credentials it finds in `hyperform.json`
 
-On Google Cloud, the `--url` flag adds `allUsers` to "Cloud Function Invokers" of the function, so that anyone with the URL can `GET` or `POST` to it.
+**How does `--url` create URLs?**
+
+On AWS, it creates an API Gateway API (called `hf`), and a `GET` and `POST` route to your function. 
+
+On Google Cloud, it removes IAM checking from the function by adding `allUsers` to the group "Cloud Functions Invoker" of that function.
+
+Note that in both cases, *anyone with the URL can invoke your function. Make sure to add Authentication logic inside your function*, if needed. 
+
 
 
 ## Opening Issues
@@ -199,7 +202,7 @@ Feel free to open issues if you find bugs.
 
 ## Contributing
 
-Always welcome! Please see CONTRIBUTING.md
+Always welcome ❤️ Please see CONTRIBUTING.md
 
 ## License
 
