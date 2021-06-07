@@ -5,9 +5,11 @@
 
 > 🧪 Lightweight serverless framework for NodeJS
 
-* **Simple** to deploy
-* **Lightweight**
-* **Works with** provider's conventions
+* **Unopinionated** (any NodeJS project works)
+* **1-click deploy** (1 command)
+* **Lightweight** (n wrapping)
+* **Multi-Cloud** (for AWS & Google Cloud)
+* **Maintains** (provider's conventions)
 
 ## Install
 
@@ -15,9 +17,59 @@
 $ npm install -g hyperform-cli
 ```
 
-## AWS Lambda Example 
+Hyperform works for AWS Lambda & Google Cloud Functions.
+
+## Basic Example (AWS Lambda)
+
+
+```js
+// somefile.js
+
+exports.foo = (event, context, callback) => {
+  context.succeed({
+    message: "I'm Foo on AWS Lambda!"
+  })
+}
+// ... more functions
+```
+
+```json 
+// hyperform.json
+
+{
+  "amazon": {
+    "aws_access_key_id": "...",
+    "aws_secret_access_key": "...",
+    "aws_region": "us-east-2"
+  }
+}
+```
+
+In the Terminal:
+
+``` 
+$ hyperform deploy somefile.js --amazon --url
+```
+
+Output: 
+
+``` 
+                     # GET and POST-able
+$ 🟢 foo on AWS Lambda https://w3g434h.execute-api.us-east-2.amazonaws.com/foo
+```
+
+## Hints & Caveats
+
+* New functions are deployed with 256MB RAM, 60s timeouts 
+* The flag `--url` gives you **unprotected** URLs. Anyone with that URL can invoke your functions
+* The entire folder containing `hyperform.json` will be deployed with each function
+
+
+## Full AWS Lambda Example
 
 Everything works like a normal NodeJS app. 
+
+The entire folder containing `hyperform.json` is uploaded, so you can use NPM packages, use external files, (...) just like normal.
 
 ```js
 // AWS Lambda example
@@ -76,12 +128,13 @@ $ hyperform deploy ./somefile.js --amazon --url # Deploy & get URL via API Gatew
 
 The flag `--url` creates an public, **unprotected** API Gateway route to your function, that you can `GET` and `POST` to.
 
-## Google Cloud Functions Example 
+## Full Google Cloud Functions Example 
 
 Everything works like a normal NodeJS app. 
 
-Google passes Express objects to your functions (`req`, `res`). 
-Otherwise, it is identical to the AWS example above.
+The entire folder containing `hyperform.json` is uploaded, so you can use NPM packages, use external files, (...) just like normal.
+
+Google Cloud passes Express objects to your functions (`req`, `res`). 
 
 ```js
 // Google Cloud Functions Example
@@ -139,13 +192,6 @@ $ hyperform deploy ./somefile.js --google --url # Deploy & get URL via removing 
 
 On Google Cloud, the `--url` flag adds `allUsers` to "Cloud Function Invokers" of the function, so that anyone with the URL can `GET` or `POST` to it.
 
-
-
-## Hints & Caveats
-
-* New functions are deployed with 256MB RAM, 60s timeouts 
-* The flag `--url` gives you **unprotected** URLs. Anyone with that URL can invoke your functions
-* The entire folder containing `hyperform.json` will be deployed with each function
 
 ## Opening Issues
 
