@@ -32,6 +32,8 @@ exports.foo = (event, context, callback) => {
 }
 ```
 
+Create a `hyperform.json` with these fields:
+
 ```json 
 // hyperform.json
 
@@ -64,14 +66,26 @@ $ 🟢 foo on AWS Lambda https://w3g434h.execute-api.us-east-2.amazonaws.com/foo
 * The entire folder containing `hyperform.json` will be deployed with each function
 
 
+
 ## Full AWS Lambda Example
 
 Everything works like a normal NodeJS app. 
 
 The entire folder containing `hyperform.json` is uploaded, so you can use NPM packages, use external files, (...) just like normal.
 
+
+```json 
+// hyperform.json 
+{
+  "amazon": {
+    "aws_access_key_id": "...",
+    "aws_secret_access_key": "...",
+    "aws_region": "..."
+  }
+}
+```
+
 ```js
-// AWS Lambda example
 // somefile.js
 
 /* 
@@ -104,28 +118,6 @@ exports.bar = (event, context, callback) => {
 }
 ```
 
-### Create a `hyperform.json` 
-
-```json
-{
-  "amazon": {
-    "aws_access_key_id": "...",
-    "aws_secret_access_key": "...",
-    "aws_region": "..."
-  }
-}
-```
-
-### Deploy to AWS Lambda
-
-```
-$ hyperform deploy ./somefile.js --amazon       # Deploy
-$ hyperform deploy ./somefile.js --amazon --url # Deploy & get URL via API Gateway
-```
-
-⚠️ Note that the entire folder containing `hyperform.json` will be deployed, minus `.git`, `.gitignore`, `hyperform.json`.
-
-The flag `--url` creates an public, **unprotected** API Gateway route to your function, that you can `GET` and `POST` to.
 
 ## Full Google Cloud Functions Example 
 
@@ -135,10 +127,19 @@ The entire folder containing `hyperform.json` is uploaded, so you can use NPM pa
 
 Google Cloud passes Express objects to your functions (`req`, `res`). 
 
-```js
-// Google Cloud Functions Example
-// somefile.js
 
+```json 
+// hyperform.json 
+{
+  "google": {
+    "gc_project": "...",
+    "gc_region": "...",
+  }
+}
+```
+
+```js
+// somefile.js
 /* 
 .
 ├── node_modules
@@ -148,7 +149,6 @@ Google Cloud passes Express objects to your functions (`req`, `res`).
 │   └── pic.png
 └── somefile.js
 */ 
-
 
 // Use npm packages as normal
 const package = require('lodash')
@@ -169,22 +169,17 @@ exports.bar = (req, res) => {
 
 
 
-### Create a `hyperform.json` 
-
-```json
-{
-  "google": {
-    "gc_project": "...",
-    "gc_region": "...",
-  }
-}
-```
-
 ### FAQ
 
-**Where does deployment happen**
+**Where does deployment happen?**
 
 It's a client-side tool, so on your computer. It uses the credentials it finds in `hyperform.json`
+
+
+**What is deployed, except the code file?**
+
+The entire folder where `hyperform.json` is is uploaded, excluding `.git`, `.gitignore`, `hyperform.json`, and for Google Cloud `node_modules` (it installs NPM dependencies freshly from `package.json`).
+
 
 **How does `--url` create URLs?**
 
