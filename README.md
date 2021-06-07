@@ -52,11 +52,52 @@ In the Terminal:
 $ hyperform deploy somefile.js --amazon --url
 ```
 
-Output: 
+Deployed functions: 
 
 ``` 
                      # GET and POST-able
 $ 🟢 foo on AWS Lambda https://w3g434h.execute-api.us-east-2.amazonaws.com/foo
+```
+
+
+
+
+## Basic Example (Google Cloud Functions)
+
+
+```js
+// somefile.js
+
+exports.foo = (req, res) => {
+  let message = req.query.message || req.body.message || "I'm a Google Cloud Function, Foo";
+  res.status(200).send(message);
+};
+```
+
+Create a `hyperform.json` with these fields:
+
+```json 
+// hyperform.json
+
+{
+  "google": {
+    "gc_project": "...",
+    "gc_region": "...",
+  }
+}
+```
+
+In the Terminal:
+
+``` 
+$ hyperform deploy somefile.js --google --url
+```
+
+Deployed functions: 
+
+``` 
+                                   # GET and POST-able
+$ 🟢 foo on Google Cloud Functions https://us-central1-someproject-153dg2.cloudfunctions.net/foo 
 ```
 
 ## Hints & Caveats
@@ -74,16 +115,6 @@ Everything works like a normal NodeJS app.
 The entire folder containing `hyperform.json` is uploaded, so you can use NPM packages, use external files, (...) just like normal.
 
 
-```json 
-// hyperform.json 
-{
-  "amazon": {
-    "aws_access_key_id": "...",
-    "aws_secret_access_key": "...",
-    "aws_region": "..."
-  }
-}
-```
 
 ```js
 // somefile.js
@@ -128,15 +159,6 @@ The entire folder containing `hyperform.json` is uploaded, so you can use NPM pa
 Google Cloud passes Express objects to your functions (`req`, `res`). 
 
 
-```json 
-// hyperform.json 
-{
-  "google": {
-    "gc_project": "...",
-    "gc_region": "...",
-  }
-}
-```
 
 ```js
 // somefile.js
