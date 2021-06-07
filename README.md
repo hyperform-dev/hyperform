@@ -35,8 +35,6 @@ exports.foo = (event, context, callback) => {
 Create a `hyperform.json` with these fields:
 
 ```json 
-// hyperform.json
-
 {
   "amazon": {
     "aws_access_key_id": "...",
@@ -77,8 +75,6 @@ exports.foo = (req, res) => {
 Create a `hyperform.json` with these fields:
 
 ```json 
-// hyperform.json
-
 {
   "google": {
     "gc_project": "...",
