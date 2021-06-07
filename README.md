@@ -200,7 +200,7 @@ It's a client-side tool, so on your computer. It uses the credentials it finds i
 
 **What is deployed, except the code file?**
 
-The entire folder where `hyperform.json` is is uploaded, excluding `.git`, `.gitignore`, `hyperform.json`, and for Google Cloud `node_modules` (it installs NPM dependencies freshly from `package.json`).
+The entire folder where `hyperform.json` is is uploaded, excluding `.git`, `.gitignore`, `hyperform.json`, and for Google Cloud `node_modules` (Google Cloud installs NPM dependencies freshly from `package.json`).
 
 
 **How does `--url` create URLs?**
@@ -209,7 +209,7 @@ On AWS, it creates an API Gateway API (called `hf`), and a `GET` and `POST` rout
 
 On Google Cloud, it removes IAM checking from the function by adding `allUsers` to the group "Cloud Functions Invoker" of that function.
 
-Note that in both cases, *anyone with the URL can invoke your function. Make sure to add Authentication logic inside your function*, if needed. 
+Note that in both cases, **anyone with the URL can invoke your function. Make sure to add Authentication logic inside your function**, if needed. 
 
 
 
