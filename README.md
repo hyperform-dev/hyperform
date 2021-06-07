@@ -3,11 +3,11 @@
 ![Hyperform Banner](https://github.com/qngapparat/hyperform/blob/master/hyperform-banner.png)
 
 
->🧪 Write .js code, deploy as serverless functions 
->(to your AWS Lambda, Google Cloud Functions account)
+> 🧪 Lightweight serverless framework for NodeJS
 
-
-![demomac2x](https://user-images.githubusercontent.com/28540311/120922670-c83bfc80-c6ca-11eb-9ad8-5688c242ed99.gif)
+* **Simple** to deploy
+* **Lightweight**
+* **Works with** provider's conventions
 
 ## Install
 
@@ -15,35 +15,45 @@
 $ npm install -g hyperform-cli
 ```
 
-## Usage
+## AWS Lambda Example 
 
-### Have some code
-
-For AWS Lambda: 
+Everything works like a normal NodeJS app. 
 
 ```js
+// AWS Lambda example
 // somefile.js
 
+/* 
+.
+├── node_modules
+├── package-lock.json
+├── package.json
+├── some
+│   └── pic.png
+└── somefile.js
+*/ 
+
+// Use npm packages as normal
+const package = require('lodash')
+
+// Use external files as normal 
+const externalfile = fs.readFileSync('./some/pic.png')
+
+// Export each function using 'exports'
 exports.foo = (event, context, callback) => {
   context.succeed({
     message: "I'm Foo on AWS Lambda!"
   })
 }
+
+exports.bar = (event, context, callback) => {
+  context.succeed({
+    message: "I'm Bar on AWS Lambda!"
+  })
+}
 ```
 
-For Google Cloud Functions:
-
-```js
-// somefile.js
-exports.foo = (req, res) => {
-  let message = req.query.message || req.body.message || "I'm a Google Cloud Function, Foo";
-  res.status(200).send(message);
-};
-```
-
-### Create a `hyperform.json`
-
-For AWS Lambda: 
+### Create a `hyperform.json` 
 
 ```json
 {
@@ -55,8 +65,59 @@ For AWS Lambda:
 }
 ```
 
-For Google Cloud Functions: 
+### Deploy to AWS Lambda
 
+```
+$ hyperform deploy ./somefile.js --amazon       # Deploy
+$ hyperform deploy ./somefile.js --amazon --url # Deploy & get URL via API Gateway
+```
+
+⚠️ Note that the entire folder containing `hyperform.json` will be deployed, minus `.git`, `.gitignore`, `hyperform.json`.
+
+The flag `--url` creates an public, **unprotected** API Gateway route to your function, that you can `GET` and `POST` to.
+
+## Google Cloud Functions Example 
+
+Everything works like a normal NodeJS app. 
+
+Google passes Express objects to your functions (`req`, `res`). 
+Otherwise, it is identical to the AWS example above.
+
+```js
+// Google Cloud Functions Example
+// somefile.js
+
+/* 
+.
+├── node_modules
+├── package-lock.json
+├── package.json
+├── some
+│   └── pic.png
+└── somefile.js
+*/ 
+
+
+// Use npm packages as normal
+const package = require('lodash')
+
+// Use external files as normal 
+const externalfile = fs.readFileSync('./some/pic.png')
+
+exports.foo = (req, res) => {
+  let message = req.query.message || req.body.message || "I'm a Google Cloud Function, Foo";
+  res.status(200).send(message);
+};
+
+exports.bar = (req, res) => {
+  let message = req.query.message || req.body.message || "I'm a Google Cloud Function, Bar";
+  res.status(200).send(message);
+};
+```
+
+
+
+### Create a `hyperform.json` 
 
 ```json
 {
@@ -67,35 +128,23 @@ For Google Cloud Functions:
 }
 ```
 
-
-### Deploy
-
+### Deploy to Google Cloud Functions
 
 ```
-$ hyperform deploy somefile.js --amazon  
-$ hyperform deploy somefile.js --google  
+$ hyperform deploy ./somefile.js --google       # Deploy
+$ hyperform deploy ./somefile.js --google --url # Deploy & get URL via removing IAM
 ```
 
-⚠️ Note that the entire folder containing `hyperform.json` will be deployed, minus `.git`, `.gitignore`, `hyperform.json`.
-This means you can use npm packages (`node_modules`) as normal.
+⚠️ Note that the entire folder containing `hyperform.json` will be deployed, minus `.git`, `.gitignore`, `node_modules`, and `hyperform.json`.
+
+On Google Cloud, the `--url` flag adds `allUsers` to "Cloud Function Invokers" of the function, so that anyone with the URL can `GET` or `POST` to it.
 
 
 
-### Deploy & get URL
-
-
-```
-$ hyperform deploy somefile.js --amazon --url
-$ hyperform deploy somefile.js --google --url  
-```
-
-This gives the function an **unprotected** URL to GET and POST to. On Amazon, it adds a public API gateway route, on Google Cloud it adds `allUsers` to the group "Cloud Function Invokers" to the function.
-
-
-## Hints
+## Hints & Caveats
 
 * New functions are deployed with 256MB RAM, 60s timeouts 
-* Multiple functions can be deployed at once, just specify them with `exports`
+* The flag `--url` gives you **unprotected** URLs. Anyone with that URL can invoke your functions
 * The entire folder containing `hyperform.json` will be deployed with each function
 
 ## Opening Issues
