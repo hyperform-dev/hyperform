@@ -21,11 +21,12 @@ $ npm install -g hyperform-cli
 ## Usage (AWS Lambda)
 
 
-Everything works like a normal NodeJS app. Your functions can include NPM packages, external files, assets, (...) since the entire folder containing `hyperform.json` is included with each function.
-
-
 ```js
 // somefile.js
+
+// Everything works like a normal NodeJS app. 
+// Use NPM packages, external files, assets, ...
+// ...since the entire folder containing `hyperform.json` is included with each function.
 
 exports.foo = (event, context, callback) => {
 
@@ -70,11 +71,14 @@ $ 🟢 foo https://w3g434h.execute-api.us-east-2.amazonaws.com/foo
 
 ## Usage (Google Cloud Functions)
 
-Everything works like a normal NodeJS app. Your functions can include NPM packages, external files, assets, (...) since the entire folder containing `hyperform.json` is included with each function.
 
 
 ```js
 // somefile.js
+
+// Everything works like a normal NodeJS app. 
+// Use NPM packages, external files, assets, ...
+// ...since the entire folder containing `hyperform.json` is included with each function.
 
 exports.foo = (req, res) => {
 
