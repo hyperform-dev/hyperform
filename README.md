@@ -20,23 +20,27 @@ $ npm install -g hyperform-cli
 
 ## Usage (AWS Lambda)
 
-Everything works like a normal NodeJS app. You can use NPM packages, external files, assets, since the entire folder containing `hyperform.json` is included with the functions.
 
-For instance, write:
+Everything works like a normal NodeJS app. Your functions can include NPM packages, external files, assets, (...) since the entire folder containing `hyperform.json` is included with each function.
+
 
 ```js
 // somefile.js
 
 exports.foo = (event, context, callback) => {
+
+// 'event', 'context', 'callback' is AWS Lambda's convention
+// Learn more: https://docs.aws.amazon.com/lambda/latest/dg/nodejs-handler.html
+
   context.succeed({
     message: "I'm Foo on AWS Lambda!"
   })
 }
-// ... more functions 
+
+// ... 
 ```
 
-
-Create a `hyperform.json` with these fields:
+Create a `hyperform.json` with your AWS Lambda credentials. You can get new credentials from your AWS Developer Console. 
 
 ```json 
 {
@@ -48,7 +52,7 @@ Create a `hyperform.json` with these fields:
 }
 ```
 
-Then, to deploy and get an URL, type: 
+Then, to deploy and get an URL, simply type: 
 
 ``` 
 $ hyperform deploy somefile.js --amazon --url
@@ -66,14 +70,18 @@ $ 🟢 foo https://w3g434h.execute-api.us-east-2.amazonaws.com/foo
 
 ## Usage (Google Cloud Functions)
 
-Everything works like a normal NodeJS app. You can use NPM packages, external files, assets, because the entire folder containing `hyperform.json` is uploaded.
+Everything works like a normal NodeJS app. Your functions can include NPM packages, external files, assets, (...) since the entire folder containing `hyperform.json` is included with each function.
 
-For instance, write:
 
 ```js
 // somefile.js
 
 exports.foo = (req, res) => {
+
+  // Google uses Express's 'Request' and 'Response' convention
+  // Learn more: https://expressjs.com/en/api.html#req 
+  //             https://expressjs.com/en/api.html#res
+
   let message = req.query.message || req.body.message || "I'm a Google Cloud Function, Foo";
   res.status(200).send(message);
 };
@@ -81,7 +89,9 @@ exports.foo = (req, res) => {
 ```
 
 
-If you use Google Cloud, functions are deployed as Google Cloud Functions. Create a `hyperform.json` with these fields:
+Create a hyperform.json with your Google Cloud Service account credentials. You can get new credentials from your Google Cloud Console.
+
+
 
 ```json 
 {
@@ -92,7 +102,7 @@ If you use Google Cloud, functions are deployed as Google Cloud Functions. Creat
 }
 ```
 
-Then, to deploy and get an URL, type: 
+Then, to deploy and get an URL, simply type: 
 
 ``` 
 $ hyperform deploy somefile.js --google --url
