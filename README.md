@@ -5,7 +5,7 @@
 
 > ⚡ Lightweight serverless framework for NodeJS
 
-* **Unopinionated** (any NodeJS code works)
+* **Any JS code works** (Unopinionated)
 * **1-click deploy** (1 command)
 * **Lightweight** (no wrapping)
 * **Multi-Cloud** (for AWS & Google Cloud)
@@ -20,9 +20,9 @@ $ npm install -g hyperform-cli
 
 ## Usage (AWS Lambda)
 
-Everything works like a normal NodeJS app. You can use NPM packages, external files, assets, because the entire folder containing `hyperform.json` is uploaded.
+Everything works like a normal NodeJS app. You can use NPM packages, external files, assets, since the entire folder containing `hyperform.json` is included with the functions.
 
-For instance: 
+For instance, write:
 
 ```js
 // somefile.js
@@ -34,6 +34,7 @@ exports.foo = (event, context, callback) => {
 }
 // ... more functions 
 ```
+
 
 Create a `hyperform.json` with these fields:
 
@@ -47,7 +48,7 @@ Create a `hyperform.json` with these fields:
 }
 ```
 
-Then, type: 
+Then, to deploy and get an URL, type: 
 
 ``` 
 $ hyperform deploy somefile.js --amazon --url
@@ -67,8 +68,7 @@ $ 🟢 foo https://w3g434h.execute-api.us-east-2.amazonaws.com/foo
 
 Everything works like a normal NodeJS app. You can use NPM packages, external files, assets, because the entire folder containing `hyperform.json` is uploaded.
 
-For instance: 
-
+For instance, write:
 
 ```js
 // somefile.js
@@ -80,7 +80,8 @@ exports.foo = (req, res) => {
 // ... more functions
 ```
 
-Create a `hyperform.json` with these fields:
+
+If you use Google Cloud, functions are deployed as Google Cloud Functions. Create a `hyperform.json` with these fields:
 
 ```json 
 {
@@ -91,7 +92,7 @@ Create a `hyperform.json` with these fields:
 }
 ```
 
-Then, type: 
+Then, to deploy and get an URL, type: 
 
 ``` 
 $ hyperform deploy somefile.js --google --url
