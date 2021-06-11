@@ -48,7 +48,7 @@ Create a `hyperform.json` with your AWS Lambda credentials. You can get new cred
   "amazon": {
     "aws_access_key_id": "...",
     "aws_secret_access_key": "...",
-    "aws_region": "us-east-2"
+    "aws_region": "..."
   }
 }
 ```
