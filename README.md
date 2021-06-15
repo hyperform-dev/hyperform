@@ -5,9 +5,9 @@
 
 > ⚡ Lightweight serverless framework for NodeJS
 
-* **Any JS code works** (Unopinionated)
-* **1-click deploy** (1 command)
+* **Unopinionated** (Any JS code works)
 * **Lightweight** (no wrapping)
+* **1-click deploy** (1 command)
 * **Multi-Cloud** (for AWS & Google Cloud)
 * **Maintains** (provider's conventions)
 
