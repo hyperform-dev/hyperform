@@ -3,9 +3,9 @@
 ![Hyperform Banner](https://github.com/qngapparat/hyperform/blob/master/hyperform-banner.png)
 
 
-> 🧪 Lightweight serverless framework for NodeJS
+> ⚡ Lightweight serverless framework for NodeJS
 
-* **Unopinionated** (any NodeJS code works)
+* **Any JS code works** (Unopinionated)
 * **1-click deploy** (1 command)
 * **Lightweight** (no wrapping)
 * **Multi-Cloud** (for AWS & Google Cloud)
@@ -17,62 +17,85 @@
 $ npm install -g hyperform-cli
 ```
 
-Hyperform works for AWS Lambda & Google Cloud Functions.
 
-## Basic Example (AWS Lambda)
+## Usage (AWS Lambda)
 
 
 ```js
 // somefile.js
 
+// Everything works like a normal NodeJS app. 
+// Use NPM packages, external files, assets, ...
+// ...since the entire folder containing `hyperform.json` is included with each function.
+
 exports.foo = (event, context, callback) => {
+
+// 'event', 'context', 'callback' is AWS Lambda's convention
+// Learn more: https://docs.aws.amazon.com/lambda/latest/dg/nodejs-handler.html
+
   context.succeed({
     message: "I'm Foo on AWS Lambda!"
   })
 }
+
+// ... 
 ```
 
-Create a `hyperform.json` with these fields:
+Create a `hyperform.json` with your AWS Lambda credentials. You can get new credentials from your AWS Developer Console. 
 
 ```json 
 {
   "amazon": {
     "aws_access_key_id": "...",
     "aws_secret_access_key": "...",
-    "aws_region": "us-east-2"
+    "aws_region": "..."
   }
 }
 ```
 
-In the Terminal:
+Then, to deploy and get an URL, simply type: 
 
 ``` 
 $ hyperform deploy somefile.js --amazon --url
 ```
 
-Deployed functions: 
+... and your functions are deployed: 
 
 ``` 
-                     # GET and POST-able
-$ 🟢 foo on AWS Lambda https://w3g434h.execute-api.us-east-2.amazonaws.com/foo
+         # URL is created via API Gateway (GET and POST-able)
+$ 🟢 foo https://w3g434h.execute-api.us-east-2.amazonaws.com/foo
 ```
 
 
 
 
-## Basic Example (Google Cloud Functions)
+## Usage (Google Cloud Functions)
+
 
 
 ```js
 // somefile.js
 
+// Everything works like a normal NodeJS app. 
+// Use NPM packages, external files, assets, ...
+// ...since the entire folder containing `hyperform.json` is included with each function.
+
 exports.foo = (req, res) => {
+
+  // Google uses Express's 'Request' and 'Response' convention
+  // Learn more: https://expressjs.com/en/api.html#req 
+  //             https://expressjs.com/en/api.html#res
+
   let message = req.query.message || req.body.message || "I'm a Google Cloud Function, Foo";
   res.status(200).send(message);
 };
+// ... more functions
 ```
 
-Create a `hyperform.json` with these fields:
+
+Create a hyperform.json with your Google Cloud Service account credentials. You can get new credentials from your Google Cloud Console.
+
+
 
 ```json 
 {
@@ -83,108 +106,24 @@ Create a `hyperform.json` with these fields:
 }
 ```
 
-In the Terminal:
+Then, to deploy and get an URL, simply type: 
 
 ``` 
 $ hyperform deploy somefile.js --google --url
 ```
 
-Deployed functions: 
+... and your functions are deployed:
 
 ``` 
-                                   # GET and POST-able
-$ 🟢 foo on Google Cloud Functions https://us-central1-someproject-153dg2.cloudfunctions.net/foo 
+         # URL is GET and POST-able
+$ 🟢 foo https://us-central1-someproject-153dg2.cloudfunctions.net/foo 
 ```
 
 ## Hints & Caveats
 
 * New functions are deployed with 256MB RAM, 60s timeouts 
 * The flag `--url` creates **unprotected** URLs to the functions. Anyone with these URLs can invoke your functions
-* The entire folder containing `hyperform.json` will be deployed with each function
-
-
-
-## Full AWS Lambda Example
-
-Everything works like a normal NodeJS app. 
-
-The entire folder containing `hyperform.json` is uploaded, so you can use NPM packages, use external files, (...) just like normal.
-
-
-
-```js
-// somefile.js
-
-/* 
-.
-├── node_modules
-├── package-lock.json
-├── package.json
-├── some
-│   └── pic.png
-└── somefile.js
-*/ 
-
-// Use npm packages as normal
-const package = require('lodash')
-
-// Use external files as normal 
-const externalfile = fs.readFileSync('./some/pic.png')
-
-// Export each function using 'exports'
-exports.foo = (event, context, callback) => {
-  context.succeed({
-    message: "I'm Foo on AWS Lambda!"
-  })
-}
-
-exports.bar = (event, context, callback) => {
-  context.succeed({
-    message: "I'm Bar on AWS Lambda!"
-  })
-}
-```
-
-
-## Full Google Cloud Functions Example 
-
-Everything works like a normal NodeJS app. 
-
-The entire folder containing `hyperform.json` is uploaded, so you can use NPM packages, use external files, (...) just like normal.
-
-Google Cloud passes Express objects to your functions (`req`, `res`). 
-
-
-
-```js
-// somefile.js
-/* 
-.
-├── node_modules
-├── package-lock.json
-├── package.json
-├── some
-│   └── pic.png
-└── somefile.js
-*/ 
-
-// Use npm packages as normal
-const package = require('lodash')
-
-// Use external files as normal 
-const externalfile = fs.readFileSync('./some/pic.png')
-
-exports.foo = (req, res) => {
-  let message = req.query.message || req.body.message || "I'm a Google Cloud Function, Foo";
-  res.status(200).send(message);
-};
-
-exports.bar = (req, res) => {
-  let message = req.query.message || req.body.message || "I'm a Google Cloud Function, Bar";
-  res.status(200).send(message);
-};
-```
-
+* The entire folder containing `hyperform.json` will be deployed with each function, so you can use NPM packages, external files (...) just like normal.
 
 
 ### FAQ
@@ -194,10 +133,9 @@ exports.bar = (req, res) => {
 It's a client-side tool, so on your computer. It uses the credentials it finds in `hyperform.json`
 
 
-**What is deployed, except the code file?**
+**Can I use NPM packages, external files, (...) ?**
 
-The entire folder where `hyperform.json` is is uploaded, excluding `.git`, `.gitignore`, `hyperform.json`, and for Google Cloud `node_modules` (Google Cloud installs NPM dependencies freshly from `package.json`).
-
+Yes. The entire folder where `hyperform.json` is is uploaded, excluding `.git`, `.gitignore`, `hyperform.json`, and for Google Cloud `node_modules` (Google Cloud installs NPM dependencies freshly from `package.json`). So everything works like a normal NodeJS app.
 
 **How does `--url` create URLs?**
 
