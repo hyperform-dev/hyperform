@@ -128,6 +128,11 @@ $ 🟢 foo https://us-central1-someproject-153dg2.cloudfunctions.net/foo
 
 ### FAQ
 
+**Where are functions deployed to?**
+
+* On AWS: To AWS Lambda
+* On Google Cloud: To Google Cloud Functions
+
 **Where does deployment happen?**
 
 It's a client-side tool, so on your computer. It uses the credentials it finds in `hyperform.json`
