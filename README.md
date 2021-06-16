@@ -65,14 +65,12 @@ In the terminal, type:
 
 ``` 
 $ hyperform deploy somefile.js --amazon --url
-                     # GET and POST-able
   > 🟢 foo https://w3g434h.execute-api.us-east-2.amazonaws.com/foo
   > 🟢 bar https://w3g434h.execute-api.us-east-2.amazonaws.com/bar
 
 ```
 
-... and your functions are deployed & invokable via URL.
-
+... and your functions are deployed & invocable via `GET` and `POST`.
 
 
 ### Google Cloud Functions
@@ -112,14 +110,12 @@ In the terminal, type:
 
 ``` 
 $ hyperform deploy somefile.js --google --url    
-                        # GET and POST-able
   > 🟢 foo https://us-central1-someproject-153dg2.cloudfunctions.net/foo 
   > 🟢 bar https://us-central1-someproject-153dg2.cloudfunctions.net/bar 
 
 ```
 
-... and your functions are deployed and invokable via URL.
-
+... and your functions are deployed & invocable via `GET` and `POST`.
 
 ## Hints & Caveats
 
