@@ -71,8 +71,7 @@ $ hyperform deploy somefile.js --amazon --url
 
 ```
 
-... and your functions are deployed. 
-
+... and your functions are deployed & invokable via URL.
 
 
 
@@ -119,7 +118,7 @@ $ hyperform deploy somefile.js --google --url
 
 ```
 
-... and your functions are deployed. 
+... and your functions are deployed and invokable via URL.
 
 
 ## Hints & Caveats
