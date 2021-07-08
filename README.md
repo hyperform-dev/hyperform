@@ -5,11 +5,12 @@
 
 > ⚡ Lightweight serverless framework for NodeJS
 
-* **Any JS code works** (Unopinionated)
-* **1-click deploy** (1 command)
+* **Unopinionated** (Any JS code works)
 * **Lightweight** (no wrapping)
+* **1-click deploy** (1 command)
 * **Multi-Cloud** (for AWS & Google Cloud)
 * **Maintains** (provider's conventions)
+
 
 ## Install
 
@@ -18,30 +19,37 @@ $ npm install -g hyperform-cli
 ```
 
 
-## Usage (AWS Lambda)
+
+## Usage
+
+
+* Everything works like a normal NodeJS app. You can use NPM packages, external files, assets, since the entire folder containing `hyperform.json` is included with each function.
+
+### AWS Lambda
 
 
 ```js
 // somefile.js
 
-// Everything works like a normal NodeJS app. 
-// Use NPM packages, external files, assets, ...
-// ...since the entire folder containing `hyperform.json` is included with each function.
-
-exports.foo = (event, context, callback) => {
-
-// 'event', 'context', 'callback' is AWS Lambda's convention
+// AWS Lambda uses 'event', 'context', and 'callback'  convention
 // Learn more: https://docs.aws.amazon.com/lambda/latest/dg/nodejs-handler.html
 
+exports.foo = (event, context, callback) => {
   context.succeed({
     message: "I'm Foo on AWS Lambda!"
+  })
+}
+
+exports.bar = (event, context, callback) => {
+  context.succeed({
+    message: "I'm Bar on AWS Lambda!"
   })
 }
 
 // ... 
 ```
 
-Create a `hyperform.json` with your AWS Lambda credentials. You can get new credentials from your AWS Developer Console. 
+Create a `hyperform.json` in the current folder, with your AWS credentials:
 
 ```json 
 {
@@ -53,49 +61,41 @@ Create a `hyperform.json` with your AWS Lambda credentials. You can get new cred
 }
 ```
 
-Then, to deploy and get an URL, simply type: 
+In the terminal, type:
 
 ``` 
 $ hyperform deploy somefile.js --amazon --url
+  > 🟢 foo https://w3g434h.execute-api.us-east-2.amazonaws.com/foo
+  > 🟢 bar https://w3g434h.execute-api.us-east-2.amazonaws.com/bar
+
 ```
 
-... and your functions are deployed: 
-
-``` 
-         # URL is created via API Gateway (GET and POST-able)
-$ 🟢 foo https://w3g434h.execute-api.us-east-2.amazonaws.com/foo
-```
+... and your functions are deployed & invocable via `GET` and `POST`.
 
 
-
-
-## Usage (Google Cloud Functions)
-
+### Google Cloud Functions
 
 
 ```js
 // somefile.js
 
-// Everything works like a normal NodeJS app. 
-// Use NPM packages, external files, assets, ...
-// ...since the entire folder containing `hyperform.json` is included with each function.
+// Google Cloud uses Express's 'Request' and 'Response' convention
+// Learn more: https://expressjs.com/en/api.html#req 
+//             https://expressjs.com/en/api.html#res
 
 exports.foo = (req, res) => {
-
-  // Google uses Express's 'Request' and 'Response' convention
-  // Learn more: https://expressjs.com/en/api.html#req 
-  //             https://expressjs.com/en/api.html#res
-
   let message = req.query.message || req.body.message || "I'm a Google Cloud Function, Foo";
   res.status(200).send(message);
 };
-// ... more functions
+
+exports.bar = (req, res) => {
+  let message = req.query.message || req.body.message || "I'm a Google Cloud Function, Bar";
+  res.status(200).send(message);
+};
 ```
 
 
-Create a hyperform.json with your Google Cloud Service account credentials. You can get new credentials from your Google Cloud Console.
-
-
+Create a `hyperform.json` in the current folder with your Google Cloud credentials:
 
 ```json 
 {
@@ -106,24 +106,23 @@ Create a hyperform.json with your Google Cloud Service account credentials. You 
 }
 ```
 
-Then, to deploy and get an URL, simply type: 
+In the terminal, type:
 
 ``` 
-$ hyperform deploy somefile.js --google --url
+$ hyperform deploy somefile.js --google --url    
+  > 🟢 foo https://us-central1-someproject-153dg2.cloudfunctions.net/foo 
+  > 🟢 bar https://us-central1-someproject-153dg2.cloudfunctions.net/bar 
+
 ```
 
-... and your functions are deployed:
-
-``` 
-         # URL is GET and POST-able
-$ 🟢 foo https://us-central1-someproject-153dg2.cloudfunctions.net/foo 
-```
+... and your functions are deployed & invocable via `GET` and `POST`.
 
 ## Hints & Caveats
 
 * New functions are deployed with 256MB RAM, 60s timeouts 
 * The flag `--url` creates **unprotected** URLs to the functions. Anyone with these URLs can invoke your functions
 * The entire folder containing `hyperform.json` will be deployed with each function, so you can use NPM packages, external files (...) just like normal.
+
 
 
 ### FAQ
