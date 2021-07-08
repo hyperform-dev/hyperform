@@ -115,9 +115,11 @@ async function _updateGoogle(signedUploadUrl, options) {
       // },
       sourceUploadUrl: signedUploadUrl,
     },
-    // TODO use this (POSITIVE SPECIFY, ie specify all fields that shall be updated)
-    // TODOif it's null, it resets all other fields :/
-    updateMask: null,
+    // POSITIVE SPECIFY, ie specify all fields that shall be updated)
+    // if it's null, it resets all other fields :/
+    updateMask: {
+      paths: ['timeout', 'runtime'],
+    },
   }
   const res = await client.updateFunction(updateOptions)
   logdev(`google: updated function ${options.name}`)
