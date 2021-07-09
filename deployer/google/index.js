@@ -110,15 +110,17 @@ async function _updateGoogle(signedUploadUrl, options) {
         url: `https://${options.region}-${options.project}.cloudfunctions.net/${options.name}`,
       },
       runtime: options.runtime,
-      // timeout: {
-      //   seconds: 120,
-      // },
+      timeout: {
+        seconds: 120,
+      },
       sourceUploadUrl: signedUploadUrl,
     },
-    // Empty array to not overwrite 'timeout' or 'runtime'
-    updateMask: {
-      paths: [],
-    },
+    // TODO Empty array to not overwrite 'timeout' or 'runtime'
+    updateMask: null,
+    // this does not work :(
+    // updateMask: {
+    //   paths: ['sourceUploadUrl']
+    // }
   }
   const res = await client.updateFunction(updateOptions)
   logdev(`google: updated function ${options.name}`)
